@@ -67,7 +67,7 @@ private val Ink = Color(0xFF15312A)
 private val AppBackground = Color(0xFFF4F9F6)
 
 class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); enableEdgeToEdge(); val db = Room.databaseBuilder(applicationContext, TeachTrackDatabase::class.java, "teachtrack.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7).build(); val repo = TeachTrackRepository(db.dao(), WorkspaceSyncCoordinator(applicationContext)); setContent { TeachTrackTheme { TeachTrackShell(repo) } }; OAuthManager.handleCallback(this, intent) }
+    override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); enableEdgeToEdge(); val db = Room.databaseBuilder(applicationContext, TeachTrackDatabase::class.java, "teachtrack.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7).build(); val repo = TeachTrackRepository(db.dao(), WorkspaceSyncCoordinator(applicationContext), db); setContent { TeachTrackTheme { TeachTrackShell(repo) } }; OAuthManager.handleCallback(this, intent) }
     override fun onNewIntent(intent: android.content.Intent) { super.onNewIntent(intent); setIntent(intent); OAuthManager.handleCallback(this, intent) }
 }
 

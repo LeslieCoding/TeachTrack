@@ -43,6 +43,8 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Hardened `.ttbackup`: archive creation now recursively includes workspace files, sync metadata, device records, and binary attachments; restore writes raw bytes instead of UTF-8 text conversion.
 - Added `WorkspaceStorage.readBytes` and guarded SAF reads so directories or temporarily unavailable nodes do not crash scanning/archiving.
 - OnePlus regression after archive hardening: `OK (4 tests)`; installation succeeded and existing seed-backed local data remained available.
+- Wrapped Room backup/workspace imports in `RoomDatabase.withTransaction`; partial restore failures now roll back instead of leaving a half-imported database.
+- OnePlus regression after transactional import change: `OK (4 tests)`.
 
 ## Known limitations kept explicit
 

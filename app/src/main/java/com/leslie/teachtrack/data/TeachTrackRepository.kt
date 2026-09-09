@@ -1,7 +1,9 @@
 package com.leslie.teachtrack.data
 
 import com.leslie.teachtrack.core.database.TeachTrackDao
+import com.leslie.teachtrack.core.database.TeachTrackDatabase
 import com.leslie.teachtrack.core.model.*
+import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import org.json.JSONArray
 import org.json.JSONObject
@@ -25,7 +27,7 @@ data class BackupPreview(
     val total: Int
 )
 
-class TeachTrackRepository(private val dao: TeachTrackDao, private val sync: WorkspaceSyncCoordinator? = null) {
+class TeachTrackRepository(private val dao: TeachTrackDao, private val sync: WorkspaceSyncCoordinator? = null, private val database: TeachTrackDatabase? = null) {
     fun daoForSeed(): TeachTrackDao = dao
     fun previewBackupJson(json: String): BackupPreview {
         val root = JSONObject(json)
@@ -41,7 +43,8 @@ class TeachTrackRepository(private val dao: TeachTrackDao, private val sync: Wor
         dao.allScores().forEach { score -> val exam = exams[score.examId]; rows += listOf(students[score.studentId]?.name.orEmpty(), exam?.name.orEmpty(), exam?.date.orEmpty(), exam?.subject.orEmpty(), score.score.toString(), score.fullScore.toString(), "%.2f%%".format(score.scoreRate * 100), score.classRank?.toString().orEmpty(), score.gradeRank?.toString().orEmpty()).joinToString(",") { "\"${it.replace("\"", "\"\"")}\"" } }
         return rows.joinToString("\n")
     }
-    suspend fun importBackupJson(json: String): Int {
+    suspend fun importBackupJson(json: String): Int = database?.withTransaction { importBackupJsonInternal(json) } ?: importBackupJsonInternal(json)
+    private suspend fun importBackupJsonInternal(json: String): Int {
         val root = JSONObject(json); var count = 0
         fun str(o: JSONObject, key: String) = o.optString(key).takeIf { it.isNotBlank() }
         root.optJSONArray("students")?.let { a -> for (i in 0 until a.length()) { val o = a.getJSONObject(i); dao.upsertStudent(StudentEntity(o.getString("id"), o.getString("name"), gender = str(o, "gender"), grade = o.optString("grade"), school = o.optString("school"), className = o.optString("className"), subject = o.optString("subject"), status = runCatching { StudentStatus.valueOf(o.optString("status", "ACTIVE")) }.getOrDefault(StudentStatus.ACTIVE), startDate = str(o, "startDate"), notes = o.optString("notes"), createdAt = o.optLong("createdAt"), updatedAt = o.optLong("updatedAt"), displayName = o.optString("displayName"), currentGrade = str(o, "currentGrade"), gradeAtRecord = str(o, "gradeAtRecord"), nameCompleteness = o.optString("nameCompleteness", "CONFIRMED"))); count++ } }
