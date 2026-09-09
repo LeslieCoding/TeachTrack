@@ -51,6 +51,9 @@ class WorkspaceExporter(private val repository: TeachTrackRepository, private va
             storage.write("data/$file", lines)
             files++
         }
+        repository.daoForSeed().allAttachments().forEach { attachment ->
+            if (attachment.relativePath.isNotBlank() && attachment.uri.startsWith("content://")) runCatching { manager.copyUriToWorkspace(android.net.Uri.parse(attachment.uri), storage, attachment.relativePath) }
+        }
         manager.ensureStructure(storage, manifest.copy(name = name, appMinVersion = "3.0.0", updatedAt = Instant.now().toString()))
         return WorkspaceExportResult(manifest.workspaceId, records, files)
     }

@@ -139,6 +139,7 @@ private fun WorkspaceSettingsCard(context: android.content.Context, vm: TeachTra
             OutlinedButton(onClick = { vm.exportWorkspace { status = it } }) { Text("立即导出到当前工作区") }
             OutlinedButton(onClick = { createBackup.launch("TeachTrack-Workspace.ttbackup") }) { Text("创建 .ttbackup 备份") }
             OutlinedButton(onClick = { openBackup.launch(arrayOf("application/zip", "application/octet-stream")) }) { Text("从 .ttbackup 恢复到新工作区") }
+            OutlinedButton(onClick = { vm.checkWorkspace { status = it } }) { Text("检查工作区完整性") }
             if (status.isNotBlank()) Text(status, color = FeatureGreen, fontSize = 13.sp)
         }
     }

@@ -50,6 +50,7 @@ import com.leslie.teachtrack.data.workspace.WorkspaceImporter
 import com.leslie.teachtrack.data.workspace.WorkspaceArchiveManager
 import com.leslie.teachtrack.data.workspace.WorkspaceSyncCoordinator
 import com.leslie.teachtrack.data.workspace.AttachmentIntegrityCalculator
+import com.leslie.teachtrack.data.workspace.WorkspaceHealthChecker
 import org.json.JSONObject
 import com.leslie.teachtrack.copilot.*
 import kotlinx.coroutines.flow.*
@@ -107,7 +108,7 @@ class TeachTrackViewModel(private val repo: TeachTrackRepository, context: andro
     fun saveHomework(homework: HomeworkEntity) = viewModelScope.launch { repo.saveHomework(homework) }
     fun saveCommunication(record: CommunicationEntity) = viewModelScope.launch { repo.saveCommunication(record) }
     fun saveParentContact(contact: ParentContactEntity) = viewModelScope.launch { repo.saveParentContact(contact) }
-    fun saveAttachment(attachment: AttachmentEntity) = viewModelScope.launch { val enriched = runCatching { AttachmentIntegrityCalculator.calculate(appContext.contentResolver, Uri.parse(attachment.uri)) }.fold({ attachment.copy(size = it.size, sha256 = it.sha256, updatedAt = System.currentTimeMillis()) }, { attachment }); repo.saveAttachment(enriched) }
+    fun saveAttachment(attachment: AttachmentEntity) = viewModelScope.launch { val path = attachment.relativePath.ifBlank { "attachments/students/${attachment.studentId ?: "general"}/${attachment.id}" }; val enriched = runCatching { AttachmentIntegrityCalculator.calculate(appContext.contentResolver, Uri.parse(attachment.uri)) }.fold({ attachment.copy(relativePath = path, size = it.size, sha256 = it.sha256, updatedAt = System.currentTimeMillis()) }, { attachment.copy(relativePath = path) }); repo.saveAttachment(enriched) }
     fun deleteAttachment(id: String) = viewModelScope.launch { repo.deleteAttachment(id) }
     fun saveTemplate(template: TemplateEntity) = viewModelScope.launch { repo.saveTemplate(template) }
     fun deleteTemplate(id: String) = viewModelScope.launch { repo.deleteTemplate(id) }
@@ -158,6 +159,7 @@ class TeachTrackViewModel(private val repo: TeachTrackRepository, context: andro
             result
         }.onSuccess { onFinished("备份已恢复：${it.records} 条记录，${it.issues.size} 条问题") }.onFailure { onFinished("备份恢复失败：${it.message ?: "请确认备份文件"}") }
     }
+    fun checkWorkspace(onFinished: (String) -> Unit = {}) = viewModelScope.launch { runCatching { val storage = workspaceManager.storage() ?: error("请先连接工作区"); WorkspaceHealthChecker(workspaceManager).check(storage) }.onSuccess { onFinished("工作区检查：${it.checkedFiles} 个文件、${it.records} 条记录、${it.issues.size} 个问题") }.onFailure { onFinished("工作区检查失败：${it.message ?: "请重试"}") } }
 }
 
 @Composable fun TeachTrackApp(repo: TeachTrackRepository) {

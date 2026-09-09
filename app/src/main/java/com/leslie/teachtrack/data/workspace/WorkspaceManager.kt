@@ -30,4 +30,7 @@ class WorkspaceManager(private val context: Context) {
         require(o.optString("workspaceId").isNotBlank()) { "Workspace ID is missing" }
         return WorkspaceManifest(o.getString("format"), o.getString("workspaceId"), o.optString("name", "My Students"), o.optInt("schemaVersion", 1), o.optString("createdAt"), o.optString("updatedAt"), o.optString("appMinVersion", "1.0.0"), o.optString("dataFormat", "jsonl"), o.optJSONObject("encryption")?.optBoolean("enabled", false) ?: false)
     }
+    fun copyUriToWorkspace(uri: Uri, storage: WorkspaceStorage, relativePath: String) {
+        context.contentResolver.openInputStream(uri)?.use { input -> storage.writeBytes(relativePath, input.readBytes()) } ?: error("Attachment cannot be read")
+    }
 }

@@ -11,6 +11,7 @@ class SyncEngine(private val manager: WorkspaceManager) {
         val event = SyncEvent(UUID.randomUUID().toString(), workspaceId, manager.device.deviceId, Instant.now().toString(), entityType, entityId, operation, baseRevision, revision, payload.toString())
         val month = Instant.now().toString().substring(0, 7).replace('-', '/')
         storage.append("sync/events/$month/${manager.device.deviceId}.jsonl", JSONObject().put("eventId", event.eventId).put("workspaceId", event.workspaceId).put("deviceId", event.deviceId).put("timestamp", event.timestamp).put("entityType", event.entityType).put("entityId", event.entityId).put("operation", event.operation).put("baseRevision", event.baseRevision).put("revision", event.revision).put("payload", JSONObject(event.payload)).toString() + "\n")
+        if (operation == "DELETE") storage.write("sync/tombstones/$entityType-$entityId.json", JSONObject().put("workspaceId", workspaceId).put("entityType", entityType).put("entityId", entityId).put("deletedAt", event.timestamp).put("revision", revision).put("deviceId", event.deviceId).toString(2))
         return event
     }
     fun writeCheckpoint(storage: WorkspaceStorage, workspaceId: String, lastProcessedEvent: String) {

@@ -34,3 +34,5 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Added `.ttbackup` restore flow in Settings: select archive, select new target folder, unpack, import and report issues.
 - OnePlus second regression: `OK (4 tests)` after the 6→7 migration.
 - OnePlus screenshot: `artifacts/screenshots/oneplus-v2/v3-settings.png`.
+- Added Workspace Health Check, DELETE tombstone files, and portable attachment byte copying using relative paths.
+- Final OnePlus regression after these changes: `OK (4 tests)`.

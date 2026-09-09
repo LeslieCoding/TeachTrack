@@ -8,8 +8,10 @@ import org.json.JSONObject
 interface WorkspaceStorage {
     fun read(name: String): String?
     fun write(name: String, content: String)
+    fun writeBytes(name: String, content: ByteArray)
     fun append(relativePath: String, content: String)
     fun exists(name: String): Boolean
+    fun list(directory: String): List<String>
 }
 
 class AndroidSafWorkspaceStorage(private val context: Context, private val rootUri: Uri) : WorkspaceStorage {
@@ -33,12 +35,22 @@ class AndroidSafWorkspaceStorage(private val context: Context, private val rootU
         resolver.openOutputStream(target.uri, "wt")?.bufferedWriter()?.use { it.write(content) }
             ?: error("Cannot write workspace file: $name")
     }
+    override fun writeBytes(name: String, content: ByteArray) {
+        val target = file(name, true) ?: error("Cannot create workspace file: $name")
+        resolver.openOutputStream(target.uri, "wt")?.use { it.write(content) } ?: error("Cannot write workspace file: $name")
+    }
     override fun append(relativePath: String, content: String) {
         val target = file(relativePath, true) ?: error("Cannot create workspace file: $relativePath")
         resolver.openOutputStream(target.uri, "wa")?.bufferedWriter()?.use { it.write(content) }
             ?: error("Cannot append workspace file: $relativePath")
     }
     override fun exists(name: String): Boolean = file(name, false) != null
+    override fun list(directory: String): List<String> {
+        val parts = directory.trim('/').split('/').filter { it.isNotBlank() }
+        var current = root()
+        parts.forEach { current = current.findFile(it) ?: return emptyList() }
+        return current.listFiles().mapNotNull { it.name }.map { if (directory.isBlank()) it else "$directory/$it" }
+    }
 }
 
 fun JSONObject.putNullable(key: String, value: Any?): JSONObject = if (value == null) put(key, JSONObject.NULL) else put(key, value)
