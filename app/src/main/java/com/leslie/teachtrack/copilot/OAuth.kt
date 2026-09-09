@@ -36,6 +36,28 @@ data class OAuthConfig(
     fun normalized() = copy(provider = provider.trim().ifBlank { "OAuth / PKCE" }, authorizationEndpoint = authorizationEndpoint.trim(), tokenEndpoint = tokenEndpoint.trim(), clientId = clientId.trim(), scopes = scopes.trim().ifBlank { "openid profile" }, redirectUri = OAuthManager.REDIRECT_URI)
 }
 
+data class OAuthProviderPreset(
+    val id: String,
+    val displayName: String,
+    val authMode: String,
+    val consoleUrl: String,
+    val authorizationEndpoint: String = "",
+    val tokenEndpoint: String = "",
+    val scopes: String = "openid profile",
+    val note: String
+)
+
+object OAuthProviderCatalog {
+    val presets = listOf(
+        OAuthProviderPreset("openai", "OpenAI / GPT", "API_KEY", "https://platform.openai.com/api-keys", note = "OpenAI API 官方使用 API Key；网页 ChatGPT 登录不会返回可用于 API 的 Token。"),
+        OAuthProviderPreset("kimi", "Kimi / Moonshot", "API_KEY", "https://platform.moonshot.cn/console/api-keys", note = "Kimi 开放平台使用 API Key；请在控制台创建后保存到 Provider 配置。"),
+        OAuthProviderPreset("deepseek", "DeepSeek", "API_KEY", "https://platform.deepseek.com/api_keys", note = "DeepSeek 开放平台使用 API Key。"),
+        OAuthProviderPreset("zhipu", "智谱 GLM", "API_KEY", "https://open.bigmodel.cn/usercenter/apikeys", note = "智谱开放平台使用 API Key。"),
+        OAuthProviderPreset("custom", "自定义 OAuth 2.0 / PKCE", "OAUTH_PKCE", "", note = "填写服务商提供的 Authorization Endpoint、Token Endpoint 和移动端 Client ID。")
+    )
+    fun find(provider: String): OAuthProviderPreset = presets.firstOrNull { it.displayName == provider } ?: presets.last()
+}
+
 class OAuthPreferences(context: Context) {
     private val prefs = context.applicationContext.getSharedPreferences("teachtrack_oauth", Context.MODE_PRIVATE)
     private val tokens = OAuthTokenStore(context.applicationContext)

@@ -36,6 +36,7 @@ import com.leslie.teachtrack.copilot.ProviderPreferences
 import com.leslie.teachtrack.copilot.OAuthConfig
 import com.leslie.teachtrack.copilot.OAuthManager
 import com.leslie.teachtrack.copilot.OAuthPreferences
+import com.leslie.teachtrack.copilot.OAuthProviderCatalog
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlinx.coroutines.launch
@@ -176,6 +177,21 @@ private fun OAuthSettingsCard(context: android.content.Context) {
     var config by remember { mutableStateOf(preferences.load()) }
     var expanded by remember { mutableStateOf(false) }
     var status by remember { mutableStateOf(preferences.status()) }
+    var presetMenu by remember { mutableStateOf(false) }
+    var selectedPreset by remember { mutableStateOf(OAuthProviderCatalog.find(config.provider)) }
+    TextButton(onClick = { presetMenu = true }) { Text("选择常见服务商：${selectedPreset.displayName}") }
+    DropdownMenu(expanded = presetMenu, onDismissRequest = { presetMenu = false }) {
+        OAuthProviderCatalog.presets.forEach { preset ->
+            DropdownMenuItem(text = { Text(preset.displayName) }, onClick = {
+                selectedPreset = preset
+                config = config.copy(provider = preset.displayName, authorizationEndpoint = preset.authorizationEndpoint, tokenEndpoint = preset.tokenEndpoint, scopes = preset.scopes)
+                presetMenu = false
+                status = preset.note
+            })
+        }
+    }
+    Text(selectedPreset.note, color = Color.Gray, fontSize = 12.sp)
+    if (selectedPreset.consoleUrl.isNotBlank()) OutlinedButton(onClick = { runCatching { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(selectedPreset.consoleUrl))) } }) { Text("打开 ${selectedPreset.displayName} 控制台") }
     Card(Modifier.fillMaxWidth().padding(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(14.dp)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {

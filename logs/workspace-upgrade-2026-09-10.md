@@ -47,6 +47,9 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - OnePlus regression after transactional import change: `OK (4 tests)`.
 - Workspace Health Check now validates attachment relative paths and SHA-256 hashes, reporting missing or corrupted binary files without crashing.
 - OnePlus regression after attachment health validation: `OK (4 tests)`.
+- Added OAuth provider catalog with clickable OpenAI/GPT, Kimi/Moonshot, DeepSeek, 智谱 GLM, and custom OAuth 2.0/PKCE choices.
+- Common providers that officially use API Keys now open their official console instead of pretending ChatGPT/Kimi web login returns an API token; custom OAuth keeps browser authorization-code + PKCE callback support.
+- OnePlus visual check: OAuth provider selector is visible in Settings; final device regression: `OK (4 tests)`.
 
 ## Known limitations kept explicit
 
