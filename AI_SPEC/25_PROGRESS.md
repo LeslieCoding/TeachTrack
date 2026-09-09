@@ -60,6 +60,12 @@
 - OnePlus evidence: `artifacts/screenshots/oneplus-v2/teachtrack-home-cloud-build.png` and `artifacts/screenshots/oneplus-v2/teachtrack-provider-fields.png`.
 - Real cloud success is intentionally not claimed because no user credential was entered.
 
+## 2026-09-10 - Kimi Code OAuth status refresh fix
+
+- Fixed stale Compose status after returning from Kimi Code browser authorization.
+- Settings now reloads persisted OAuth status on resume and handles device-flow success/failure explicitly.
+- OnePlus rebuild/install/instrumentation passed: `OK (4 tests)`.
+
 ## 2026-09-09 - OAuth login increment
 
 - Added `copilot/OAuth.kt` as a provider-neutral login module using Authorization Code + PKCE.

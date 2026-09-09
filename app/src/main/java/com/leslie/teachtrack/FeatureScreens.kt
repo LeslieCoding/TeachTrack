@@ -28,6 +28,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.leslie.teachtrack.core.model.TaskEntity
 import com.leslie.teachtrack.data.BackupPreview
 import com.leslie.teachtrack.copilot.ProviderConfig
@@ -226,8 +229,16 @@ private fun OAuthSimpleSettingsCard(context: android.content.Context) {
     var config by remember { mutableStateOf(preferences.load()) }
     var selected by remember { mutableStateOf(OAuthProviderCatalog.findOAuth(config.provider)) }
     var menu by remember { mutableStateOf(false) }
-    var status by remember { mutableStateOf("") }
+    var status by remember { mutableStateOf(preferences.status()) }
     val scope = rememberCoroutineScope()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) status = preferences.status()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
     Card(Modifier.fillMaxWidth().padding(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(14.dp)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("账号 OAuth 与 API Key 是两条独立流程；此处只处理账号授权，不打开 API 控制台。", color = Color.Gray, fontSize = 13.sp)
@@ -252,7 +263,11 @@ private fun OAuthSimpleSettingsCard(context: android.content.Context) {
                 preferences.save(config)
                 if (selected.authMode == "OAUTH_DEVICE") {
                     status = "Kimi Code 正在申请设备授权码…"
-                    scope.launch { runCatching { OAuthManager.startKimiDeviceLogin(context) }.onFailure { status = "Kimi OAuth 失败：${it.message ?: it.javaClass.simpleName}" } }
+                    scope.launch {
+                        runCatching { OAuthManager.startKimiDeviceLogin(context) }
+                            .onSuccess { status = "Kimi Code 登录成功，账号令牌已安全保存" }
+                            .onFailure { status = "Kimi OAuth 失败：${it.message ?: it.javaClass.simpleName}" }
+                    }
                 } else if (selected.authMode == "OAUTH_PKCE" && config.authorizationEndpoint.isNotBlank() && config.clientId.isNotBlank()) {
                     status = if (OAuthManager.startAuthorization(context, config)) "已打开浏览器，请完成登录" else "OAuth 配置不可用"
                 } else if (selected.consoleUrl.isNotBlank()) {

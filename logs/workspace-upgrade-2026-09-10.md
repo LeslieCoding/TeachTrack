@@ -76,3 +76,10 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 
 - OpenAI Codex and Claude browser callbacks currently use TeachTrack's app callback and still need provider-compatible local callback handling verification on a real account; no real credentials were used.
 - API Key entry remains in the separate Provider card and is not mixed into the OAuth card.
+
+## 2026-09-10 Kimi Code login status fix
+
+- Root cause: the Kimi device-flow coroutine wrote progress/success into `OAuthPreferences`, but the Compose card kept a separate in-memory status initialized to the old text. Returning from the browser therefore continued to show “正在申请设备授权码” even after the token was saved.
+- Fixed by initializing the card from persisted OAuth status, refreshing the status on Activity `ON_RESUME`, and handling coroutine success/failure explicitly.
+- Kimi success now shows “Kimi Code 登录成功，账号令牌已安全保存”; failed/expired/device-denied flows surface an actionable failure message.
+- Rebuilt, reinstalled and reran OnePlus instrumentation: `OK (4 tests)`.
