@@ -4,11 +4,11 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-enum class StudentStatus { ACTIVE, PAUSED, ENDED, ARCHIVED }
+enum class StudentStatus { UNKNOWN, ACTIVE, PAUSED, ENDED, ARCHIVED }
 enum class MasteryLevel(val value: Int, val label: String) { NOT_STARTED(0, "未学习"), LEARNED(1, "已学习"), REVIEW(2, "需巩固"), BASIC(3, "基本掌握"), SKILLED(4, "熟练掌握") }
 
 @Entity(tableName = "students", indices = [Index("name"), Index("status")])
-data class StudentEntity(@PrimaryKey val id: String, val name: String, val gender: String? = null, val birthday: String? = null, val grade: String = "", val school: String = "", val className: String = "", val subject: String = "", val textbook: String = "", val status: StudentStatus = StudentStatus.ACTIVE, val startDate: String? = null, val notes: String = "", val createdAt: Long = System.currentTimeMillis(), val updatedAt: Long = System.currentTimeMillis())
+data class StudentEntity(@PrimaryKey val id: String, val name: String, val gender: String? = null, val birthday: String? = null, val grade: String = "", val school: String = "", val className: String = "", val subject: String = "", val textbook: String = "", val status: StudentStatus = StudentStatus.ACTIVE, val startDate: String? = null, val notes: String = "", val createdAt: Long = System.currentTimeMillis(), val updatedAt: Long = System.currentTimeMillis(), val displayName: String = "", val currentGrade: String? = null, val gradeAtRecord: String? = null, val nameCompleteness: String = "CONFIRMED")
 
 @Entity(tableName = "course_sessions", indices = [Index("studentId"), Index("date")])
 data class CourseSessionEntity(@PrimaryKey val id: String, val studentId: String, val date: String, val startTime: String = "", val endTime: String = "", val subject: String = "", val title: String = "", val content: String = "", val performance: String = "", val problems: String = "", val homeworkSummary: String = "", val nextLessonPlan: String = "", val teacherNotes: String = "", val createdAt: Long = System.currentTimeMillis(), val updatedAt: Long = System.currentTimeMillis())
@@ -26,7 +26,7 @@ data class StudentKnowledgeEventEntity(@PrimaryKey val id: String, val studentId
 data class ExamEntity(@PrimaryKey val id: String, val name: String, val date: String, val subject: String = "", val type: String = "自定义", val notes: String = "")
 
 @Entity(tableName = "student_scores", indices = [Index("studentId"), Index("examId")])
-data class StudentScoreEntity(@PrimaryKey val id: String, val studentId: String, val examId: String, val score: Double, val fullScore: Double, val classRank: Int? = null, val gradeRank: Int? = null, val classSize: Int? = null, val gradeSize: Int? = null, val notes: String = "") { val scoreRate: Double get() = if (fullScore > 0) score / fullScore else 0.0 }
+data class StudentScoreEntity(@PrimaryKey val id: String, val studentId: String, val examId: String, val score: Double, val fullScore: Double, val classRank: Int? = null, val gradeRank: Int? = null, val classSize: Int? = null, val gradeSize: Int? = null, val notes: String = "", val scoreLabel: String = "", val fullScoreLabel: String = "", val scoreAccuracy: String = "EXACT") { val scoreRate: Double get() = if (fullScore > 0) score / fullScore else 0.0 }
 
 @Entity(tableName = "homework", indices = [Index("studentId"), Index("courseId")])
 data class HomeworkEntity(@PrimaryKey val id: String, val studentId: String, val courseId: String? = null, val name: String, val assignedDate: String, val dueDate: String? = null, val content: String = "", val status: String = "未完成", val teacherComment: String = "")
@@ -60,3 +60,12 @@ data class StudentTagEntity(val studentId: String, val tagId: String)
 
 @Entity(tableName = "attachments", indices = [Index("studentId"), Index("courseId"), Index("homeworkId")])
 data class AttachmentEntity(@PrimaryKey val id: String, val studentId: String? = null, val courseId: String? = null, val homeworkId: String? = null, val name: String, val mimeType: String = "application/octet-stream", val uri: String, val createdAt: Long = System.currentTimeMillis())
+
+@Entity(tableName = "historical_learning_records", indices = [Index("studentId"), Index("recordDate")])
+data class HistoricalLearningRecordEntity(@PrimaryKey val id: String, val studentId: String, val recordDate: String = "", val dateAccuracy: String = "UNKNOWN", val subject: String = "", val title: String, val content: String = "", val source: String = "历史教学资料")
+
+@Entity(tableName = "student_progress", indices = [Index("studentId"), Index("date"), Index("category")])
+data class StudentProgressEntity(@PrimaryKey val id: String, val studentId: String, val date: String = "", val dateAccuracy: String = "UNKNOWN", val category: String, val title: String, val detail: String = "", val source: String = "历史教学资料")
+
+@Entity(tableName = "unresolved_historical_records")
+data class UnresolvedHistoricalRecordEntity(@PrimaryKey val id: String, val recordDate: String = "", val dateAccuracy: String = "UNKNOWN", val title: String, val content: String = "", val source: String = "历史教学资料")

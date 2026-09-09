@@ -1,10 +1,10 @@
-﻿version: '4.1.0'
-request_id: 'TASK-TEACHTRACK-001'
+﻿version: '5.0.0'
+request_id: 'TASK-000'
 input_level: 'IDEA'
-original_statement: 'Complete TeachTrack docs/prompts/00-09 features, build the Android app, verify it on OPPO Pad, maintain logs and deliver APKs; external signing/account/provider credentials remain outside local authority.'
+original_statement: 'TeachTrack 3.0 portable workspace JSONL SAF sync upgrade'
 intent: 'Preserve intent; complete necessary engineering conditions without arbitrary expansion.'
-status: READY_WITH_LIMITATIONS
-next_phase: ARCHITECTURE
+status: 'READY_WITH_LIMITATIONS'
+next_phase: 'ARCHITECTURE'
 traceability_required: true
 assumptions_required: true
 engineering_baseline_required: true

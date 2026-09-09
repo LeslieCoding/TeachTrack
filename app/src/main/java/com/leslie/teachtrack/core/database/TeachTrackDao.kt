@@ -26,6 +26,10 @@ interface TeachTrackDao {
     @Query("SELECT * FROM tags") suspend fun allTags(): List<TagEntity>
     @Query("SELECT * FROM student_tags") suspend fun allStudentTags(): List<StudentTagEntity>
     @Query("SELECT * FROM attachments") suspend fun allAttachments(): List<AttachmentEntity>
+    @Query("SELECT * FROM historical_learning_records") suspend fun allHistoricalLearningRecords(): List<HistoricalLearningRecordEntity>
+    @Query("SELECT * FROM student_progress") suspend fun allStudentProgress(): List<StudentProgressEntity>
+    @Query("SELECT * FROM unresolved_historical_records") suspend fun allUnresolvedHistoricalRecords(): List<UnresolvedHistoricalRecordEntity>
+    @Query("SELECT * FROM student_progress WHERE studentId = :studentId ORDER BY date DESC") fun observeStudentProgress(studentId: String): Flow<List<StudentProgressEntity>>
     @Query("SELECT * FROM problem_records WHERE studentId = :studentId ORDER BY date DESC") fun observeProblemRecords(studentId: String): Flow<List<ProblemRecordEntity>>
     @Query("SELECT * FROM templates ORDER BY updatedAt DESC") fun observeTemplates(): Flow<List<TemplateEntity>>
     @Query("SELECT * FROM attachments WHERE studentId = :studentId ORDER BY createdAt DESC") fun observeAttachments(studentId: String): Flow<List<AttachmentEntity>>
@@ -44,6 +48,11 @@ interface TeachTrackDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertTag(tag: TagEntity)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertStudentTag(studentTag: StudentTagEntity)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertAttachment(attachment: AttachmentEntity)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertHistoricalLearningRecord(record: HistoricalLearningRecordEntity)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertHistoricalLearningRecords(records: List<HistoricalLearningRecordEntity>)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertStudentProgress(record: StudentProgressEntity)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertStudentProgressRecords(records: List<StudentProgressEntity>)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertUnresolvedHistoricalRecord(record: UnresolvedHistoricalRecordEntity)
     @Query("DELETE FROM attachments WHERE id = :id") suspend fun deleteAttachment(id: String)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertLessonPlan(plan: LessonPlanEntity)
     @Query("SELECT * FROM lesson_plans WHERE studentId = :studentId ORDER BY plannedDate DESC") fun observeLessonPlans(studentId: String): Flow<List<LessonPlanEntity>>

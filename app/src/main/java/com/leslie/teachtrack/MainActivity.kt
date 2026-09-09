@@ -36,9 +36,18 @@ import androidx.room.Room
 import com.leslie.teachtrack.core.database.TeachTrackDatabase
 import com.leslie.teachtrack.core.database.MIGRATION_1_2
 import com.leslie.teachtrack.core.database.MIGRATION_2_3
+import com.leslie.teachtrack.core.database.MIGRATION_3_4
+import com.leslie.teachtrack.core.database.MIGRATION_4_5
+import com.leslie.teachtrack.core.database.MIGRATION_5_6
 import com.leslie.teachtrack.core.model.*
 import com.leslie.teachtrack.data.BackupPreview
 import com.leslie.teachtrack.data.TeachTrackRepository
+import com.leslie.teachtrack.data.HistoricalSeedImporter
+import com.leslie.teachtrack.data.workspace.WorkspaceManager
+import com.leslie.teachtrack.data.workspace.WorkspaceExporter
+import com.leslie.teachtrack.data.workspace.WorkspaceImporter
+import com.leslie.teachtrack.data.workspace.WorkspaceArchiveManager
+import org.json.JSONObject
 import com.leslie.teachtrack.copilot.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -52,11 +61,12 @@ private val Ink = Color(0xFF15312A)
 private val AppBackground = Color(0xFFF4F9F6)
 
 class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); enableEdgeToEdge(); val db = Room.databaseBuilder(applicationContext, TeachTrackDatabase::class.java, "teachtrack.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3).build(); val repo = TeachTrackRepository(db.dao()); setContent { TeachTrackTheme { TeachTrackShell(repo) } }; OAuthManager.handleCallback(this, intent) }
+    override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); enableEdgeToEdge(); val db = Room.databaseBuilder(applicationContext, TeachTrackDatabase::class.java, "teachtrack.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6).build(); val repo = TeachTrackRepository(db.dao()); setContent { TeachTrackTheme { TeachTrackShell(repo) } }; OAuthManager.handleCallback(this, intent) }
     override fun onNewIntent(intent: android.content.Intent) { super.onNewIntent(intent); setIntent(intent); OAuthManager.handleCallback(this, intent) }
 }
 
 class TeachTrackViewModel(private val repo: TeachTrackRepository, context: android.content.Context) : ViewModel() {
+    private val workspaceManager = WorkspaceManager(context)
     val copilot = CopilotService(ConfigurableCopilotProvider(context), LocalCopilotActionRegistry(repo))
     val students = repo.students.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
     val activeCount = repo.activeStudentCount.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
@@ -102,8 +112,39 @@ class TeachTrackViewModel(private val repo: TeachTrackRepository, context: andro
     fun exportBackup(uri: Uri, resolver: ContentResolver, onFinished: (Boolean) -> Unit = {}) = viewModelScope.launch { runCatching { resolver.openOutputStream(uri)?.bufferedWriter()?.use { it.write(repo.exportBackupJson()) } ?: error("无法打开备份文件") }.onSuccess { onFinished(true) }.onFailure { onFinished(false) } }
     fun previewBackup(uri: Uri, resolver: ContentResolver, onFinished: (String?, BackupPreview?) -> Unit = { _, _ -> }) = viewModelScope.launch { runCatching { resolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() } ?: error("无法读取备份文件") }.fold(onSuccess = { text -> runCatching { onFinished(text, repo.previewBackupJson(text)) }.onFailure { onFinished(null, null) } }, onFailure = { onFinished(null, null) }) }
     fun importBackupText(json: String, onFinished: (Int?) -> Unit = {}) = viewModelScope.launch { runCatching { repo.importBackupJson(json) }.onSuccess { onFinished(it) }.onFailure { onFinished(null) } }
+    fun importHistoricalSeed(uri: Uri, resolver: ContentResolver, onFinished: (String) -> Unit = {}) = viewModelScope.launch { runCatching { resolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() } ?: error("无法读取历史数据文件") }.mapCatching { HistoricalSeedImporter(repo.daoForSeed()).import(it) }.onSuccess { result -> onFinished("历史数据已幂等导入：${result.students} 名学生、${result.courses} 条课程、${result.scores} 条成绩、${result.progress} 条知识点进度、${result.progressEvents} 条历史进度、${result.knowledgePoints} 个知识点") }.onFailure { onFinished("历史数据导入失败：${it.message ?: "请确认 JSON 文件格式"}") } }
     fun exportScoresCsv(uri: Uri, resolver: ContentResolver, onFinished: (Boolean) -> Unit = {}) = viewModelScope.launch { runCatching { resolver.openOutputStream(uri)?.bufferedWriter()?.use { it.write(repo.exportScoresCsv()) } ?: error("无法打开导出文件") }.onSuccess { onFinished(true) }.onFailure { onFinished(false) } }
     suspend fun latestCourse(studentId: String) = repo.latestCourse(studentId)
+    fun workspaceUri(): Uri? = workspaceManager.currentUri()
+    fun attachWorkspace(uri: Uri, onFinished: (String) -> Unit = {}) = viewModelScope.launch {
+        runCatching {
+            workspaceManager.attach(uri)
+            val storage = workspaceManager.storage(uri)!!
+            val manifest = workspaceManager.readManifest(storage)
+            WorkspaceImporter(repo, workspaceManager).import(storage)
+            manifest
+        }.onSuccess { onFinished("已连接工作区：${it.name}（${it.workspaceId.take(8)}）") }.onFailure { onFinished("工作区打开失败：${it.message ?: "请确认目录包含 workspace.json"}") }
+    }
+    fun createWorkspace(uri: Uri, name: String = "My Students", onFinished: (String) -> Unit = {}) = viewModelScope.launch {
+        runCatching {
+            workspaceManager.attach(uri)
+            val storage = workspaceManager.storage(uri)!!
+            val manifest = workspaceManager.createManifest(name)
+            workspaceManager.ensureStructure(storage, manifest)
+            WorkspaceExporter(repo, workspaceManager).export(storage, name)
+            manifest
+        }.onSuccess { onFinished("已创建并导出工作区：${it.name}") }.onFailure { onFinished("工作区创建失败：${it.message ?: "请重试"}") }
+    }
+    fun exportWorkspace(onFinished: (String) -> Unit = {}) = viewModelScope.launch {
+        runCatching { val storage = workspaceManager.storage() ?: error("请先连接工作区"); WorkspaceExporter(repo, workspaceManager).export(storage) }.onSuccess { onFinished("已导出 ${it.records} 条记录到工作区") }.onFailure { onFinished("工作区导出失败：${it.message ?: "请重试"}") }
+    }
+    fun createWorkspaceBackup(uri: Uri, resolver: ContentResolver, onFinished: (String) -> Unit = {}) = viewModelScope.launch {
+        runCatching {
+            val storage = workspaceManager.storage() ?: error("请先连接工作区")
+            val manifest = workspaceManager.readManifest(storage)
+            WorkspaceArchiveManager().create(storage, resolver, uri, manifest.workspaceId, "3.0.0-alpha.1", manifest.schemaVersion, JSONObject().put("students", repo.daoForSeed().allStudents().size).put("courses", repo.daoForSeed().allCourses().size).put("scores", repo.daoForSeed().allScores().size))
+        }.onSuccess { onFinished(".ttbackup 已创建") }.onFailure { onFinished(".ttbackup 创建失败：${it.message ?: "请重试"}") }
+    }
 }
 
 @Composable fun TeachTrackApp(repo: TeachTrackRepository) {

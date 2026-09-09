@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.leslie.teachtrack.core.model.*
 
-@Database(entities = [StudentEntity::class, CourseSessionEntity::class, KnowledgePointEntity::class, StudentKnowledgeProgressEntity::class, StudentKnowledgeEventEntity::class, ExamEntity::class, StudentScoreEntity::class, HomeworkEntity::class, CommunicationEntity::class, LessonPlanEntity::class, TaskEntity::class, ParentContactEntity::class, ScoreItemEntity::class, ProblemRecordEntity::class, TemplateEntity::class, TagEntity::class, StudentTagEntity::class, AttachmentEntity::class], version = 3, exportSchema = true)
+@Database(entities = [StudentEntity::class, CourseSessionEntity::class, KnowledgePointEntity::class, StudentKnowledgeProgressEntity::class, StudentKnowledgeEventEntity::class, ExamEntity::class, StudentScoreEntity::class, HomeworkEntity::class, CommunicationEntity::class, LessonPlanEntity::class, TaskEntity::class, ParentContactEntity::class, ScoreItemEntity::class, ProblemRecordEntity::class, TemplateEntity::class, TagEntity::class, StudentTagEntity::class, AttachmentEntity::class, HistoricalLearningRecordEntity::class, StudentProgressEntity::class, UnresolvedHistoricalRecordEntity::class], version = 6, exportSchema = true)
 @TypeConverters(Converters::class)
 abstract class TeachTrackDatabase : RoomDatabase() { abstract fun dao(): TeachTrackDao }
 
@@ -38,6 +38,36 @@ val MIGRATION_2_3 = object : androidx.room.migration.Migration(2, 3) {
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_student_knowledge_events_studentId` ON `student_knowledge_events` (`studentId`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_student_knowledge_events_knowledgePointId` ON `student_knowledge_events` (`knowledgePointId`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_student_knowledge_events_occurredAt` ON `student_knowledge_events` (`occurredAt`)")
+    }
+}
+
+val MIGRATION_3_4 = object : androidx.room.migration.Migration(3, 4) {
+    override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE students ADD COLUMN displayName TEXT NOT NULL DEFAULT ''")
+        db.execSQL("ALTER TABLE students ADD COLUMN currentGrade TEXT")
+        db.execSQL("ALTER TABLE students ADD COLUMN gradeAtRecord TEXT")
+        db.execSQL("ALTER TABLE students ADD COLUMN nameCompleteness TEXT NOT NULL DEFAULT 'CONFIRMED'")
+        db.execSQL("CREATE TABLE IF NOT EXISTS historical_learning_records (id TEXT NOT NULL, studentId TEXT NOT NULL, recordDate TEXT NOT NULL, dateAccuracy TEXT NOT NULL, subject TEXT NOT NULL, title TEXT NOT NULL, content TEXT NOT NULL, source TEXT NOT NULL, PRIMARY KEY(id))")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_historical_learning_records_studentId ON historical_learning_records (studentId)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_historical_learning_records_recordDate ON historical_learning_records (recordDate)")
+        db.execSQL("CREATE TABLE IF NOT EXISTS student_progress (id TEXT NOT NULL, studentId TEXT NOT NULL, date TEXT NOT NULL, dateAccuracy TEXT NOT NULL, category TEXT NOT NULL, title TEXT NOT NULL, detail TEXT NOT NULL, source TEXT NOT NULL, PRIMARY KEY(id))")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_student_progress_studentId ON student_progress (studentId)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_student_progress_date ON student_progress (date)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_student_progress_category ON student_progress (category)")
+    }
+}
+
+val MIGRATION_4_5 = object : androidx.room.migration.Migration(4, 5) {
+    override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE student_scores ADD COLUMN scoreLabel TEXT NOT NULL DEFAULT ''")
+        db.execSQL("ALTER TABLE student_scores ADD COLUMN fullScoreLabel TEXT NOT NULL DEFAULT ''")
+        db.execSQL("ALTER TABLE student_scores ADD COLUMN scoreAccuracy TEXT NOT NULL DEFAULT 'EXACT'")
+    }
+}
+
+val MIGRATION_5_6 = object : androidx.room.migration.Migration(5, 6) {
+    override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS unresolved_historical_records (id TEXT NOT NULL, recordDate TEXT NOT NULL, dateAccuracy TEXT NOT NULL, title TEXT NOT NULL, content TEXT NOT NULL, source TEXT NOT NULL, PRIMARY KEY(id))")
     }
 }
 

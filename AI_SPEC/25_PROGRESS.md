@@ -1,5 +1,13 @@
 # TeachTrack Progress
 
+## 2026-09-10 - V3 Portable Workspace
+
+- Added external historical seed file flow; historical data is not packaged into the APK.
+- Added SAF-backed `TeachTrackWorkspace` directory with JSONL data files.
+- Added permanent workspace/device metadata and basic sync wire formats.
+- Added workspace export/import and `.ttbackup` ZIP core.
+- Verified build and OnePlus physical workspace creation.
+
 ## 2026-09-09 — V2 planning baseline
 
 - Compiled the new cloud-assisted command workflow into `V2-EPIC-001` and requirements `V2-REQ-001` through `V2-REQ-053`.

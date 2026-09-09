@@ -1,5 +1,12 @@
 # TeachTrack Changelog
 
+## 3.0.0-alpha.1 - Portable Workspace foundation
+
+- Added portable workspace manifest and JSONL data exchange.
+- Added SAF create/open/export controls.
+- Added device identity, sync events/checkpoints and `.ttbackup` archive writer.
+- Moved historical seed usage to user-selected external JSON; no historical student data is packaged into the APK.
+
 ## 2.0.0-alpha.1 — 2026-09-09
 
 - Renamed the major product line to `TeachTrack 2.0 · TeachTrack Copilot`.

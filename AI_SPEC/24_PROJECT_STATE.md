@@ -1,5 +1,9 @@
 # TeachTrack Project State
 
+## Current V3 state (2026-09-10)
+
+The active line is TeachTrack 3.0.0-alpha.1 (version code 300001). Portable Workspace foundation is implemented: SAF workspace create/open, JSONL export/import, device identity, basic sync event/checkpoint formats and `.ttbackup` writer. Full conflict UI, automatic per-entity event emission and second-device simulation remain in progress.
+
 ## Product line
 
 - 1.x MVP: local-first teacher workspace, implemented and previously verified.

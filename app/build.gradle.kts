@@ -6,7 +6,7 @@ plugins {
 }
 
 android { namespace = "com.leslie.teachtrack"; compileSdk = 35
-    defaultConfig { applicationId = "com.leslie.teachtrack"; minSdk = 24; targetSdk = 35; versionCode = 200001; versionName = "2.0.0-alpha.1"; testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
+    defaultConfig { applicationId = "com.leslie.teachtrack"; minSdk = 24; targetSdk = 35; versionCode = 300001; versionName = "3.0.0-alpha.1"; testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
 }
 
@@ -26,6 +26,7 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.8.5")
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
+    implementation("androidx.documentfile:documentfile:1.0.1")
     ksp("androidx.room:room-compiler:2.6.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
     testImplementation("junit:junit:4.13.2")

@@ -102,7 +102,7 @@ fun SettingsScreen(vm: TeachTrackViewModel) {
 
 @Composable
 private fun SettingsScreenContent(vm: TeachTrackViewModel) {
-    val students by vm.activeCount.collectAsStateWithLifecycle(); val templates by vm.templates.collectAsStateWithLifecycle(); val context = LocalContext.current; var backupState by remember { mutableStateOf("") }; var pendingBackup by remember { mutableStateOf<Pair<String, BackupPreview>?>(null) }; var showTemplate by remember { mutableStateOf(false) }
+    val students by vm.activeCount.collectAsStateWithLifecycle(); val templates by vm.templates.collectAsStateWithLifecycle(); val context = LocalContext.current; var backupState by remember { mutableStateOf("") }; var seedState by remember { mutableStateOf("") }; var pendingBackup by remember { mutableStateOf<Pair<String, BackupPreview>?>(null) }; var showTemplate by remember { mutableStateOf(false) }
     val createBackup = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri -> if (uri != null) vm.exportBackup(uri, context.contentResolver) { ok -> backupState = if (ok) "备份已保存" else "备份失败，请重试" } }
     val openBackup = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if (uri != null) vm.previewBackup(uri, context.contentResolver) { json, preview -> if (json != null && preview != null) pendingBackup = json to preview else backupState = "恢复失败，请确认文件格式" } }
     val exportCsv = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri -> if (uri != null) vm.exportScoresCsv(uri, context.contentResolver) { ok -> backupState = if (ok) "成绩 CSV 已导出" else "CSV 导出失败，请重试" } }
@@ -110,11 +110,50 @@ private fun SettingsScreenContent(vm: TeachTrackViewModel) {
     if (templates.isNotEmpty()) TemplateSummaryCard(vm, templates)
     ProviderSettingsCard(context)
     OAuthSettingsCard(context)
+    HistoricalSeedCard(context, vm)
+    WorkspaceSettingsCard(context, vm)
     pendingBackup?.let { (json, preview) ->
         val date = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(preview.exportedAt))
         AlertDialog(onDismissRequest = { pendingBackup = null }, title = { Text("确认恢复备份？") }, text = { Text("备份时间：$date\n共 ${preview.total} 条核心记录\n学生 ${preview.students} · 课程 ${preview.courses} · 成绩 ${preview.scores}（失分项 ${preview.scoreItems}）\n知识点 ${preview.knowledgePoints} · 作业 ${preview.homework} · 沟通 ${preview.communications} · 待办 ${preview.tasks}\n\n恢复将按 ID 合并现有数据，不会删除当前内容。") }, confirmButton = { Button(onClick = { pendingBackup = null; vm.importBackupText(json) { count -> backupState = if (count != null) "已合并导入 $count 条记录" else "恢复失败，请确认文件格式" } }, colors = ButtonDefaults.buttonColors(containerColor = FeatureGreen)) { Text("确认恢复") } }, dismissButton = { TextButton(onClick = { pendingBackup = null }) { Text("取消") } })
     }
     if (showTemplate) TemplateDialog(vm, onDismiss = { showTemplate = false })
+}
+
+@Composable
+private fun WorkspaceSettingsCard(context: android.content.Context, vm: TeachTrackViewModel) {
+    var status by remember { mutableStateOf("") }
+    val openWorkspace = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri -> if (uri != null) vm.attachWorkspace(uri) { status = it } }
+    val createWorkspace = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri -> if (uri != null) vm.createWorkspace(uri) { status = it } }
+    val createBackup = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri -> if (uri != null) vm.createWorkspaceBackup(uri, context.contentResolver) { status = it } }
+    Card(Modifier.fillMaxWidth().padding(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(14.dp)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("数据与同步 / Portable Workspace", fontWeight = FontWeight.SemiBold, color = FeatureInk)
+            Text("Workspace 拥有数据；Room 只负责本机离线查询。跨设备传递 JSONL、同步事件和附件，不直接共享 SQLite。", color = Color.Gray, fontSize = 13.sp)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = { createWorkspace.launch(null) }, colors = ButtonDefaults.buttonColors(containerColor = FeatureGreen)) { Text("创建工作区") }
+                OutlinedButton(onClick = { openWorkspace.launch(null) }) { Text("打开已有工作区") }
+            }
+            OutlinedButton(onClick = { vm.exportWorkspace { status = it } }) { Text("立即导出到当前工作区") }
+            OutlinedButton(onClick = { createBackup.launch("TeachTrack-Workspace.ttbackup") }) { Text("创建 .ttbackup 备份") }
+            if (status.isNotBlank()) Text(status, color = FeatureGreen, fontSize = 13.sp)
+        }
+    }
+}
+
+@Composable
+private fun HistoricalSeedCard(context: android.content.Context, vm: TeachTrackViewModel) {
+    var result by remember { mutableStateOf("") }
+    val openSeed = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) vm.importHistoricalSeed(uri, context.contentResolver) { result = it }
+    }
+    Card(Modifier.fillMaxWidth().padding(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(14.dp)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("历史学生数据库 Seed V1.0", fontWeight = FontWeight.SemiBold, color = FeatureInk)
+            Text("从设备文件夹选择教师本人提供的历史数据 JSON。文件不会打包进 APK，也不会自动上传云端；未知字段保持为空，重复导入使用确定性 ID。", color = Color.Gray, fontSize = 13.sp)
+            Button(onClick = { openSeed.launch(arrayOf("application/json", "text/*")) }, colors = ButtonDefaults.buttonColors(containerColor = FeatureGreen)) { Text("选择 JSON 并导入") }
+            if (result.isNotBlank()) Text(result, color = FeatureGreen, fontSize = 13.sp)
+        }
+    }
 }
 
 @Composable
