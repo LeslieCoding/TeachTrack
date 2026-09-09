@@ -1,5 +1,10 @@
 # TeachTrack Changelog
 
+## 3.0.0-alpha.1 - Architecture/performance hardening
+
+- Scoped Student Workspace one-shot course and score reads to SQLite queries.
+- Preserved existing schema, migrations, portable workspace format, and local-first behavior.
+
 ## 3.0.0-alpha.1 - Portable Workspace foundation
 
 - Added portable workspace manifest and JSONL data exchange.

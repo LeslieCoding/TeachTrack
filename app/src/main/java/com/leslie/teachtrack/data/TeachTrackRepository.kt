@@ -107,9 +107,9 @@ class TeachTrackRepository(private val dao: TeachTrackDao, private val sync: Wor
     fun student(id: String) = dao.observeStudent(id)
     suspend fun studentOnce(id: String) = dao.observeStudentOnce(id)
     fun courses(studentId: String) = dao.observeCourses(studentId)
-    suspend fun coursesOnce(studentId: String) = dao.allCourses().filter { it.studentId == studentId }
+    suspend fun coursesOnce(studentId: String) = dao.coursesOnce(studentId)
     fun scores(studentId: String) = dao.observeScores(studentId)
-    suspend fun scoresOnce(studentId: String) = dao.allScores().filter { it.studentId == studentId }
+    suspend fun scoresOnce(studentId: String) = dao.scoresOnce(studentId)
     val allScores: Flow<List<StudentScoreEntity>> = dao.observeAllScores()
     val allExams: Flow<List<ExamEntity>> = dao.observeAllExams()
     val allHomework: Flow<List<HomeworkEntity>> = dao.observeAllHomework()

@@ -33,3 +33,9 @@ Home text command composer, configurable-provider boundary, strict command envel
 - No real provider credential has been supplied or stored.
 - Kimi Code OAuth command routing is now physically verified on OnePlus: a live Copilot request returned a valid `students.add` preview without API Key/endpoint/model configuration.
 - OnePlus `92f73a16` is the active connected device with the current Debug APK installed; the latest screenshot/UI dump is under `artifacts/screenshots/oneplus-v2/`. OPPO evidence remains under `artifacts/screenshots/oppo-v2/`.
+
+## T3-HARDEN-001 (2026-09-10)
+
+- Student-scoped one-shot course and score queries now execute in SQLite instead of loading complete tables and filtering in memory.
+- No schema change was required; existing indexes remain applicable.
+- Remaining candidates: transaction boundaries around multi-entity saves/imports, bounded dashboard queries, and automatic per-entity sync event emission.

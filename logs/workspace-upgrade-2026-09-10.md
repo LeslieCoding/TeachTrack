@@ -101,3 +101,27 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Fixed by initializing the card from persisted OAuth status, refreshing the status on Activity `ON_RESUME`, and handling coroutine success/failure explicitly.
 - Kimi success now shows “Kimi Code 登录成功，账号令牌已安全保存”; failed/expired/device-denied flows surface an actionable failure message.
 - Rebuilt, reinstalled and reran OnePlus instrumentation: `OK (4 tests)`.
+
+## T3-HARDEN-001 - Architecture, performance and stability increment
+
+### What changed
+
+- Inspected the Room DAO/repository boundary and found that Student Workspace one-shot course and score reads loaded every course/score before Kotlin filtering.
+- Added SQL-scoped suspend queries for `studentId`, retaining deterministic history ordering.
+- Updated the repository to use those queries.
+
+### Why
+
+- Reduces Room cursor transfer, Kotlin allocations, and peak memory when the workspace contains many students and historical records.
+- Keeps the existing schema, indexes, Local First behavior, backup format, and OAuth/provider boundaries unchanged.
+
+### Verification plan/result
+
+- Required: `testDebugUnitTest`, debug APK assembly, Android test APK assembly, OnePlus installation/instrumentation, and visual smoke check.
+- Device scope: OnePlus serial `92f73a16` only. OPPO Pad remains untouched.
+
+### Remaining issues
+
+- Multi-entity save/import transaction boundaries need a separate low-risk pass.
+- Dashboard-wide history queries should be reviewed for bounded projections before larger datasets are used.
+- Automatic per-entity sync event emission and full second-device simulation remain incomplete.

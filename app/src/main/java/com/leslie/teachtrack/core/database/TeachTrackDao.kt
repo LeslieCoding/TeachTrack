@@ -11,10 +11,12 @@ import kotlinx.coroutines.flow.Flow
 interface TeachTrackDao {
     @Query("SELECT * FROM students") suspend fun allStudents(): List<StudentEntity>
     @Query("SELECT * FROM course_sessions") suspend fun allCourses(): List<CourseSessionEntity>
+    @Query("SELECT * FROM course_sessions WHERE studentId = :studentId ORDER BY date DESC, startTime DESC") suspend fun coursesOnce(studentId: String): List<CourseSessionEntity>
     @Query("SELECT * FROM knowledge_points") suspend fun allKnowledge(): List<KnowledgePointEntity>
     @Query("SELECT * FROM student_knowledge_progress") suspend fun allProgress(): List<StudentKnowledgeProgressEntity>
     @Query("SELECT * FROM exams") suspend fun allExams(): List<ExamEntity>
     @Query("SELECT * FROM student_scores") suspend fun allScores(): List<StudentScoreEntity>
+    @Query("SELECT * FROM student_scores WHERE studentId = :studentId ORDER BY id DESC") suspend fun scoresOnce(studentId: String): List<StudentScoreEntity>
     @Query("SELECT * FROM score_items") suspend fun allScoreItems(): List<ScoreItemEntity>
     @Query("SELECT * FROM homework") suspend fun allHomework(): List<HomeworkEntity>
     @Query("SELECT * FROM communications") suspend fun allCommunications(): List<CommunicationEntity>

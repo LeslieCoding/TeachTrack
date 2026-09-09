@@ -80,6 +80,13 @@
 - Settings now reloads persisted OAuth status on resume and handles device-flow success/failure explicitly.
 - OnePlus rebuild/install/instrumentation passed: `OK (4 tests)`.
 
+## 2026-09-10 - T3-HARDEN-001 query scoping
+
+- Baseline inspection found `coursesOnce(studentId)` and `scoresOnce(studentId)` reading all rows and filtering in Kotlin.
+- Added student-scoped suspend DAO queries with deterministic ordering.
+- Updated `TeachTrackRepository` to use the scoped queries, reducing memory pressure and unnecessary Room-to-Kotlin transfer for Student Workspace history screens.
+- No destructive migration or public data-format change.
+
 ## 2026-09-09 - OAuth login increment
 
 - Added `copilot/OAuth.kt` as a provider-neutral login module using Authorization Code + PKCE.
