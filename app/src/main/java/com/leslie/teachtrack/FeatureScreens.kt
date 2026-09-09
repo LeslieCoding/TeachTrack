@@ -110,7 +110,7 @@ private fun SettingsScreenContent(vm: TeachTrackViewModel) {
     Column(Modifier.fillMaxSize().background(FeatureBackground).padding(20.dp)) { Text("设置", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = FeatureInk); Text("本地优先，数据掌握在你手里", color = Color.Gray); Spacer(Modifier.height(20.dp)); SettingCard(Icons.Rounded.Lock, "隐私保护", "学生、成绩和家校信息默认只保存在本机"); SettingCard(Icons.Rounded.Storage, "本地数据库", "$students 位在读学生，当前无需账户和云服务"); SettingCard(Icons.Rounded.CloudOff, "离线可用", "没有网络也可以记录课程、成绩和计划"); Spacer(Modifier.height(18.dp)); Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) { Button(onClick = { createBackup.launch("TeachTrack-Backup.json") }, colors = ButtonDefaults.buttonColors(containerColor = FeatureGreen)) { Text("导出完整备份") }; OutlinedButton(onClick = { openBackup.launch(arrayOf("application/json", "text/*")) }) { Text("恢复备份") } }; Spacer(Modifier.height(10.dp)); OutlinedButton(onClick = { exportCsv.launch("TeachTrack-Scores.csv") }) { Text("导出成绩 CSV") }; Spacer(Modifier.height(10.dp)); OutlinedButton(onClick = { showTemplate = true }) { Text("新建课后反馈模板") }; if (backupState.isNotBlank()) { Spacer(Modifier.height(8.dp)); Text(backupState, color = FeatureGreen, fontSize = 13.sp) }; Spacer(Modifier.height(8.dp)); Text("恢复会先展示备份日期和数据数量，确认后按 ID 合并，不会自动清空当前内容。", color = Color.Gray, fontSize = 13.sp) }
     if (templates.isNotEmpty()) TemplateSummaryCard(vm, templates)
     ProviderSettingsCard(context)
-    OAuthSettingsCard(context)
+    OAuthSimpleSettingsCard(context)
     HistoricalSeedCard(context, vm)
     WorkspaceSettingsCard(context, vm)
     pendingBackup?.let { (json, preview) ->
@@ -176,7 +176,7 @@ private fun OAuthSettingsCard(context: android.content.Context) {
     val preferences = remember(context) { OAuthPreferences(context) }
     var config by remember { mutableStateOf(preferences.load()) }
     var expanded by remember { mutableStateOf(false) }
-    var status by remember { mutableStateOf(preferences.status()) }
+    var status by remember { mutableStateOf("") }
     var presetMenu by remember { mutableStateOf(false) }
     var selectedPreset by remember { mutableStateOf(OAuthProviderCatalog.find(config.provider)) }
     TextButton(onClick = { presetMenu = true }) { Text("选择常见服务商：${selectedPreset.displayName}") }
@@ -217,6 +217,54 @@ private fun OAuthSettingsCard(context: android.content.Context) {
                 Text(status, color = FeatureGreen, fontSize = 13.sp)
                 Text("安全边界：使用 Authorization Code + PKCE；App 不接收账号密码，回调校验 state，Token 不写入 Room、备份、日志或截图。", color = Color.Gray, fontSize = 12.sp)
             }
+        }
+    }
+}
+
+@Composable
+private fun OAuthSimpleSettingsCard(context: android.content.Context) {
+    val preferences = remember(context) { OAuthPreferences(context) }
+    var config by remember { mutableStateOf(preferences.load()) }
+    var selected by remember { mutableStateOf(OAuthProviderCatalog.find(config.provider)) }
+    var menu by remember { mutableStateOf(false) }
+    var status by remember { mutableStateOf("") }
+    Card(Modifier.fillMaxWidth().padding(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(14.dp)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("OAuth 登录认证", fontWeight = FontWeight.SemiBold, color = FeatureInk)
+            Text("只需选择服务商，然后在浏览器完成登录或打开官方控制台。", color = Color.Gray, fontSize = 13.sp)
+            Box {
+                OutlinedButton(onClick = { menu = true }) { Text(selected.displayName) }
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    OAuthProviderCatalog.presets.forEach { preset ->
+                        DropdownMenuItem(text = { Text(preset.displayName) }, onClick = {
+                            selected = preset
+                            config = config.copy(provider = preset.displayName, authorizationEndpoint = preset.authorizationEndpoint, tokenEndpoint = preset.tokenEndpoint, scopes = preset.scopes)
+                            preferences.save(config)
+                            menu = false
+                            status = preset.note
+                        })
+                    }
+                }
+            }
+            Text(selected.note, color = Color.Gray, fontSize = 12.sp)
+            Button(onClick = {
+                preferences.save(config)
+                if (selected.authMode == "OAUTH_PKCE" && config.authorizationEndpoint.isNotBlank() && config.clientId.isNotBlank()) {
+                    status = if (OAuthManager.startAuthorization(context, config)) "已打开浏览器，请完成登录" else "OAuth 配置不可用"
+                } else if (selected.consoleUrl.isNotBlank()) {
+                    runCatching { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(selected.consoleUrl))) }
+                    status = "已打开 ${selected.displayName} 官方页面"
+                } else {
+                    status = "该服务商需要配置 OAuth 应用后才能登录"
+                }
+            }, colors = ButtonDefaults.buttonColors(containerColor = FeatureGreen)) {
+                Text(if (selected.authMode == "OAUTH_PKCE") "浏览器登录" else "打开官方控制台")
+            }
+            if (preferences.hasSession()) {
+                Text("已登录，Token 已由 Android Keystore 加密保存", color = FeatureGreen, fontSize = 13.sp)
+                OutlinedButton(onClick = { preferences.clearSession(); status = "登录已退出" }) { Text("退出登录") }
+            }
+            if (status.isNotBlank()) Text(status, color = FeatureGreen, fontSize = 12.sp)
         }
     }
 }

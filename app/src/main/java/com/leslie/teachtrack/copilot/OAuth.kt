@@ -55,7 +55,7 @@ object OAuthProviderCatalog {
         OAuthProviderPreset("zhipu", "智谱 GLM", "API_KEY", "https://open.bigmodel.cn/usercenter/apikeys", note = "智谱开放平台使用 API Key。"),
         OAuthProviderPreset("custom", "自定义 OAuth 2.0 / PKCE", "OAUTH_PKCE", "", note = "填写服务商提供的 Authorization Endpoint、Token Endpoint 和移动端 Client ID。")
     )
-    fun find(provider: String): OAuthProviderPreset = presets.firstOrNull { it.displayName == provider } ?: presets.last()
+    fun find(provider: String): OAuthProviderPreset = presets.firstOrNull { it.displayName == provider } ?: presets.first()
 }
 
 class OAuthPreferences(context: Context) {
