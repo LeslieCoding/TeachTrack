@@ -1,6 +1,7 @@
 package com.leslie.teachtrack.data.workspace
 
 import com.leslie.teachtrack.core.workspace.WorkspaceFiles
+import java.security.MessageDigest
 import org.json.JSONObject
 
 data class WorkspaceHealthReport(val workspaceId: String?, val checkedFiles: Int, val records: Int, val issues: List<String>)
@@ -15,6 +16,20 @@ class WorkspaceHealthChecker(private val manager: WorkspaceManager) {
             val text = storage.read("data/$file") ?: return@forEach
             checked++
             text.lineSequence().forEachIndexed { index, line -> if (line.isNotBlank()) runCatching { val o = JSONObject(line); require(o.optString("workspaceId", manifest.workspaceId) == manifest.workspaceId); require(o.optString("id", "row").isNotBlank()); records++ }.onFailure { issues += "$file:${index + 1}: ${it.message}" } }
+        }
+        storage.read("data/${WorkspaceFiles.ATTACHMENTS}")?.lineSequence()?.forEachIndexed { index, line ->
+            if (line.isBlank()) return@forEachIndexed
+            runCatching {
+                val attachment = JSONObject(line)
+                val relativePath = attachment.optString("relativePath")
+                if (relativePath.isBlank()) return@runCatching
+                require(storage.readBytes(relativePath) != null) { "attachment missing: $relativePath" }
+                val expected = attachment.optString("sha256")
+                if (expected.isNotBlank()) {
+                    val actual = MessageDigest.getInstance("SHA-256").digest(storage.readBytes(relativePath)!!).joinToString("") { "%02x".format(it.toInt() and 0xff) }
+                    require(actual.equals(expected, ignoreCase = true)) { "attachment hash mismatch: $relativePath" }
+                }
+            }.onFailure { issues += "${WorkspaceFiles.ATTACHMENTS}:${index + 1}: ${it.message}" }
         }
         return WorkspaceHealthReport(manifest.workspaceId, checked, records, issues)
     }

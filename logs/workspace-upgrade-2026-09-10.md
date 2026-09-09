@@ -45,6 +45,8 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - OnePlus regression after archive hardening: `OK (4 tests)`; installation succeeded and existing seed-backed local data remained available.
 - Wrapped Room backup/workspace imports in `RoomDatabase.withTransaction`; partial restore failures now roll back instead of leaving a half-imported database.
 - OnePlus regression after transactional import change: `OK (4 tests)`.
+- Workspace Health Check now validates attachment relative paths and SHA-256 hashes, reporting missing or corrupted binary files without crashing.
+- OnePlus regression after attachment health validation: `OK (4 tests)`.
 
 ## Known limitations kept explicit
 
