@@ -1,0 +1,25 @@
+# Android / Gradle generated files
+.gradle/
+.kotlin/
+**/build/
+build/
+
+# Machine-local Android SDK configuration
+local.properties
+
+# IDE and OS files
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local databases and test exports
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Build deliverables are distributed separately from the source repository
+artifacts/apk/

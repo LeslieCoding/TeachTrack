@@ -1,0 +1,48 @@
+version: "4.1.0"
+project: "TeachTrack"
+requirements:
+  - id: "UR-001"
+    source: "AI_SPEC/01_USER_REQUIREMENTS.md"
+    implementation: ["app/src/main/java/com/leslie/teachtrack/MainActivity.kt", "app/src/main/java/com/leslie/teachtrack/core/model/Entities.kt"]
+    verification: ["app/src/androidTest/java/com/leslie/teachtrack/TeachTrackComposeInstrumentedTest.kt", "artifacts/screenshots/oppo-v2/copilot-persisted.png", "artifacts/screenshots/oppo-v2/student-timeline-scroll.png"]
+    status: "IMPLEMENTED_PARTIALLY_VERIFIED"
+  - id: "UR-002"
+    source: "AI_SPEC/01_USER_REQUIREMENTS.md"
+    implementation: ["app/src/main/java/com/leslie/teachtrack/data/TeachTrackRepository.kt", "app/src/main/java/com/leslie/teachtrack/MainActivity.kt"]
+    verification: ["app/src/androidTest/java/com/leslie/teachtrack/TeachTrackDatabaseInstrumentedTest.kt"]
+    status: "IMPLEMENTED_VERIFIED_AUTOMATED"
+  - id: "UR-007"
+    source: "AI_SPEC/01_USER_REQUIREMENTS.md"
+    implementation: ["app/src/main/java/com/leslie/teachtrack/data/TeachTrackRepository.kt", "app/src/main/java/com/leslie/teachtrack/FeatureScreens.kt"]
+    verification: ["docs/testing-round-2.md", "app/src/main/java/com/leslie/teachtrack/FeatureScreens.kt", "artifacts/screenshots/oppo-v2/dashboard-insights-final.png"]
+    status: "IMPLEMENTED_PARTIAL_DEVICE_VERIFICATION"
+  - id: "UR-008"
+    source: "AI_SPEC/01_USER_REQUIREMENTS.md"
+    implementation: ["app/src/main/java/com/leslie/teachtrack/core/database/TeachTrackDatabase.kt", "app/src/main/java/com/leslie/teachtrack/core/database/TeachTrackDao.kt"]
+    verification: ["app/src/androidTest/java/com/leslie/teachtrack/TeachTrackDatabaseInstrumentedTest.kt", "AI_SPEC/ENGINEERING_BASELINE.yaml"]
+    status: "VERIFIED_AUTOMATED"
+  - id: "AC-008"
+    source: "AI_SPEC/18_ACCEPTANCE_CRITERIA.md"
+    implementation: ["docs/test-plan.md", "scripts/dev-monitor.ps1"]
+    verification: ["docs/testing-round-1.md", "docs/testing-round-2.md", "artifacts/screenshots/oppo-v2/", "AI_SPEC/35_V2_VERIFICATION_MATRIX.yaml"]
+    status: "PARTIAL_TWO_ROUNDS_PENDING"
+  - id: "V2-REQ-010"
+    source: "AI_SPEC/31_V2_REQUIREMENTS.md"
+    implementation: ["app/src/main/java/com/leslie/teachtrack/CopilotComposer.kt", "app/src/main/java/com/leslie/teachtrack/CopilotShell.kt"]
+    verification: ["artifacts/screenshots/oppo-v2/copilot-open.png", "artifacts/screenshots/oppo-v2/copilot-confirmed-fixed.png", "artifacts/screenshots/oppo-v2/copilot-voice-permission.png", "artifacts/screenshots/oppo-v2/final-current.png"]
+    status: "PARTIAL_VOICE_NO_RESULT_ON_OPPO"
+  - id: "V2-REQ-012"
+    source: "AI_SPEC/31_V2_REQUIREMENTS.md"
+    implementation: ["app/src/main/java/com/leslie/teachtrack/FeatureScreens.kt", "app/src/main/java/com/leslie/teachtrack/MainActivity.kt"]
+    verification: ["app/src/androidTest/java/com/leslie/teachtrack/TeachTrackDatabaseInstrumentedTest.kt", "logs/progress-2026-09-09-v2-planning-oppo.md"]
+    status: "IMPLEMENTED_VERIFIED_AUTOMATED"
+  - id: "V2-REQ-040"
+    source: "AI_SPEC/31_V2_REQUIREMENTS.md"
+    implementation: ["app/src/main/java/com/leslie/teachtrack/copilot/LocalCopilotActionRegistry.kt"]
+    verification: ["app/src/test/java/com/leslie/teachtrack/copilot/CopilotContractsTest.kt", "logs/progress-2026-09-09-v2-planning-oppo.md"]
+    status: "IMPLEMENTED_REGISTRY_BOUNDARY_PHYSICAL_SEMANTICS_PENDING"
+  - id: "V2-REQ-030"
+    source: "AI_SPEC/31_V2_REQUIREMENTS.md"
+    implementation: ["app/src/main/java/com/leslie/teachtrack/copilot/ProviderGateway.kt", "app/src/main/java/com/leslie/teachtrack/FeatureScreens.kt"]
+    verification: ["app/src/test/java/com/leslie/teachtrack/copilot/ProviderGatewayTest.kt", "artifacts/screenshots/oppo-v2/provider-test.png", "logs/progress-2026-09-09-v2-planning-oppo.md"]
+    status: "IMPLEMENTED_OFFLINE_VERIFIED_CLOUD_CREDENTIAL_BLOCKED"

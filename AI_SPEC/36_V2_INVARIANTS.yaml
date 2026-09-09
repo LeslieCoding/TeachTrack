@@ -1,0 +1,48 @@
+version: "1.0"
+project: "TeachTrack"
+invariants:
+  - id: "INV-V2-001"
+    title: "Local-first fallback"
+    description: "Without network, account, provider, or API key, all 1.x local workflows remain usable."
+    source: "USER_EXPLICIT"
+    scope: ["app", "copilot", "data"]
+    trigger: "provider disabled, unavailable, or request fails"
+    prohibited_changes: ["blocking student/course/score local workflows", "deleting local data"]
+    verification: ["disable-provider workflow", "offline instrumentation test"]
+    related_tests: ["V2-V04", "V2-V07"]
+    severity: "CRITICAL"
+    owner: "TeachTrack"
+    version: 1
+    effective_from: "2026-09-09"
+    status: "ACTIVE"
+    evidence: []
+  - id: "INV-V2-002"
+    title: "Model cannot directly mutate data"
+    description: "Cloud output can only be parsed into an allow-listed command and dispatched through local validation and Action Registry."
+    source: "USER_INFERRED"
+    scope: ["copilot", "security", "database"]
+    trigger: "any model response"
+    prohibited_changes: ["raw SQL from model", "reflection-based arbitrary method call", "unvalidated write"]
+    verification: ["malformed-command tests", "unknown-action tests", "registry coverage tests"]
+    related_tests: ["V2-V02", "V2-V03"]
+    severity: "CRITICAL"
+    owner: "TeachTrack"
+    version: 1
+    effective_from: "2026-09-09"
+    status: "ACTIVE"
+    evidence: []
+  - id: "INV-V2-003"
+    title: "Sensitive action confirmation"
+    description: "Scores, family contacts, communications, exports, archives, and bulk writes require visible user confirmation."
+    source: "AI_RECOMMENDED"
+    scope: ["copilot", "privacy", "ui"]
+    trigger: "sensitive or bulk command"
+    prohibited_changes: ["silent execution", "hidden upload", "unredacted audit logging"]
+    verification: ["confirmation UI tests", "redaction tests", "manual OPPO Pad evidence"]
+    related_tests: ["V2-V05", "V2-V06"]
+    severity: "HIGH"
+    owner: "TeachTrack"
+    version: 1
+    effective_from: "2026-09-09"
+    status: "ACTIVE"
+    evidence: []

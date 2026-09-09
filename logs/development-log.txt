@@ -1,0 +1,33 @@
+[2026-09-08 现阶段]
+项目：TeachTrack / 师迹 · 教师学生管理工作台
+
+本次开发目标：从零建立长期可维护的 Android 工程，先整理需求 Prompt，再按 Prompt 顺序实现。
+
+已完成：
+1. 检查 D:\software，确认不存在 TeachTrack 项目，决定创建 D:\software\TeachTrack。
+2. 定位本机 Android SDK：D:\Leslie\Codex\tools\android-sdk；当前 adb 未加入 PATH。
+3. 建立 README、Gradle 工程配置、Android Manifest、基础主题资源。
+4. 建立 docs/prompts/00-09，覆盖需求冻结、架构、数据、学生、课程、考试、计划、Dashboard、备份、质量交付。
+5. 建立 scripts/dev-monitor.ps1，默认每 30 分钟写入心跳、网络与设备状态。
+6. 明确产品优先级：快速续课与学生 Timeline 为核心体验，不把 AI 作为第一版地基。
+
+当前结果：工程目录结构已经形成，下一步实现 Room 数据层与第一条 Student Workspace 可运行闭环。
+解决的问题：避免需求散落、开发无序、日志不可追踪；为后续模块和测试建立统一边界。
+遗留问题：尚未确认 Android Gradle 依赖是否完整缓存；尚未确认 OPPO Pad 的 adb 序列号；业务 UI/数据库代码尚未完成。
+
+[2026-09-08 构建修复]
+现象：首次 Gradle 构建成功解析依赖，但 KSP 因 Java 1.8 与 Kotlin 17 target 不一致失败。
+处理：在 app/build.gradle.kts 中统一 Java/Kotlin 到 JVM 17，符合当前本机 JDK 与 Android Gradle Plugin。
+结果：等待第二次构建验证；SDK 许可证及 Android 35、Build Tools 34 已由本机 Gradle 自动完成。
+
+[2026-09-08 首次设备测试]
+设备锁定：OPPO Pad / OPD2101 / serial 2d64f765；未操作 PKG110。
+结果：Debug APK 安装、启动成功；OPPO Pad 2560x1600 横屏截图已保存到 artifacts/screenshots/oppo-pad-dashboard.png。
+视觉结论：背景、绿色主色、白色卡片、信息层级清晰；首页无白屏、无明显错位或截断。
+发现：ColorOS 未知来源安装安全确认页需要“继续安装”；横屏触控注入与 UI dump 坐标有旋转映射。
+下一步：完成学生真实录入回归，接入剩余 P0 模块，再执行第二轮真实教师流程。
+
+[2026-09-08 ��ǰ��̱�]
+Debug/Release APK �������ɹ���OPPO Pad ���������ɣ�logcat δ��� AndroidRuntime ��������APK �����ѱ��浽 artifacts/apk�����ű���������Ĭ��ÿ 30 ����д�� logs/monitor.log����¼���硢OPPO Pad adb ״̬���������������
+�׶ν�����������̡�Room �������ݲ㡢ѧ���б���ѧ�������������������Ρ��γ̱��桢ѧ�� Timeline����ɫ�ʸ���ҳ����ɲ�ʵ���� OPPO Pad ������֤��
+δ��ɣ�����/�ɼ�/֪ʶ�� UI����ҵ/��ͨ/�ƻ�/������ͳ�ơ����ݻָ���CSV���������ֲ��ԡ�ǩ�� Release��

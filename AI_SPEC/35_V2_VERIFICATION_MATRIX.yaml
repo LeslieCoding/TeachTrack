@@ -1,0 +1,43 @@
+version: "1.1"
+project: "TeachTrack"
+captured_at: "2026-09-09T02:22:00+08:00"
+matrix:
+  - environment_id: "ENV-ANDROID-OPPO-PAD-001"
+    os: "Android"
+    os_version: "Android 16 / ColorOS"
+    architecture: "arm64"
+    device_or_runtime: "OPPO Pad / serial 2d64f765"
+    app_version: "2.0.0-alpha.1"
+    capabilities: ["text-input", "local-room", "fake-provider", "provider-gateway-boundary", "provider-settings"]
+    verification_scope: ["1.x-regression", "copilot-ui", "command-preview", "offline-fallback"]
+    status: "PARTIAL"
+    evidence_ids: ["OPPO-V2-HOME-001", "OPPO-V2-COPILOT-001", "OPPO-V2-COPILOT-002", "OPPO-V2-COPILOT-003", "OPPO-INSTRUMENTATION-001"]
+    limitations: ["OPPO recognizer returned no text", "real provider credential absent", "full two-round regression pending", "Action Registry coverage is currently partial", "audit/undo coverage remains partial"]
+    verified_at: "2026-09-09T02:30:00+08:00"
+    verified_by: "Codex"
+  - environment_id: "ENV-ANDROID-ONEPLUS-001"
+    os: "Android"
+    os_version: "Android / ColorOS"
+    architecture: "arm64"
+    device_or_runtime: "OnePlus PKG110 / serial 92f73a16"
+    app_version: "2.0.0-alpha.1"
+    capabilities: ["text-input", "local-room", "fake-provider", "provider-settings", "dashboard-greeting"]
+    verification_scope: ["install", "dashboard", "instrumentation", "provider-boundary"]
+    status: "PARTIAL"
+    evidence_ids: ["ONEPLUS-V2-HOME-001", "ONEPLUS-INSTRUMENTATION-001"]
+    limitations: ["real provider credential absent", "full two-round regression pending", "audit/undo coverage remains partial", "voice end-to-end remains device-service dependent"]
+    verified_at: "2026-09-09T17:48:00+08:00"
+    verified_by: "Codex"
+  - environment_id: "ENV-ANALYSIS-LOCAL-001"
+    os: "Windows"
+    os_version: "developer workstation"
+    architecture: "x64"
+    device_or_runtime: "Gradle/JVM analysis"
+    app_version: "2.0.0-alpha.1"
+    capabilities: ["specification", "unit-tests", "fake-provider", "command-validation"]
+    verification_scope: ["command-envelope-boundary", "unknown-action-rejection", "offline-provider"]
+    status: "PASS"
+    evidence_ids: ["JVM-V2-COPILOT-001"]
+    limitations: ["Android org.json codec remains runtime-tested rather than JVM-tested"]
+    verified_at: "2026-09-09T02:17:00+08:00"
+    verified_by: "Codex"
