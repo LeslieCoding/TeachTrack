@@ -53,6 +53,8 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Simplified OAuth UI per product feedback: removed visible endpoint, token endpoint, client ID, scope, and provider text inputs from the active card. It is now a single provider dropdown plus one browser/console action and session status.
 - Cleared stale failed-login status from the simplified card and migrated unknown legacy selection display to the first common provider option.
 - OnePlus screenshot: `artifacts/screenshots/oneplus-v2/oauth-simple-final.png`; final regression after simplification: `OK (4 tests)`.
+- Added separate `Kimi Code` and `Claude / Anthropic` entries to the provider dropdown. Kimi Code opens `kimi.com/code/en`, while ordinary Kimi remains on the Moonshot platform console; Claude opens Anthropic Console.
+- OnePlus verification opened the Kimi Code official page successfully; final regression after provider additions: `OK (4 tests)`.
 
 ## Known limitations kept explicit
 

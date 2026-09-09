@@ -51,6 +51,8 @@ object OAuthProviderCatalog {
     val presets = listOf(
         OAuthProviderPreset("openai", "OpenAI / GPT", "API_KEY", "https://platform.openai.com/api-keys", note = "OpenAI API 官方使用 API Key；网页 ChatGPT 登录不会返回可用于 API 的 Token。"),
         OAuthProviderPreset("kimi", "Kimi / Moonshot", "API_KEY", "https://platform.moonshot.cn/console/api-keys", note = "Kimi 开放平台使用 API Key；请在控制台创建后保存到 Provider 配置。"),
+        OAuthProviderPreset("kimi_code", "Kimi Code", "API_KEY", "https://www.kimi.com/code/en", note = "Kimi Code 是独立的编程服务入口；官网登录与 Kimi 开放平台 API Key 不共用入口。"),
+        OAuthProviderPreset("claude", "Claude / Anthropic", "API_KEY", "https://console.anthropic.com/", note = "Claude API 在 Anthropic Console 管理 API Key。"),
         OAuthProviderPreset("deepseek", "DeepSeek", "API_KEY", "https://platform.deepseek.com/api_keys", note = "DeepSeek 开放平台使用 API Key。"),
         OAuthProviderPreset("zhipu", "智谱 GLM", "API_KEY", "https://open.bigmodel.cn/usercenter/apikeys", note = "智谱开放平台使用 API Key。"),
         OAuthProviderPreset("custom", "自定义 OAuth 2.0 / PKCE", "OAUTH_PKCE", "", note = "填写服务商提供的 Authorization Endpoint、Token Endpoint 和移动端 Client ID。")
