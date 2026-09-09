@@ -50,6 +50,18 @@ data class SyncEvent(
     val payload: String
 )
 
+data class SyncConflict(
+    val conflictId: String,
+    val workspaceId: String,
+    val entityType: String,
+    val entityId: String,
+    val localRevision: Long,
+    val incomingBaseRevision: Long,
+    val localPayload: String,
+    val incomingPayload: String,
+    val detectedAt: String
+)
+
 object WorkspaceFiles {
     const val MANIFEST = "workspace.json"
     const val STUDENTS = "students.jsonl"

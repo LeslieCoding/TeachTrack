@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.leslie.teachtrack.core.model.*
 
-@Database(entities = [StudentEntity::class, CourseSessionEntity::class, KnowledgePointEntity::class, StudentKnowledgeProgressEntity::class, StudentKnowledgeEventEntity::class, ExamEntity::class, StudentScoreEntity::class, HomeworkEntity::class, CommunicationEntity::class, LessonPlanEntity::class, TaskEntity::class, ParentContactEntity::class, ScoreItemEntity::class, ProblemRecordEntity::class, TemplateEntity::class, TagEntity::class, StudentTagEntity::class, AttachmentEntity::class, HistoricalLearningRecordEntity::class, StudentProgressEntity::class, UnresolvedHistoricalRecordEntity::class], version = 6, exportSchema = true)
+@Database(entities = [StudentEntity::class, CourseSessionEntity::class, KnowledgePointEntity::class, StudentKnowledgeProgressEntity::class, StudentKnowledgeEventEntity::class, ExamEntity::class, StudentScoreEntity::class, HomeworkEntity::class, CommunicationEntity::class, LessonPlanEntity::class, TaskEntity::class, ParentContactEntity::class, ScoreItemEntity::class, ProblemRecordEntity::class, TemplateEntity::class, TagEntity::class, StudentTagEntity::class, AttachmentEntity::class, HistoricalLearningRecordEntity::class, StudentProgressEntity::class, UnresolvedHistoricalRecordEntity::class], version = 7, exportSchema = true)
 @TypeConverters(Converters::class)
 abstract class TeachTrackDatabase : RoomDatabase() { abstract fun dao(): TeachTrackDao }
 
@@ -68,6 +68,17 @@ val MIGRATION_4_5 = object : androidx.room.migration.Migration(4, 5) {
 val MIGRATION_5_6 = object : androidx.room.migration.Migration(5, 6) {
     override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
         db.execSQL("CREATE TABLE IF NOT EXISTS unresolved_historical_records (id TEXT NOT NULL, recordDate TEXT NOT NULL, dateAccuracy TEXT NOT NULL, title TEXT NOT NULL, content TEXT NOT NULL, source TEXT NOT NULL, PRIMARY KEY(id))")
+    }
+}
+
+val MIGRATION_6_7 = object : androidx.room.migration.Migration(6, 7) {
+    override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE attachments ADD COLUMN relativePath TEXT NOT NULL DEFAULT ''")
+        db.execSQL("ALTER TABLE attachments ADD COLUMN size INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE attachments ADD COLUMN sha256 TEXT NOT NULL DEFAULT ''")
+        db.execSQL("ALTER TABLE attachments ADD COLUMN updatedAt INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE attachments ADD COLUMN revision INTEGER NOT NULL DEFAULT 1")
+        db.execSQL("ALTER TABLE attachments ADD COLUMN deletedAt INTEGER")
     }
 }
 

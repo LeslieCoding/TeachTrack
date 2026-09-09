@@ -7,6 +7,8 @@
 - Added permanent workspace/device metadata and basic sync wire formats.
 - Added workspace export/import and `.ttbackup` ZIP core.
 - Verified build and OnePlus physical workspace creation.
+- Added connected-write event journaling, conflict-file primitives, attachment SHA-256 metadata, Room 6→7 migration, and `.ttbackup` restore UI.
+- Re-ran OnePlus instrumentation after migration: 4 tests passed.
 
 ## 2026-09-09 — V2 planning baseline
 

@@ -7,6 +7,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import com.leslie.teachtrack.core.util.TemplateRenderer
 import java.util.UUID
+import com.leslie.teachtrack.data.workspace.WorkspaceSyncCoordinator
 
 data class BackupPreview(
     val exportedAt: Long,
@@ -24,7 +25,7 @@ data class BackupPreview(
     val total: Int
 )
 
-class TeachTrackRepository(private val dao: TeachTrackDao) {
+class TeachTrackRepository(private val dao: TeachTrackDao, private val sync: WorkspaceSyncCoordinator? = null) {
     fun daoForSeed(): TeachTrackDao = dao
     fun previewBackupJson(json: String): BackupPreview {
         val root = JSONObject(json)
@@ -60,7 +61,7 @@ class TeachTrackRepository(private val dao: TeachTrackDao) {
         root.optJSONArray("templates")?.let { a -> for (i in 0 until a.length()) { val o = a.getJSONObject(i); dao.upsertTemplate(TemplateEntity(o.getString("id"), o.getString("name"), o.optString("type"), o.optString("content"), o.optLong("createdAt"), o.optLong("updatedAt"))); count++ } }
         root.optJSONArray("tags")?.let { a -> for (i in 0 until a.length()) { val o = a.getJSONObject(i); dao.upsertTag(TagEntity(o.getString("id"), o.getString("name"), o.optString("color", "#176B57"))); count++ } }
         root.optJSONArray("studentTags")?.let { a -> for (i in 0 until a.length()) { val o = a.getJSONObject(i); dao.upsertStudentTag(StudentTagEntity(o.getString("studentId"), o.getString("tagId"))); count++ } }
-        root.optJSONArray("attachments")?.let { a -> for (i in 0 until a.length()) { val o = a.getJSONObject(i); dao.upsertAttachment(AttachmentEntity(o.getString("id"), str(o, "studentId"), str(o, "courseId"), str(o, "homeworkId"), o.getString("name"), o.optString("mimeType"), o.getString("uri"), o.optLong("createdAt"))); count++ } }
+        root.optJSONArray("attachments")?.let { a -> for (i in 0 until a.length()) { val o = a.getJSONObject(i); dao.upsertAttachment(AttachmentEntity(o.getString("id"), str(o, "studentId"), str(o, "courseId"), str(o, "homeworkId"), o.getString("name"), o.optString("mimeType"), o.getString("uri"), o.optLong("createdAt"), o.optString("relativePath"), o.optLong("size"), o.optString("sha256"), o.optLong("updatedAt"), o.optLong("revision", 1), o.optLong("deletedAt").takeIf { o.has("deletedAt") })); count++ } }
         root.optJSONArray("historicalLearningRecords")?.let { a -> for (i in 0 until a.length()) { val o = a.getJSONObject(i); dao.upsertHistoricalLearningRecord(HistoricalLearningRecordEntity(o.getString("id"), o.getString("studentId"), o.optString("recordDate"), o.optString("dateAccuracy", "UNKNOWN"), o.optString("subject"), o.getString("title"), o.optString("content"), o.optString("source", "历史教学资料"))); count++ } }
         root.optJSONArray("studentProgress")?.let { a -> for (i in 0 until a.length()) { val o = a.getJSONObject(i); dao.upsertStudentProgress(StudentProgressEntity(o.getString("id"), o.getString("studentId"), o.optString("date"), o.optString("dateAccuracy", "UNKNOWN"), o.getString("category"), o.getString("title"), o.optString("detail"), o.optString("source", "历史教学资料"))); count++ } }
         root.optJSONArray("unresolvedHistoricalRecords")?.let { a -> for (i in 0 until a.length()) { val o = a.getJSONObject(i); dao.upsertUnresolvedHistoricalRecord(UnresolvedHistoricalRecordEntity(o.getString("id"), o.optString("recordDate"), o.optString("dateAccuracy", "UNKNOWN"), o.getString("title"), o.optString("content"), o.optString("source", "历史教学资料"))); count++ } }
@@ -86,7 +87,7 @@ class TeachTrackRepository(private val dao: TeachTrackDao) {
         root.put("templates", array(dao.allTemplates()) { val x = it as TemplateEntity; JSONObject().put("id", x.id).put("name", x.name).put("type", x.type).put("content", x.content).put("createdAt", x.createdAt).put("updatedAt", x.updatedAt) })
         root.put("tags", array(dao.allTags()) { val x = it as TagEntity; JSONObject().put("id", x.id).put("name", x.name).put("color", x.color) })
         root.put("studentTags", array(dao.allStudentTags()) { val x = it as StudentTagEntity; JSONObject().put("studentId", x.studentId).put("tagId", x.tagId) })
-        root.put("attachments", array(dao.allAttachments()) { val x = it as AttachmentEntity; JSONObject().put("id", x.id).put("studentId", x.studentId).put("courseId", x.courseId).put("homeworkId", x.homeworkId).put("name", x.name).put("mimeType", x.mimeType).put("uri", x.uri).put("createdAt", x.createdAt) })
+        root.put("attachments", array(dao.allAttachments()) { val x = it as AttachmentEntity; JSONObject().put("id", x.id).put("studentId", x.studentId).put("courseId", x.courseId).put("homeworkId", x.homeworkId).put("name", x.name).put("mimeType", x.mimeType).put("uri", x.uri).put("createdAt", x.createdAt).put("relativePath", x.relativePath).put("size", x.size).put("sha256", x.sha256).put("updatedAt", x.updatedAt).put("revision", x.revision).put("deletedAt", x.deletedAt) })
         root.put("historicalLearningRecords", array(dao.allHistoricalLearningRecords()) { val x = it as HistoricalLearningRecordEntity; JSONObject().put("id", x.id).put("studentId", x.studentId).put("recordDate", x.recordDate).put("dateAccuracy", x.dateAccuracy).put("subject", x.subject).put("title", x.title).put("content", x.content).put("source", x.source) })
         root.put("studentProgress", array(dao.allStudentProgress()) { val x = it as StudentProgressEntity; JSONObject().put("id", x.id).put("studentId", x.studentId).put("date", x.date).put("dateAccuracy", x.dateAccuracy).put("category", x.category).put("title", x.title).put("detail", x.detail).put("source", x.source) })
         root.put("unresolvedHistoricalRecords", array(dao.allUnresolvedHistoricalRecords()) { val x = it as UnresolvedHistoricalRecordEntity; JSONObject().put("id", x.id).put("recordDate", x.recordDate).put("dateAccuracy", x.dateAccuracy).put("title", x.title).put("content", x.content).put("source", x.source) })
@@ -118,29 +119,29 @@ class TeachTrackRepository(private val dao: TeachTrackDao) {
     fun attachments(studentId: String) = dao.observeAttachments(studentId)
     fun knowledge() = dao.observeKnowledge()
     val templates: Flow<List<TemplateEntity>> = dao.observeTemplates()
-    suspend fun saveStudent(name: String, grade: String, school: String, subject: String, notes: String = ""): String { val id = UUID.randomUUID().toString(); dao.upsertStudent(StudentEntity(id, name = name, grade = grade, school = school, subject = subject, notes = notes)); return id }
-    suspend fun updateStudent(student: StudentEntity) = dao.upsertStudent(student.copy(updatedAt = System.currentTimeMillis()))
-    suspend fun archiveStudent(id: String) { dao.observeStudentOnce(id)?.let { dao.upsertStudent(it.copy(status = StudentStatus.ARCHIVED, updatedAt = System.currentTimeMillis())) } }
+    suspend fun saveStudent(name: String, grade: String, school: String, subject: String, notes: String = ""): String { val id = UUID.randomUUID().toString(); dao.upsertStudent(StudentEntity(id, name = name, grade = grade, school = school, subject = subject, notes = notes)); sync?.record("Student", id, "CREATE", JSONObject().put("name", name).put("grade", grade).put("school", school).put("subject", subject)); return id }
+    suspend fun updateStudent(student: StudentEntity) { val updated = student.copy(updatedAt = System.currentTimeMillis()); dao.upsertStudent(updated); sync?.record("Student", updated.id, "UPDATE", JSONObject().put("name", updated.name).put("updatedAt", updated.updatedAt)) }
+    suspend fun archiveStudent(id: String) { dao.observeStudentOnce(id)?.let { dao.upsertStudent(it.copy(status = StudentStatus.ARCHIVED, updatedAt = System.currentTimeMillis())); sync?.record("Student", id, "DELETE", JSONObject().put("deletedAt", System.currentTimeMillis())) } }
     suspend fun searchStudents(query: String) = dao.searchStudents(query)
     suspend fun allTags() = dao.allTags()
     suspend fun allAttachments() = dao.allAttachments()
-    suspend fun saveCourse(course: CourseSessionEntity) { dao.upsertCourse(course); if (course.nextLessonPlan.isNotBlank()) dao.upsertLessonPlan(LessonPlanEntity(UUID.randomUUID().toString(), course.studentId, course.date, chapter = course.subject, focus = course.nextLessonPlan, notes = "由课程记录自动生成")); if (course.problems.isNotBlank()) dao.upsertProblemRecord(ProblemRecordEntity(UUID.randomUUID().toString(), course.studentId, courseId = course.id, title = course.problems.take(80), description = course.problems, date = course.date)) }
-    suspend fun saveScore(exam: ExamEntity, score: StudentScoreEntity, item: ScoreItemEntity? = null) { dao.upsertExam(exam); dao.upsertScore(score); if (item != null) dao.upsertScoreItem(item) }
+    suspend fun saveCourse(course: CourseSessionEntity) { dao.upsertCourse(course); sync?.record("CourseSession", course.id, "CREATE", JSONObject().put("studentId", course.studentId).put("date", course.date).put("title", course.title)); if (course.nextLessonPlan.isNotBlank()) dao.upsertLessonPlan(LessonPlanEntity(UUID.randomUUID().toString(), course.studentId, course.date, chapter = course.subject, focus = course.nextLessonPlan, notes = "由课程记录自动生成")); if (course.problems.isNotBlank()) dao.upsertProblemRecord(ProblemRecordEntity(UUID.randomUUID().toString(), course.studentId, courseId = course.id, title = course.problems.take(80), description = course.problems, date = course.date)) }
+    suspend fun saveScore(exam: ExamEntity, score: StudentScoreEntity, item: ScoreItemEntity? = null) { dao.upsertExam(exam); dao.upsertScore(score); sync?.record("StudentScore", score.id, "CREATE", JSONObject().put("studentId", score.studentId).put("examId", score.examId).put("score", score.score).put("fullScore", score.fullScore)); if (item != null) dao.upsertScoreItem(item) }
     suspend fun saveExam(exam: ExamEntity) = dao.upsertExam(exam)
-    suspend fun saveTask(task: TaskEntity) = dao.upsertTask(task)
+    suspend fun saveTask(task: TaskEntity) { dao.upsertTask(task); sync?.record("Task", task.id, "CREATE", JSONObject().put("title", task.title).put("studentId", task.studentId)) }
     suspend fun updateTaskStatus(id: String, status: String) = dao.updateTaskStatus(id, status)
     suspend fun saveLessonPlan(plan: LessonPlanEntity) = dao.upsertLessonPlan(plan)
     suspend fun saveProblemRecord(record: ProblemRecordEntity) = dao.upsertProblemRecord(record)
     suspend fun saveKnowledge(point: KnowledgePointEntity) = dao.upsertKnowledge(point)
     suspend fun saveTag(tag: TagEntity) = dao.upsertTag(tag)
     suspend fun saveProgress(progress: StudentKnowledgeProgressEntity) { dao.upsertProgress(progress); dao.insertKnowledgeEvent(StudentKnowledgeEventEntity(UUID.randomUUID().toString(), progress.studentId, progress.knowledgePointId, progress.level, progress.lastUpdated, progress.notes)) }
-    suspend fun saveHomework(homework: HomeworkEntity) = dao.upsertHomework(homework)
-    suspend fun saveCommunication(record: CommunicationEntity) = dao.upsertCommunication(record)
+    suspend fun saveHomework(homework: HomeworkEntity) { dao.upsertHomework(homework); sync?.record("Homework", homework.id, "CREATE", JSONObject().put("studentId", homework.studentId).put("name", homework.name)) }
+    suspend fun saveCommunication(record: CommunicationEntity) { dao.upsertCommunication(record); sync?.record("CommunicationRecord", record.id, "CREATE", JSONObject().put("studentId", record.studentId).put("date", record.date)) }
     suspend fun saveParentContact(contact: ParentContactEntity) = dao.upsertParentContact(contact)
     suspend fun saveTemplate(template: TemplateEntity) = dao.upsertTemplate(template)
     suspend fun deleteTemplate(id: String) = dao.deleteTemplate(id)
-    suspend fun saveAttachment(attachment: AttachmentEntity) = dao.upsertAttachment(attachment)
-    suspend fun deleteAttachment(id: String) = dao.deleteAttachment(id)
+    suspend fun saveAttachment(attachment: AttachmentEntity) { dao.upsertAttachment(attachment); sync?.record("Attachment", attachment.id, "CREATE", JSONObject().put("relativePath", attachment.uri).put("name", attachment.name)) }
+    suspend fun deleteAttachment(id: String) { sync?.record("Attachment", id, "DELETE", JSONObject().put("deletedAt", System.currentTimeMillis())); dao.deleteAttachment(id) }
     suspend fun updateProblemStatus(id: String, status: String, notes: String = "") = dao.updateProblemStatus(id, status, notes)
     fun renderTemplate(template: TemplateEntity, values: Map<String, String>): String = TemplateRenderer.render(template.content, values)
     suspend fun latestCourse(studentId: String) = dao.latestCourse(studentId)

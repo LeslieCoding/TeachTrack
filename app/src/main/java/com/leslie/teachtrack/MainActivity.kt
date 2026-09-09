@@ -39,6 +39,7 @@ import com.leslie.teachtrack.core.database.MIGRATION_2_3
 import com.leslie.teachtrack.core.database.MIGRATION_3_4
 import com.leslie.teachtrack.core.database.MIGRATION_4_5
 import com.leslie.teachtrack.core.database.MIGRATION_5_6
+import com.leslie.teachtrack.core.database.MIGRATION_6_7
 import com.leslie.teachtrack.core.model.*
 import com.leslie.teachtrack.data.BackupPreview
 import com.leslie.teachtrack.data.TeachTrackRepository
@@ -47,6 +48,8 @@ import com.leslie.teachtrack.data.workspace.WorkspaceManager
 import com.leslie.teachtrack.data.workspace.WorkspaceExporter
 import com.leslie.teachtrack.data.workspace.WorkspaceImporter
 import com.leslie.teachtrack.data.workspace.WorkspaceArchiveManager
+import com.leslie.teachtrack.data.workspace.WorkspaceSyncCoordinator
+import com.leslie.teachtrack.data.workspace.AttachmentIntegrityCalculator
 import org.json.JSONObject
 import com.leslie.teachtrack.copilot.*
 import kotlinx.coroutines.flow.*
@@ -61,11 +64,12 @@ private val Ink = Color(0xFF15312A)
 private val AppBackground = Color(0xFFF4F9F6)
 
 class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); enableEdgeToEdge(); val db = Room.databaseBuilder(applicationContext, TeachTrackDatabase::class.java, "teachtrack.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6).build(); val repo = TeachTrackRepository(db.dao()); setContent { TeachTrackTheme { TeachTrackShell(repo) } }; OAuthManager.handleCallback(this, intent) }
+    override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); enableEdgeToEdge(); val db = Room.databaseBuilder(applicationContext, TeachTrackDatabase::class.java, "teachtrack.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7).build(); val repo = TeachTrackRepository(db.dao(), WorkspaceSyncCoordinator(applicationContext)); setContent { TeachTrackTheme { TeachTrackShell(repo) } }; OAuthManager.handleCallback(this, intent) }
     override fun onNewIntent(intent: android.content.Intent) { super.onNewIntent(intent); setIntent(intent); OAuthManager.handleCallback(this, intent) }
 }
 
 class TeachTrackViewModel(private val repo: TeachTrackRepository, context: android.content.Context) : ViewModel() {
+    private val appContext = context.applicationContext
     private val workspaceManager = WorkspaceManager(context)
     val copilot = CopilotService(ConfigurableCopilotProvider(context), LocalCopilotActionRegistry(repo))
     val students = repo.students.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -103,7 +107,7 @@ class TeachTrackViewModel(private val repo: TeachTrackRepository, context: andro
     fun saveHomework(homework: HomeworkEntity) = viewModelScope.launch { repo.saveHomework(homework) }
     fun saveCommunication(record: CommunicationEntity) = viewModelScope.launch { repo.saveCommunication(record) }
     fun saveParentContact(contact: ParentContactEntity) = viewModelScope.launch { repo.saveParentContact(contact) }
-    fun saveAttachment(attachment: AttachmentEntity) = viewModelScope.launch { repo.saveAttachment(attachment) }
+    fun saveAttachment(attachment: AttachmentEntity) = viewModelScope.launch { val enriched = runCatching { AttachmentIntegrityCalculator.calculate(appContext.contentResolver, Uri.parse(attachment.uri)) }.fold({ attachment.copy(size = it.size, sha256 = it.sha256, updatedAt = System.currentTimeMillis()) }, { attachment }); repo.saveAttachment(enriched) }
     fun deleteAttachment(id: String) = viewModelScope.launch { repo.deleteAttachment(id) }
     fun saveTemplate(template: TemplateEntity) = viewModelScope.launch { repo.saveTemplate(template) }
     fun deleteTemplate(id: String) = viewModelScope.launch { repo.deleteTemplate(id) }
@@ -144,6 +148,15 @@ class TeachTrackViewModel(private val repo: TeachTrackRepository, context: andro
             val manifest = workspaceManager.readManifest(storage)
             WorkspaceArchiveManager().create(storage, resolver, uri, manifest.workspaceId, "3.0.0-alpha.1", manifest.schemaVersion, JSONObject().put("students", repo.daoForSeed().allStudents().size).put("courses", repo.daoForSeed().allCourses().size).put("scores", repo.daoForSeed().allScores().size))
         }.onSuccess { onFinished(".ttbackup 已创建") }.onFailure { onFinished(".ttbackup 创建失败：${it.message ?: "请重试"}") }
+    }
+    fun restoreWorkspaceBackup(backupUri: Uri, resolver: ContentResolver, targetUri: Uri, onFinished: (String) -> Unit = {}) = viewModelScope.launch {
+        runCatching {
+            workspaceManager.attach(targetUri)
+            val target = workspaceManager.storage(targetUri)!!
+            WorkspaceArchiveManager().restore(resolver, backupUri, target)
+            val result = WorkspaceImporter(repo, workspaceManager).import(target)
+            result
+        }.onSuccess { onFinished("备份已恢复：${it.records} 条记录，${it.issues.size} 条问题") }.onFailure { onFinished("备份恢复失败：${it.message ?: "请确认备份文件"}") }
     }
 }
 

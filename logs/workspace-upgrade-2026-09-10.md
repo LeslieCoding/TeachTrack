@@ -25,3 +25,12 @@
 ## Remaining
 
 Full per-entity sync event emission, conflict editor, attachment copy/hash verification, restore UI, and second-device simulation remain in the next execution slice. No Room database file is used as a shared workspace file.
+
+## Continuation
+
+- Added a best-effort `WorkspaceSyncCoordinator`; local writes remain successful if the workspace is disconnected, while connected writes journal CREATE/UPDATE/DELETE events.
+- Added conflict data model and conflict-file writer primitives.
+- Added Attachment SHA-256 and byte-size calculation, plus Room migration 6→7.
+- Added `.ttbackup` restore flow in Settings: select archive, select new target folder, unpack, import and report issues.
+- OnePlus second regression: `OK (4 tests)` after the 6→7 migration.
+- OnePlus screenshot: `artifacts/screenshots/oneplus-v2/v3-settings.png`.

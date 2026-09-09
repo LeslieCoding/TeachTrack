@@ -59,7 +59,7 @@ data class TagEntity(@PrimaryKey val id: String, val name: String, val color: St
 data class StudentTagEntity(val studentId: String, val tagId: String)
 
 @Entity(tableName = "attachments", indices = [Index("studentId"), Index("courseId"), Index("homeworkId")])
-data class AttachmentEntity(@PrimaryKey val id: String, val studentId: String? = null, val courseId: String? = null, val homeworkId: String? = null, val name: String, val mimeType: String = "application/octet-stream", val uri: String, val createdAt: Long = System.currentTimeMillis())
+data class AttachmentEntity(@PrimaryKey val id: String, val studentId: String? = null, val courseId: String? = null, val homeworkId: String? = null, val name: String, val mimeType: String = "application/octet-stream", val uri: String, val createdAt: Long = System.currentTimeMillis(), val relativePath: String = "", val size: Long = 0L, val sha256: String = "", val updatedAt: Long = System.currentTimeMillis(), val revision: Long = 1L, val deletedAt: Long? = null)
 
 @Entity(tableName = "historical_learning_records", indices = [Index("studentId"), Index("recordDate")])
 data class HistoricalLearningRecordEntity(@PrimaryKey val id: String, val studentId: String, val recordDate: String = "", val dateAccuracy: String = "UNKNOWN", val subject: String = "", val title: String, val content: String = "", val source: String = "历史教学资料")

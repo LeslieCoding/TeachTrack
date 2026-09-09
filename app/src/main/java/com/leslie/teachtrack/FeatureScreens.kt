@@ -122,9 +122,12 @@ private fun SettingsScreenContent(vm: TeachTrackViewModel) {
 @Composable
 private fun WorkspaceSettingsCard(context: android.content.Context, vm: TeachTrackViewModel) {
     var status by remember { mutableStateOf("") }
+    var pendingBackup by remember { mutableStateOf<android.net.Uri?>(null) }
     val openWorkspace = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri -> if (uri != null) vm.attachWorkspace(uri) { status = it } }
     val createWorkspace = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri -> if (uri != null) vm.createWorkspace(uri) { status = it } }
     val createBackup = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri -> if (uri != null) vm.createWorkspaceBackup(uri, context.contentResolver) { status = it } }
+    val restoreTarget = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri -> val backup = pendingBackup; if (uri != null && backup != null) vm.restoreWorkspaceBackup(backup, context.contentResolver, uri) { status = it }; pendingBackup = null }
+    val openBackup = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if (uri != null) { pendingBackup = uri; restoreTarget.launch(null) } }
     Card(Modifier.fillMaxWidth().padding(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(14.dp)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("数据与同步 / Portable Workspace", fontWeight = FontWeight.SemiBold, color = FeatureInk)
@@ -135,6 +138,7 @@ private fun WorkspaceSettingsCard(context: android.content.Context, vm: TeachTra
             }
             OutlinedButton(onClick = { vm.exportWorkspace { status = it } }) { Text("立即导出到当前工作区") }
             OutlinedButton(onClick = { createBackup.launch("TeachTrack-Workspace.ttbackup") }) { Text("创建 .ttbackup 备份") }
+            OutlinedButton(onClick = { openBackup.launch(arrayOf("application/zip", "application/octet-stream")) }) { Text("从 .ttbackup 恢复到新工作区") }
             if (status.isNotBlank()) Text(status, color = FeatureGreen, fontSize = 13.sp)
         }
     }
