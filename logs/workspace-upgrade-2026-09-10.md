@@ -60,3 +60,19 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 
 - Conflict decisions are persisted as resolution records; applying an arbitrary event payload into Room is intentionally not automatic yet.
 - Workspace import/export is the supported data exchange path; the Room database is never copied as a shared file.
+
+## 2026-09-10 OAuth correction (OpenMinis-aligned)
+
+- Rechecked OpenMinis Android auth structure before changing TeachTrack. OpenMinis uses provider-specific OAuth managers instead of treating every provider console as OAuth.
+- Separated `oauthPresets` from `apiPresets`; the active OAuth selector now contains only account authorization entries: OpenAI/ChatGPT Codex, Claude account, and Kimi Code.
+- Removed the previous semantic error where selecting an API-key provider from the OAuth card opened its API console. OAuth UI no longer exposes API-console actions.
+- Added provider-specific Kimi Code RFC 8628 device authorization: request device code, open verification URL, poll token endpoint, handle pending/slow_down/denied/expired states, and store the returned token in Android Keystore-backed storage.
+- Added provider-specific PKCE metadata for OpenAI Codex and Claude account login, including client IDs, scopes, authorization endpoints, token endpoints, state validation, code exchange, and encrypted token storage.
+- Added a visible explanation in Settings that account OAuth and API Key are independent credential paths.
+- Verification: `testDebugUnitTest`, `assembleDebug`, `assembleDebugAndroidTest` passed; debug APK installed on OnePlus `92f73a16`.
+- OnePlus visual evidence: `artifacts/screenshots/oneplus-v2/oauth-separated-settings.png`, `oauth-separated-menu.png`.
+
+## Limitations / next auth work
+
+- OpenAI Codex and Claude browser callbacks currently use TeachTrack's app callback and still need provider-compatible local callback handling verification on a real account; no real credentials were used.
+- API Key entry remains in the separate Provider card and is not mixed into the OAuth card.

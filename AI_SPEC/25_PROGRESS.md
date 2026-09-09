@@ -68,3 +68,12 @@
 - Registered `teachtrack://oauth/callback` in the Android manifest and connected both cold-start and `onNewIntent` callback handling.
 - Added OAuth configuration unit tests and verified the expanded OAuth settings card on OnePlus.
 - Real OAuth login is not claimed because no external identity provider/client registration was supplied; callback cancellation/error handling remains safe.
+
+## 2026-09-10 - OpenMinis-aligned authentication separation
+
+- Replaced the misleading OAuth catalog that mixed API-console providers with account authorization.
+- Added separate OAuth/account catalog and API-key catalog. The OAuth card no longer opens API consoles.
+- Added provider-specific Kimi Code RFC 8628 device authorization with browser verification URL, polling, backoff, expiry and encrypted token persistence.
+- Added OpenAI Codex and Claude account OAuth metadata for provider-specific PKCE authorization/token exchange.
+- Added OnePlus visual evidence: `artifacts/screenshots/oneplus-v2/oauth-separated-settings.png` and `oauth-separated-menu.png`.
+- Build and unit/instrumentation APK assembly passed; no real provider credential was entered.

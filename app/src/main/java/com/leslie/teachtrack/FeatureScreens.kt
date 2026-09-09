@@ -1,5 +1,4 @@
 package com.leslie.teachtrack
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -225,20 +224,22 @@ private fun OAuthSettingsCard(context: android.content.Context) {
 private fun OAuthSimpleSettingsCard(context: android.content.Context) {
     val preferences = remember(context) { OAuthPreferences(context) }
     var config by remember { mutableStateOf(preferences.load()) }
-    var selected by remember { mutableStateOf(OAuthProviderCatalog.find(config.provider)) }
+    var selected by remember { mutableStateOf(OAuthProviderCatalog.findOAuth(config.provider)) }
     var menu by remember { mutableStateOf(false) }
     var status by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
     Card(Modifier.fillMaxWidth().padding(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(14.dp)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("账号 OAuth 与 API Key 是两条独立流程；此处只处理账号授权，不打开 API 控制台。", color = Color.Gray, fontSize = 13.sp)
             Text("OAuth 登录认证", fontWeight = FontWeight.SemiBold, color = FeatureInk)
             Text("只需选择服务商，然后在浏览器完成登录或打开官方控制台。", color = Color.Gray, fontSize = 13.sp)
             Box {
                 OutlinedButton(onClick = { menu = true }) { Text(selected.displayName) }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                    OAuthProviderCatalog.presets.forEach { preset ->
+                    OAuthProviderCatalog.oauthPresets.forEach { preset ->
                         DropdownMenuItem(text = { Text(preset.displayName) }, onClick = {
                             selected = preset
-                            config = config.copy(provider = preset.displayName, authorizationEndpoint = preset.authorizationEndpoint, tokenEndpoint = preset.tokenEndpoint, scopes = preset.scopes)
+                            config = config.copy(provider = preset.id, authorizationEndpoint = preset.authorizationEndpoint, tokenEndpoint = preset.tokenEndpoint, clientId = preset.clientId, scopes = preset.scopes)
                             preferences.save(config)
                             menu = false
                             status = preset.note
@@ -249,7 +250,10 @@ private fun OAuthSimpleSettingsCard(context: android.content.Context) {
             Text(selected.note, color = Color.Gray, fontSize = 12.sp)
             Button(onClick = {
                 preferences.save(config)
-                if (selected.authMode == "OAUTH_PKCE" && config.authorizationEndpoint.isNotBlank() && config.clientId.isNotBlank()) {
+                if (selected.authMode == "OAUTH_DEVICE") {
+                    status = "Kimi Code 正在申请设备授权码…"
+                    scope.launch { runCatching { OAuthManager.startKimiDeviceLogin(context) }.onFailure { status = "Kimi OAuth 失败：${it.message ?: it.javaClass.simpleName}" } }
+                } else if (selected.authMode == "OAUTH_PKCE" && config.authorizationEndpoint.isNotBlank() && config.clientId.isNotBlank()) {
                     status = if (OAuthManager.startAuthorization(context, config)) "已打开浏览器，请完成登录" else "OAuth 配置不可用"
                 } else if (selected.consoleUrl.isNotBlank()) {
                     runCatching { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(selected.consoleUrl))) }

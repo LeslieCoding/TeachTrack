@@ -7,6 +7,12 @@
 - Added device identity, sync events/checkpoints and `.ttbackup` archive writer.
 - Moved historical seed usage to user-selected external JSON; no historical student data is packaged into the APK.
 
+## 3.0.0-alpha.1 - OAuth correction
+
+- Account OAuth and API Key are now represented as separate provider paths.
+- Added OpenAI Codex, Claude account PKCE metadata and Kimi Code device-flow implementation based on the provider-specific pattern observed in OpenMinis.
+- OAuth settings no longer presents API-console links as login actions.
+
 ## 2.0.0-alpha.1 — 2026-09-09
 
 - Renamed the major product line to `TeachTrack 2.0 · TeachTrack Copilot`.
