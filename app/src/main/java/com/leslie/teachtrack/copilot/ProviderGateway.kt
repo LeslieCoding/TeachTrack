@@ -116,14 +116,72 @@ class OpenAiCompatibleProviderGateway(private val preferences: ProviderPreferenc
     companion object { const val SYSTEM_PROMPT = "You are TeachTrack command planner. Convert the user's request into exactly one JSON object with schema=teachtrack.command.v1, action, confirmationRequired=true, clientRequestId, and string parameters. Use only requested application actions. If information is missing use action=navigation.open with clarification. Never return Markdown or explanations. All state-changing actions require confirmation." }
 }
 
+/** Kimi Code account OAuth adapter. It never reads the API-key keystore. */
+class KimiCodeOAuthProviderGateway(private val oauth: OAuthPreferences) : ProviderGateway {
+    override suspend fun interpret(input: String, context: Map<String, String>, config: ProviderConfig): ProviderResponse = request(input, context, config)
+    override suspend fun testConnection(config: ProviderConfig): ProviderResponse = request("Return a valid empty TeachTrack command envelope.", emptyMap(), config)
+
+    private suspend fun request(input: String, context: Map<String, String>, config: ProviderConfig): ProviderResponse = withContext(Dispatchers.IO) {
+        val token = oauth.accessToken()
+            ?: return@withContext ProviderResponse.Failure("OAUTH_NOT_AUTHENTICATED", "Kimi Code OAuth 尚未登录，请先在 OAuth 登录模块完成登录")
+        val safe = config.normalized()
+        val endpoint = "https://api.kimi.com/coding/v1/chat/completions"
+        val model = safe.model.ifBlank { "kimi-for-coding" }
+        runCatching {
+            val connection = (URL(endpoint).openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"
+                connectTimeout = safe.timeoutSeconds * 1000
+                readTimeout = safe.timeoutSeconds * 1000
+                doOutput = true
+                setRequestProperty("Authorization", "Bearer $token")
+                setRequestProperty("Content-Type", "application/json")
+                setRequestProperty("Accept", "application/json")
+                setRequestProperty("User-Agent", "TeachTrack/3.0")
+            }
+            val body = JSONObject()
+                .put("model", model)
+                // Kimi Code managed models currently require temperature=1.
+                .put("temperature", 1)
+                .put("messages", JSONArray()
+                    .put(JSONObject().put("role", "system").put("content", OpenAiCompatibleProviderGateway.SYSTEM_PROMPT))
+                    .put(JSONObject().put("role", "user").put("content", "用户请求：$input\n当前上下文：${JSONObject(context)}\n只返回符合 schema 的 JSON，不要 Markdown，不要解释。")))
+                .toString()
+            connection.outputStream.use { it.write(body.toByteArray(StandardCharsets.UTF_8)) }
+            val status = connection.responseCode
+            val stream = if (status in 200..299) connection.inputStream else connection.errorStream
+            val responseBody = stream?.use { BufferedReader(InputStreamReader(it, StandardCharsets.UTF_8)).readText() }.orEmpty()
+            connection.disconnect()
+            if (status !in 200..299) {
+                val detail = runCatching {
+                    val json = JSONObject(responseBody)
+                    json.optJSONObject("error")?.optString("message")
+                        ?.ifBlank { json.optString("message") }
+                        ?.ifBlank { null }
+                        ?: json.optString("message").ifBlank { null }
+                }.getOrNull().orEmpty().take(180)
+                ProviderResponse.Failure("HTTP_$status", "Kimi Code OAuth 请求失败（HTTP $status）${if (detail.isBlank()) "" else "：$detail"}")
+            } else {
+                val content = JSONObject(responseBody).getJSONArray("choices").getJSONObject(0).getJSONObject("message").optString("content").trim().removePrefix("```json").removePrefix("```").removeSuffix("```").trim()
+                ProviderResponse.Success(CopilotCandidate(CopilotCommandCodec.decode(content), "已由 Kimi Code OAuth 解析为可确认命令"))
+            }
+        }.getOrElse { error -> ProviderResponse.Failure("NETWORK_ERROR", "Kimi Code OAuth 暂时不可用：${error.javaClass.simpleName}") }
+    }
+}
+
 class ConfigurableCopilotProvider(context: Context) : CopilotProvider {
     private val preferences = ProviderPreferences(context.applicationContext)
+    private val oauthPreferences = OAuthPreferences(context.applicationContext)
     private val offline = OfflineProviderGateway()
     private val cloud = OpenAiCompatibleProviderGateway(preferences)
+    private val kimiOauth = KimiCodeOAuthProviderGateway(oauthPreferences)
     override suspend fun interpret(input: String, context: Map<String, String>): CopilotCandidate {
         val config = preferences.load()
         if (!config.enabled) return (offline.interpret(input, context, config) as ProviderResponse.Success).candidate
-        return when (val response = cloud.interpret(input, context, config)) {
+        val oauthConfig = oauthPreferences.load()
+        val useKimiOAuth = oauthPreferences.hasSession() && oauthConfig.provider == "kimi_code" &&
+            (config.authMode == "OAUTH_DEVICE" || config.providerId == "custom")
+        val response = if (useKimiOAuth) kimiOauth.interpret(input, context, config) else cloud.interpret(input, context, config)
+        return when (response) {
             is ProviderResponse.Success -> response.candidate
             is ProviderResponse.Failure -> (offline.interpret(input, context, config) as ProviderResponse.Success).candidate.copy(explanation = "云端不可用，已切换离线解析：${response.message}", error = response.message)
         }

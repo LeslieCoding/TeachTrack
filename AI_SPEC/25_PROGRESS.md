@@ -69,6 +69,13 @@
 - Added a hard gateway boundary: OAuth modes are rejected by the generic API-key adapter with `AUTH_MODE_MISMATCH`; OAuth tokens are never silently reused as API keys.
 - OnePlus UI inspection confirmed the selector and six entries. Unit/build/instrumentation verification passed.
 
+## 2026-09-10 - OAuth command routing completion
+
+- Copilot now routes a logged-in Kimi Code account to a dedicated OAuth chat-completions adapter instead of requiring API Provider endpoint/model/API Key fields.
+- OAuth access tokens are read only from the existing encrypted token store; the generic API-key adapter remains isolated.
+- Verified on OnePlus with a real `识别并预览` request: Kimi OAuth returned a valid command preview (`students.add`).
+- Fixed Kimi Code's model-specific requirement that `temperature` be `1`. Build, unit tests and instrumentation passed.
+
 - Fixed stale Compose status after returning from Kimi Code browser authorization.
 - Settings now reloads persisted OAuth status on resume and handles device-flow success/failure explicitly.
 - OnePlus rebuild/install/instrumentation passed: `OK (4 tests)`.

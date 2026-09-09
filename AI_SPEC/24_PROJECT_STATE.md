@@ -31,4 +31,5 @@ Home text command composer, configurable-provider boundary, strict command envel
 - R3: cloud model network, provider secrets, voice permission, and model-directed writes.
 - Rollback: disable the Copilot feature flag and keep all 1.x screens/repositories; revert version metadata only if release tooling requires it.
 - No real provider credential has been supplied or stored.
+- Kimi Code OAuth command routing is now physically verified on OnePlus: a live Copilot request returned a valid `students.add` preview without API Key/endpoint/model configuration.
 - OnePlus `92f73a16` is the active connected device with the current Debug APK installed; the latest screenshot/UI dump is under `artifacts/screenshots/oneplus-v2/`. OPPO evidence remains under `artifacts/screenshots/oppo-v2/`.

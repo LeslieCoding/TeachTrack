@@ -76,6 +76,8 @@ class OAuthPreferences(context: Context) {
     fun load(): OAuthConfig = OAuthConfig(prefs.getBoolean("enabled", false), prefs.getString("provider", "openai_codex").orEmpty(), prefs.getString("authorizationEndpoint", "").orEmpty(), prefs.getString("tokenEndpoint", "").orEmpty(), prefs.getString("clientId", "").orEmpty(), prefs.getString("scopes", "openid profile email offline_access").orEmpty()).normalized()
     fun save(config: OAuthConfig) { val safe = config.normalized(); prefs.edit().putBoolean("enabled", safe.enabled).putString("provider", safe.provider).putString("authorizationEndpoint", safe.authorizationEndpoint).putString("tokenEndpoint", safe.tokenEndpoint).putString("clientId", safe.clientId).putString("scopes", safe.scopes).apply() }
     fun hasSession(): Boolean = tokens.hasSession()
+    /** Returns only the access token from the encrypted OAuth token bundle. */
+    internal fun accessToken(): String? = tokens.loadAccessToken()
     fun clearSession() { tokens.clear(); prefs.edit().remove("status").apply() }
     fun status(): String = prefs.getString("status", "尚未登录") ?: "尚未登录"
     internal fun pendingState(): String? = prefs.getString("pending_state", null)
@@ -86,12 +88,19 @@ class OAuthPreferences(context: Context) {
     internal fun fail(message: String) { prefs.edit().putString("status", message).apply() }
 }
 
-private class OAuthTokenStore(private val context: Context) {
+internal class OAuthTokenStore(private val context: Context) {
     private val prefs = context.getSharedPreferences("teachtrack_oauth_secret", Context.MODE_PRIVATE)
     private val alias = "TeachTrack.OAuth.Token"
     fun hasSession(): Boolean = !prefs.getString("ciphertext", null).isNullOrBlank()
     fun save(value: String) { val cipher = Cipher.getInstance("AES/GCM/NoPadding"); cipher.init(Cipher.ENCRYPT_MODE, key()); prefs.edit().putString("ciphertext", Base64.encodeToString(cipher.doFinal(value.toByteArray(StandardCharsets.UTF_8)), Base64.NO_WRAP)).putString("iv", Base64.encodeToString(cipher.iv, Base64.NO_WRAP)).apply() }
     fun clear() { prefs.edit().clear().apply() }
+    fun loadAccessToken(): String? = runCatching {
+        val ciphertext = Base64.decode(prefs.getString("ciphertext", null).orEmpty(), Base64.NO_WRAP)
+        val iv = Base64.decode(prefs.getString("iv", null).orEmpty(), Base64.NO_WRAP)
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        cipher.init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(128, iv))
+        JSONObject(String(cipher.doFinal(ciphertext), StandardCharsets.UTF_8)).optString("access_token").ifBlank { null }
+    }.getOrNull()
     private fun key(): SecretKey { val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }; (store.getKey(alias, null) as? SecretKey)?.let { return it }; val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore"); generator.init(KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT).setBlockModes(KeyProperties.BLOCK_MODE_GCM).setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE).build()); return generator.generateKey() }
 }
 

@@ -85,6 +85,16 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - API keys remain Android Keystore-backed; provider metadata remains local preferences and is not put into Room, workspace exports, logs or screenshots.
 - OnePlus UI inspection confirmed the selector and six entries. Build, unit tests and instrumentation passed (`OK (4 tests)`). Evidence: `artifacts/screenshots/oneplus-v2/provider-dropdown-visible.png`, `provider-dropdown-menu.png`.
 
+## 2026-09-10 OAuth command routing completion
+
+- Root cause of the user's endpoint/model/API Key message: `ConfigurableCopilotProvider` always routed Copilot interpretation to the API-key gateway, regardless of a completed OAuth login.
+- Added encrypted OAuth access-token reading without exposing the token to Room, logs or UI.
+- Added a Kimi Code OAuth chat-completions adapter using the Kimi Code endpoint and default model `kimi-for-coding`; it never reads the API-key keystore.
+- Added routing selection for a logged-in Kimi Code account, while preserving the generic API-key path for API Provider mode.
+- OnePlus live command verification completed: `识别并预览` returned `已由 Kimi Code OAuth 解析为可确认命令` and produced a `students.add` action. The UI no longer displayed the endpoint/model/API Key configuration error.
+- During verification Kimi returned the precise 400 cause `invalid temperature: only 1 is allowed for this model`; the Kimi OAuth adapter now sends `temperature=1`.
+- Final build and OnePlus instrumentation passed: `OK (4 tests)`.
+
 ## 2026-09-10 Kimi Code login status fix
 
 - Root cause: the Kimi device-flow coroutine wrote progress/success into `OAuthPreferences`, but the Compose card kept a separate in-memory status initialized to the old text. Returning from the browser therefore continued to show “正在申请设备授权码” even after the token was saved.

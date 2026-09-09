@@ -16,6 +16,12 @@
 - Prevented the generic OpenAI-compatible adapter from accepting OAuth routing; it returns an explicit authentication-mode mismatch.
 - Added Provider routing metadata unit coverage and OnePlus UI evidence.
 
+## 3.0.0-alpha.1 - OAuth command routing
+
+- Added Kimi Code OAuth command interpretation using the encrypted OAuth session and Kimi Code chat-completions endpoint.
+- Copilot routing now distinguishes logged-in Kimi OAuth from API Key Provider configuration.
+- Fixed Kimi Code request temperature validation and verified a live command preview on OnePlus.
+
 - Account OAuth and API Key are now represented as separate provider paths.
 - Added OpenAI Codex, Claude account PKCE metadata and Kimi Code device-flow implementation based on the provider-specific pattern observed in OpenMinis.
 - OAuth settings no longer presents API-console links as login actions.

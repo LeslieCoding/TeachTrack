@@ -21,3 +21,5 @@
 13. Kimi Code status-refresh bug is fixed. Real account completion still requires the user to complete the provider authorization; no credential is stored in the repository or test artifacts.
 
 14. Cloud Provider API routing is now separated from OAuth. Real API connectivity remains unverified until a user supplies a valid provider endpoint/model/API Key; no credential is stored in the repository or test artifacts.
+
+15. Kimi Code OAuth command interpretation is verified on OnePlus. OpenAI Codex and Claude account OAuth still have no provider-specific command adapter, so they remain login/storage-ready but are not yet usable as Copilot command providers.
