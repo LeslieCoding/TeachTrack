@@ -77,6 +77,14 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - OpenAI Codex and Claude browser callbacks currently use TeachTrack's app callback and still need provider-compatible local callback handling verification on a real account; no real credentials were used.
 - API Key entry remains in the separate Provider card and is not mixed into the OAuth card.
 
+## 2026-09-10 Cloud Provider routing correction
+
+- Moved the API-provider selector into the active `ProviderSettingsCard`; the previous insertion had landed in an unused legacy OAuth composable.
+- The Provider selector now exposes OpenAI/GPT API, Kimi/Moonshot API, Kimi Code API, Claude/Anthropic API, DeepSeek API and Zhipu GLM API.
+- `ProviderConfig` now persists stable `providerId` and `authMode`. The generic OpenAI-compatible gateway rejects non-API-key routing with `AUTH_MODE_MISMATCH`, so OAuth account tokens are not treated as API keys.
+- API keys remain Android Keystore-backed; provider metadata remains local preferences and is not put into Room, workspace exports, logs or screenshots.
+- OnePlus UI inspection confirmed the selector and six entries. Build, unit tests and instrumentation passed (`OK (4 tests)`). Evidence: `artifacts/screenshots/oneplus-v2/provider-dropdown-visible.png`, `provider-dropdown-menu.png`.
+
 ## 2026-09-10 Kimi Code login status fix
 
 - Root cause: the Kimi device-flow coroutine wrote progress/success into `OAuthPreferences`, but the Compose card kept a separate in-memory status initialized to the old text. Returning from the browser therefore continued to show “正在申请设备授权码” even after the token was saved.

@@ -295,6 +295,8 @@ private fun ProviderSettingsCard(context: android.content.Context) {
     var apiKey by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
     var status by remember { mutableStateOf("") }
+    var providerMenu by remember { mutableStateOf(false) }
+    var selectedApiProvider by remember { mutableStateOf(OAuthProviderCatalog.apiPresets.firstOrNull { it.id == config.providerId } ?: OAuthProviderCatalog.apiPresets.first()) }
     val scope = rememberCoroutineScope()
     Card(Modifier.fillMaxWidth().padding(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(14.dp)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -307,6 +309,29 @@ private fun ProviderSettingsCard(context: android.content.Context) {
             }
             TextButton(onClick = { expanded = !expanded }) { Text(if (expanded) "收起配置" else "配置 Provider") }
             if (expanded) {
+                Box {
+                    OutlinedButton(onClick = { providerMenu = true }) {
+                        Text("API 服务商：${selectedApiProvider.displayName}")
+                    }
+                    DropdownMenu(expanded = providerMenu, onDismissRequest = { providerMenu = false }) {
+                        OAuthProviderCatalog.apiPresets.forEach { preset ->
+                            DropdownMenuItem(
+                                text = { Text(preset.displayName) },
+                                onClick = {
+                                    selectedApiProvider = preset
+                                    config = config.copy(
+                                        providerId = preset.id,
+                                        vendor = preset.displayName,
+                                        authMode = "API_KEY"
+                                    )
+                                    providerMenu = false
+                                    status = preset.note
+                                }
+                            )
+                        }
+                    }
+                }
+                Text("此处仅配置 API Key Provider；账号 OAuth 请在上方 OAuth 登录模块完成。", color = Color.Gray, fontSize = 12.sp)
                 OutlinedTextField(config.vendor, { config = config.copy(vendor = it) }, label = { Text("厂商标识") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(config.endpoint, { config = config.copy(endpoint = it) }, label = { Text("Endpoint（可选）") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(config.model, { config = config.copy(model = it) }, label = { Text("Model（可选）") }, singleLine = true, modifier = Modifier.fillMaxWidth())

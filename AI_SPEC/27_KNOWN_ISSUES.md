@@ -19,3 +19,5 @@
 11. OAuth Authorization Code + PKCE configuration, browser launch, callback validation, encrypted token storage, and logout are implemented. End-to-end login still requires a real identity-provider client registration and redirect URI allow-list entry.
 12. OpenMinis-aligned provider-specific OAuth paths are now separated. Kimi Code device flow is wired, while OpenAI Codex and Claude callback compatibility still needs verification with a real account; no credentials were used during testing.
 13. Kimi Code status-refresh bug is fixed. Real account completion still requires the user to complete the provider authorization; no credential is stored in the repository or test artifacts.
+
+14. Cloud Provider API routing is now separated from OAuth. Real API connectivity remains unverified until a user supplies a valid provider endpoint/model/API Key; no credential is stored in the repository or test artifacts.

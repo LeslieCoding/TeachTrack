@@ -24,9 +24,13 @@ data class ProviderConfig(
     val vendor: String = "Fake / Offline",
     val endpoint: String = "",
     val model: String = "",
-    val timeoutSeconds: Int = 30
+    val timeoutSeconds: Int = 30,
+    /** Stable provider identity; display name is not used for routing. */
+    val providerId: String = "custom",
+    /** Cloud Provider currently accepts API_KEY only. OAuth is handled by account adapters. */
+    val authMode: String = "API_KEY"
 ) {
-    fun normalized() = copy(vendor = vendor.trim().ifBlank { "OpenAI-compatible" }, endpoint = endpoint.trim(), model = model.trim(), timeoutSeconds = timeoutSeconds.coerceIn(5, 120))
+    fun normalized() = copy(vendor = vendor.trim().ifBlank { "OpenAI-compatible" }, endpoint = endpoint.trim(), model = model.trim(), timeoutSeconds = timeoutSeconds.coerceIn(5, 120), providerId = providerId.trim().ifBlank { "custom" }, authMode = authMode.trim().ifBlank { "API_KEY" })
 }
 
 sealed interface ProviderResponse {
@@ -53,8 +57,8 @@ class UnconfiguredCloudProviderGateway : ProviderGateway {
 class ProviderPreferences(context: Context) {
     private val prefs = context.applicationContext.getSharedPreferences("teachtrack_provider", Context.MODE_PRIVATE)
     private val secretStore = SecureApiKeyStore(context.applicationContext)
-    fun load(): ProviderConfig = ProviderConfig(prefs.getBoolean("enabled", false), prefs.getString("vendor", "Fake / Offline").orEmpty(), prefs.getString("endpoint", "").orEmpty(), prefs.getString("model", "").orEmpty(), prefs.getInt("timeoutSeconds", 30)).normalized()
-    fun save(config: ProviderConfig) { val safe = config.normalized(); prefs.edit().putBoolean("enabled", safe.enabled).putString("vendor", safe.vendor).putString("endpoint", safe.endpoint).putString("model", safe.model).putInt("timeoutSeconds", safe.timeoutSeconds).apply() }
+    fun load(): ProviderConfig = ProviderConfig(prefs.getBoolean("enabled", false), prefs.getString("vendor", "Fake / Offline").orEmpty(), prefs.getString("endpoint", "").orEmpty(), prefs.getString("model", "").orEmpty(), prefs.getInt("timeoutSeconds", 30), prefs.getString("providerId", "custom").orEmpty(), prefs.getString("authMode", "API_KEY").orEmpty()).normalized()
+    fun save(config: ProviderConfig) { val safe = config.normalized(); prefs.edit().putBoolean("enabled", safe.enabled).putString("vendor", safe.vendor).putString("endpoint", safe.endpoint).putString("model", safe.model).putInt("timeoutSeconds", safe.timeoutSeconds).putString("providerId", safe.providerId).putString("authMode", safe.authMode).apply() }
     fun hasApiKey(): Boolean = secretStore.hasKey()
     fun saveApiKey(value: String) { secretStore.save(value) }
     fun clearApiKey() { secretStore.clear() }
@@ -94,6 +98,7 @@ class OpenAiCompatibleProviderGateway(private val preferences: ProviderPreferenc
     override suspend fun testConnection(config: ProviderConfig): ProviderResponse = request(config, "Return a valid empty TeachTrack command envelope.", emptyMap())
     private suspend fun request(config: ProviderConfig, input: String, context: Map<String, String>): ProviderResponse = withContext(Dispatchers.IO) {
         val safe = config.normalized(); val apiKey = preferences.loadApiKey()
+        if (safe.authMode != "API_KEY") return@withContext ProviderResponse.Failure("AUTH_MODE_MISMATCH", "当前 Provider 仅支持 API Key 调用；账号 OAuth 请使用 OAuth 登录模块")
         if (safe.endpoint.isBlank() || safe.model.isBlank() || apiKey.isNullOrBlank()) return@withContext ProviderResponse.Failure("NOT_CONFIGURED", "请先配置 endpoint、model 和 API Key")
         runCatching {
             val connection = (URL(safe.endpoint).openConnection() as HttpURLConnection).apply { requestMethod = "POST"; connectTimeout = safe.timeoutSeconds * 1000; readTimeout = safe.timeoutSeconds * 1000; doOutput = true; setRequestProperty("Authorization", "Bearer $apiKey"); setRequestProperty("Content-Type", "application/json"); setRequestProperty("Accept", "application/json") }

@@ -62,6 +62,13 @@
 
 ## 2026-09-10 - Kimi Code OAuth status refresh fix
 
+## 2026-09-10 - Cloud Provider API/OAuth boundary correction
+
+- Added stable `providerId` and `authMode` to cloud Provider configuration and persisted them separately from OAuth account preferences.
+- Put the API-provider dropdown in the active Provider settings card with OpenAI, Kimi/Moonshot, Kimi Code API, Claude API, DeepSeek and Zhipu presets.
+- Added a hard gateway boundary: OAuth modes are rejected by the generic API-key adapter with `AUTH_MODE_MISMATCH`; OAuth tokens are never silently reused as API keys.
+- OnePlus UI inspection confirmed the selector and six entries. Unit/build/instrumentation verification passed.
+
 - Fixed stale Compose status after returning from Kimi Code browser authorization.
 - Settings now reloads persisted OAuth status on resume and handles device-flow success/failure explicitly.
 - OnePlus rebuild/install/instrumentation passed: `OK (4 tests)`.

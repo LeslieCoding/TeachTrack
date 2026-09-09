@@ -9,6 +9,13 @@
 
 ## 3.0.0-alpha.1 - OAuth correction
 
+## 3.0.0-alpha.1 - Cloud Provider routing correction
+
+- Separated the active Cloud Provider API-key selector from the account OAuth selector.
+- Added persisted provider identity/auth-mode metadata and API presets for OpenAI, Kimi/Moonshot, Kimi Code API, Claude API, DeepSeek and Zhipu.
+- Prevented the generic OpenAI-compatible adapter from accepting OAuth routing; it returns an explicit authentication-mode mismatch.
+- Added Provider routing metadata unit coverage and OnePlus UI evidence.
+
 - Account OAuth and API Key are now represented as separate provider paths.
 - Added OpenAI Codex, Claude account PKCE metadata and Kimi Code device-flow implementation based on the provider-specific pattern observed in OpenMinis.
 - OAuth settings no longer presents API-console links as login actions.

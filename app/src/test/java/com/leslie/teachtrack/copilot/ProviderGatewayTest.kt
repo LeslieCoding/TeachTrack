@@ -21,4 +21,14 @@ class ProviderGatewayTest {
         assertEquals(5, ProviderConfig(timeoutSeconds = 1).normalized().timeoutSeconds)
         assertEquals(120, ProviderConfig(timeoutSeconds = 999).normalized().timeoutSeconds)
     }
+
+    @Test fun providerRouteMetadataStaysSeparateFromOauth() {
+        val config = ProviderConfig(
+            providerId = "kimi_code",
+            vendor = "Kimi Code",
+            authMode = "OAUTH_DEVICE"
+        ).normalized()
+        assertEquals("kimi_code", config.providerId)
+        assertEquals("OAUTH_DEVICE", config.authMode)
+    }
 }
