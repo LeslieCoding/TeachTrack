@@ -40,6 +40,9 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Added Settings actions to scan events, inspect conflict summaries, and record VERSION_A / VERSION_B / MANUAL_MERGE decisions without silent overwrite.
 - Rebuilt and reinstalled debug + androidTest APK on OnePlus `92f73a16`; second regression: `OK (4 tests)`.
 - OnePlus visual check: `artifacts/screenshots/oneplus-v2/sync-settings-workspace2.png` confirms the workspace, health check, event scan, and conflict actions are visible and usable.
+- Hardened `.ttbackup`: archive creation now recursively includes workspace files, sync metadata, device records, and binary attachments; restore writes raw bytes instead of UTF-8 text conversion.
+- Added `WorkspaceStorage.readBytes` and guarded SAF reads so directories or temporarily unavailable nodes do not crash scanning/archiving.
+- OnePlus regression after archive hardening: `OK (4 tests)`; installation succeeded and existing seed-backed local data remained available.
 
 ## Known limitations kept explicit
 

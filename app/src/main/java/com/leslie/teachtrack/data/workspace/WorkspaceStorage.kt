@@ -7,6 +7,7 @@ import org.json.JSONObject
 
 interface WorkspaceStorage {
     fun read(name: String): String?
+    fun readBytes(name: String): ByteArray? = read(name)?.toByteArray(Charsets.UTF_8)
     fun write(name: String, content: String)
     fun writeBytes(name: String, content: ByteArray)
     fun append(relativePath: String, content: String)
@@ -29,7 +30,8 @@ class AndroidSafWorkspaceStorage(private val context: Context, private val rootU
         return current.findFile(name) ?: if (create) current.createFile("application/octet-stream", name) else null
     }
 
-    override fun read(name: String): String? = file(name, false)?.let { resolver.openInputStream(it.uri)?.bufferedReader()?.use { r -> r.readText() } }
+    override fun read(name: String): String? = runCatching { file(name, false)?.let { resolver.openInputStream(it.uri)?.bufferedReader()?.use { r -> r.readText() } } }.getOrNull()
+    override fun readBytes(name: String): ByteArray? = runCatching { file(name, false)?.let { resolver.openInputStream(it.uri)?.use { input -> input.readBytes() } } }.getOrNull()
     override fun write(name: String, content: String) {
         val target = file(name, true) ?: error("Cannot create workspace file: $name")
         resolver.openOutputStream(target.uri, "wt")?.bufferedWriter()?.use { it.write(content) }

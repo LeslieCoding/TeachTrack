@@ -9,21 +9,12 @@ import java.util.zip.ZipOutputStream
 import org.json.JSONObject
 
 class WorkspaceArchiveManager {
-    private val dataFiles = listOf(
-        WorkspaceFiles.MANIFEST, ".teachtrack/workspace.id", ".teachtrack/schema.version", ".teachtrack/state.json",
-        "data/${WorkspaceFiles.STUDENTS}", "data/${WorkspaceFiles.COURSES}", "data/${WorkspaceFiles.EXAMS}", "data/${WorkspaceFiles.SCORES}",
-        "data/${WorkspaceFiles.KNOWLEDGE_POINTS}", "data/${WorkspaceFiles.KNOWLEDGE_PROGRESS}", "data/${WorkspaceFiles.KNOWLEDGE_EVENTS}",
-        "data/${WorkspaceFiles.HOMEWORK}", "data/${WorkspaceFiles.PROBLEMS}", "data/${WorkspaceFiles.COMMUNICATIONS}", "data/${WorkspaceFiles.LESSON_PLANS}",
-        "data/${WorkspaceFiles.TASKS}", "data/${WorkspaceFiles.PARENT_CONTACTS}", "data/${WorkspaceFiles.SCORE_ITEMS}", "data/${WorkspaceFiles.TEMPLATES}",
-        "data/${WorkspaceFiles.TAGS}", "data/${WorkspaceFiles.STUDENT_TAGS}", "data/${WorkspaceFiles.ATTACHMENTS}", "data/${WorkspaceFiles.HISTORICAL_RECORDS}",
-        "data/${WorkspaceFiles.STUDENT_PROGRESS}", "data/${WorkspaceFiles.UNRESOLVED_RECORDS}", "sync/devices"
-    )
-
     fun create(storage: WorkspaceStorage, resolver: ContentResolver, uri: Uri, workspaceId: String, appVersion: String, schemaVersion: Int, counts: JSONObject) {
         resolver.openOutputStream(uri, "wt")?.use { output ->
             ZipOutputStream(output).use { zip ->
-                dataFiles.filter { storage.exists(it) }.forEach { path ->
-                    val entry = ZipEntry(path); zip.putNextEntry(entry); zip.write((storage.read(path) ?: "").toByteArray(Charsets.UTF_8)); zip.closeEntry()
+                collectFiles(storage, "").forEach { path ->
+                    val bytes = storage.readBytes(path) ?: return@forEach
+                    zip.putNextEntry(ZipEntry(path)); zip.write(bytes); zip.closeEntry()
                 }
                 zip.putNextEntry(ZipEntry("backup.json")); zip.write(JSONObject().put("backupFormatVersion", 1).put("workspaceId", workspaceId).put("createdAt", java.time.Instant.now().toString()).put("appVersion", appVersion).put("schemaVersion", schemaVersion).put("counts", counts).toString(2).toByteArray(Charsets.UTF_8)); zip.closeEntry()
             }
@@ -37,10 +28,16 @@ class WorkspaceArchiveManager {
                 val entry = zip.nextEntry ?: break
                 val name = entry.name
                 require(!name.startsWith("/") && !name.contains("..")) { "Unsafe backup path" }
-                if (!entry.isDirectory && name != "backup.json") { target.write(name, zip.readBytes().toString(Charsets.UTF_8)); files++ }
+                if (!entry.isDirectory && name != "backup.json") { target.writeBytes(name, zip.readBytes()); files++ }
                 zip.closeEntry()
             }
         } } ?: error("Cannot read .ttbackup")
         return files
+    }
+
+    private fun collectFiles(storage: WorkspaceStorage, directory: String): List<String> {
+        return storage.list(directory).flatMap { path ->
+            if (storage.readBytes(path) != null) listOf(path) else collectFiles(storage, path)
+        }
     }
 }
