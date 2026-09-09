@@ -51,6 +51,8 @@ import com.leslie.teachtrack.data.workspace.WorkspaceArchiveManager
 import com.leslie.teachtrack.data.workspace.WorkspaceSyncCoordinator
 import com.leslie.teachtrack.data.workspace.AttachmentIntegrityCalculator
 import com.leslie.teachtrack.data.workspace.WorkspaceHealthChecker
+import com.leslie.teachtrack.data.workspace.SyncEventScanner
+import com.leslie.teachtrack.data.workspace.ConflictResolutionStore
 import org.json.JSONObject
 import com.leslie.teachtrack.copilot.*
 import kotlinx.coroutines.flow.*
@@ -160,6 +162,33 @@ class TeachTrackViewModel(private val repo: TeachTrackRepository, context: andro
         }.onSuccess { onFinished("备份已恢复：${it.records} 条记录，${it.issues.size} 条问题") }.onFailure { onFinished("备份恢复失败：${it.message ?: "请确认备份文件"}") }
     }
     fun checkWorkspace(onFinished: (String) -> Unit = {}) = viewModelScope.launch { runCatching { val storage = workspaceManager.storage() ?: error("请先连接工作区"); WorkspaceHealthChecker(workspaceManager).check(storage) }.onSuccess { onFinished("工作区检查：${it.checkedFiles} 个文件、${it.records} 条记录、${it.issues.size} 个问题") }.onFailure { onFinished("工作区检查失败：${it.message ?: "请重试"}") } }
+    fun scanWorkspace(onFinished: (String) -> Unit = {}) = viewModelScope.launch {
+        runCatching {
+            val storage = workspaceManager.storage() ?: error("请先连接工作区")
+            SyncEventScanner(workspaceManager).scan(storage)
+        }.onSuccess { onFinished("同步扫描：${it.events} 个事件、${it.conflicts} 个冲突、${it.issues} 个损坏事件") }
+            .onFailure { onFinished("同步扫描失败：${it.message ?: "请重试"}") }
+    }
+    fun conflictCount(onFinished: (Int) -> Unit) = viewModelScope.launch {
+        val count = runCatching {
+            val storage = workspaceManager.storage() ?: return@runCatching 0
+            ConflictResolutionStore(workspaceManager).count(storage)
+        }.getOrDefault(0)
+        onFinished(count)
+    }
+    fun conflictFiles(onFinished: (List<String>) -> Unit) = viewModelScope.launch {
+        runCatching {
+            val storage = workspaceManager.storage() ?: error("请先连接工作区")
+            val store = ConflictResolutionStore(workspaceManager)
+            store.files(storage).map { it to store.summary(storage, it) }
+        }.onSuccess { onFinished(it.map { pair -> "${pair.first}|${pair.second}" }) }.onFailure { onFinished(emptyList()) }
+    }
+    fun resolveConflict(file: String, choice: String, onFinished: (String) -> Unit = {}) = viewModelScope.launch {
+        runCatching {
+            val storage = workspaceManager.storage() ?: error("请先连接工作区")
+            ConflictResolutionStore(workspaceManager).recordResolution(storage, file, choice)
+        }.onSuccess { onFinished("冲突处理选择已记录：$choice") }.onFailure { onFinished("冲突处理失败：${it.message ?: "请重试"}") }
+    }
 }
 
 @Composable fun TeachTrackApp(repo: TeachTrackRepository) {

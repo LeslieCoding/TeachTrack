@@ -122,6 +122,10 @@ private fun SettingsScreenContent(vm: TeachTrackViewModel) {
 @Composable
 private fun WorkspaceSettingsCard(context: android.content.Context, vm: TeachTrackViewModel) {
     var status by remember { mutableStateOf("") }
+    var conflicts by remember { mutableStateOf<List<String>>(emptyList()) }
+    var selectedConflict by remember { mutableStateOf<String?>(null) }
+    var conflictCount by remember { mutableIntStateOf(0) }
+    LaunchedEffect(Unit) { vm.conflictCount { conflictCount = it } }
     var pendingBackup by remember { mutableStateOf<android.net.Uri?>(null) }
     val openWorkspace = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri -> if (uri != null) vm.attachWorkspace(uri) { status = it } }
     val createWorkspace = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri -> if (uri != null) vm.createWorkspace(uri) { status = it } }
@@ -140,8 +144,13 @@ private fun WorkspaceSettingsCard(context: android.content.Context, vm: TeachTra
             OutlinedButton(onClick = { createBackup.launch("TeachTrack-Workspace.ttbackup") }) { Text("创建 .ttbackup 备份") }
             OutlinedButton(onClick = { openBackup.launch(arrayOf("application/zip", "application/octet-stream")) }) { Text("从 .ttbackup 恢复到新工作区") }
             OutlinedButton(onClick = { vm.checkWorkspace { status = it } }) { Text("检查工作区完整性") }
-            if (status.isNotBlank()) Text(status, color = FeatureGreen, fontSize = 13.sp)
-        }
+             OutlinedButton(onClick = { vm.scanWorkspace { status = it; vm.conflictCount { conflictCount = it } } }) { Text("扫描同步事件与冲突") }
+             OutlinedButton(onClick = { vm.conflictFiles { conflicts = it } }) { Text("查看冲突并选择处理方式") }
+             Text("当前冲突文件：${conflictCount} 个；冲突不会静默覆盖。", color = Color.Gray, fontSize = 13.sp)
+             if (status.isNotBlank()) Text(status, color = FeatureGreen, fontSize = 13.sp)
+     if (conflicts.isNotEmpty()) AlertDialog(onDismissRequest = { conflicts = emptyList() }, title = { Text("同步冲突") }, text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { conflicts.forEach { item -> Text(item.substringAfter('|'), fontSize = 13.sp); TextButton(onClick = { selectedConflict = item.substringBefore('|') }) { Text("打开处理选项") } } } }, confirmButton = { TextButton(onClick = { conflicts = emptyList() }) { Text("关闭") } })
+     if (selectedConflict != null) AlertDialog(onDismissRequest = { selectedConflict = null }, title = { Text("记录冲突处理") }, text = { Text("选择只会记录决策，不会静默覆盖另一版本。") }, confirmButton = { Row { TextButton(onClick = { vm.resolveConflict(selectedConflict!!, "VERSION_A") { status = it }; selectedConflict = null }) { Text("使用版本 A") }; TextButton(onClick = { vm.resolveConflict(selectedConflict!!, "VERSION_B") { status = it }; selectedConflict = null }) { Text("使用版本 B") }; TextButton(onClick = { vm.resolveConflict(selectedConflict!!, "MANUAL_MERGE") { status = it }; selectedConflict = null }) { Text("手动合并") } } })
+ }
     }
 }
 

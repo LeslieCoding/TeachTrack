@@ -36,3 +36,12 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - OnePlus screenshot: `artifacts/screenshots/oneplus-v2/v3-settings.png`.
 - Added Workspace Health Check, DELETE tombstone files, and portable attachment byte copying using relative paths.
 - Final OnePlus regression after these changes: `OK (4 tests)`.
+- Added recursive SyncEvent scanner with duplicate-event suppression, revision mismatch detection, checkpoints, and conflict file generation.
+- Added Settings actions to scan events, inspect conflict summaries, and record VERSION_A / VERSION_B / MANUAL_MERGE decisions without silent overwrite.
+- Rebuilt and reinstalled debug + androidTest APK on OnePlus `92f73a16`; second regression: `OK (4 tests)`.
+- OnePlus visual check: `artifacts/screenshots/oneplus-v2/sync-settings-workspace2.png` confirms the workspace, health check, event scan, and conflict actions are visible and usable.
+
+## Known limitations kept explicit
+
+- Conflict decisions are persisted as resolution records; applying an arbitrary event payload into Room is intentionally not automatic yet.
+- Workspace import/export is the supported data exchange path; the Room database is never copied as a shared file.
