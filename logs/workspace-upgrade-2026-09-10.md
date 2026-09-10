@@ -164,3 +164,14 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Added tests for Chinese task recognition, student/score/full-score extraction, and provider action aliases.
 - Fixed Chinese-name extraction so `给学生王晨然录入成绩 126 分，满分 160` does not absorb following command text into the student name.
 - JVM test suite passed after the fix.
+
+## 2026-09-11 - Copilot full-operation contract increment
+
+- Revalidated the full path: provider interpretation, action normalization, confirmation gate, local registry execution, and repository writes.
+- Added exam creation and score query intent classification to the offline fallback.
+- Added Chinese/English student-name context extraction for phrases such as “给学生王晨然录入成绩”.
+- Expanded cloud system instructions with the concrete TeachTrack action catalog and parameter contract, reducing invalid provider actions.
+- Provider aliases are normalized before validation and execution; destructive/unknown actions remain rejected.
+- Test additions cover Chinese task parsing, student/score/full-score extraction and action aliases.
+- `testDebugUnitTest`, `assembleDebug`, and `assembleDebugAndroidTest` passed.
+- OnePlus physical test was not run in this increment because ADB reported no connected devices; OPPO was not used.
