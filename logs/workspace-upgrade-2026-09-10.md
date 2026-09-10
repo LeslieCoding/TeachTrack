@@ -138,3 +138,12 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Added Room-backed dashboard course and score projections capped at the latest 200 records.
 - Kept the existing unbounded streams for full planning/analytics/history views; dashboard wiring remains the next safe UI integration step so historical analytics semantics are not changed accidentally.
 - Build and JVM tests passed; physical verification remains blocked until OnePlus `92f73a16` reconnects.
+
+### OnePlus physical verification resumed
+
+- OnePlus `92f73a16` reconnected and was the only device used.
+- Latest Debug APK installed successfully.
+- App launch smoke check passed.
+- Android instrumentation passed: `OK (4 tests)`.
+- Screen evidence: `artifacts/screenshots/oneplus-v2/hardening-reconnected.png`.
+- UI hierarchy evidence: `artifacts/teachtrack-hardening-reconnected-ui.xml`.
