@@ -158,3 +158,9 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Expanded the cloud planner contract with the actual allowed action catalog and parameter names.
 - OAuth routing is now explicit: Kimi OAuth is used only when auth mode is `OAUTH_DEVICE`; other OAuth sessions no longer fall through to an API-Key configuration error.
 - Build and unit tests passed. OnePlus physical install was attempted but serial `92f73a16` disconnected and no ADB device remained; no other device was used.
+
+### Copilot parser regression fix
+
+- Added tests for Chinese task recognition, student/score/full-score extraction, and provider action aliases.
+- Fixed Chinese-name extraction so `给学生王晨然录入成绩 126 分，满分 160` does not absorb following command text into the student name.
+- JVM test suite passed after the fix.

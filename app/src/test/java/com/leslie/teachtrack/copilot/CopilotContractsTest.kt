@@ -24,6 +24,14 @@ class CopilotContractsTest {
         assertEquals("score.create", CopilotCommandCodec.normalizeAction("scores.add"))
     }
 
+    @Test fun fakeProviderExtractsStudentAndScoreFields() = runBlocking {
+        val candidate = FakeCopilotProvider().interpret("\u7ed9\u5b66\u751f\u738b\u6668\u7136\u5f55\u5165\u6210\u7ee9 126\u5206\uff0c\u6ee1\u5206 160", emptyMap())
+        assertEquals("score.create", candidate.command?.action)
+        assertEquals("王晨然", candidate.command?.parameters?.get("studentName"))
+        assertEquals("126", candidate.command?.parameters?.get("score"))
+        assertEquals("160", candidate.command?.parameters?.get("fullScore"))
+    }
+
     @Test fun serviceRejectsUnknownActionBeforeExecution() = runBlocking {
         var executed = false
         val registry = object : CopilotActionRegistry {

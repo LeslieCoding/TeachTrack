@@ -15,7 +15,8 @@ class FakeCopilotProvider : CopilotProvider {
         if (text.isBlank()) return CopilotCandidate(null, "请输入要执行的内容", error = "EMPTY_INPUT")
         val action = when {
             has(text, "\u5b66\u751f", "student") && has(text, "\u6dfb\u52a0", "\u65b0\u589e", "\u65b0\u5efa", "add", "create") -> "student.create"
-            has(text, "\u6210\u7ee9", "\u5206\u6570", "score", "grade") -> "score.create"
+            has(text, "\u8003\u8bd5", "exam") && has(text, "\u521b\u5efa", "\u65b0\u5efa", "\u6dfb\u52a0", "add", "create") -> "exam.create"
+            has(text, "\u6210\u7ee9", "\u5206\u6570", "score", "grade") -> if (has(text, "\u67e5\u8be2", "\u67e5\u770b", "\u591a\u5c11", "query", "list")) "score.query" else "score.create"
             has(text, "\u5f85\u529e", "\u4efb\u52a1", "task", "todo") -> "task.create"
             has(text, "\u8bfe\u7a0b", "\u4e0a\u8bfe", "\u6388\u8bfe", "course", "lesson") -> "course.create"
             has(text, "\u6c9f\u901a", "\u5bb6\u957f", "\u5bb6\u6821", "communication", "parent") -> "communication.create"
@@ -23,7 +24,8 @@ class FakeCopilotProvider : CopilotProvider {
             has(text, "\u8ba1\u5212", "\u4e0b\u8282\u8bfe", "plan", "next lesson") -> "lesson_plan.create"
             else -> return CopilotCandidate(null, "我没有识别出要操作的模块，请说明要添加学生、课程、成绩、作业、待办或沟通。", needsClarification = true)
         }
-        val name = Regex("(?:\u5b66\u751f|student)\\s*[:：]?\\s*([\\p{L}\\p{N}·]{2,12})", RegexOption.IGNORE_CASE).find(text)?.groupValues?.getOrNull(1).orEmpty().ifBlank { context["selectedStudentName"].orEmpty() }
+        val namePattern = "[\\p{L}\\p{N}·]{2,6}"
+        val name = Regex("(?:\u5b66\u751f|student)\\s*[:：]?\\s*($namePattern)(?=\u5f55\u5165|\u6dfb\u52a0|\u65b0\u5efa|\u67e5\u8be2|\u67e5\u770b|\\s|$)", RegexOption.IGNORE_CASE).find(text)?.groupValues?.getOrNull(1).orEmpty().ifBlank { Regex("(?:\u7ed9|for)\\s*($namePattern)(?=\u5f55\u5165|\u6dfb\u52a0|\u65b0\u5efa|\\s|$)", RegexOption.IGNORE_CASE).find(text)?.groupValues?.getOrNull(1).orEmpty() }.ifBlank { context["selectedStudentName"].orEmpty() }
         val score = Regex("(?:\u6210\u7ee9|\u5206\u6570|score)\\s*[:：]?\\s*(\\d+(?:\\.\\d+)?)", RegexOption.IGNORE_CASE).find(text)?.groupValues?.getOrNull(1).orEmpty()
         val fullScore = Regex("(?:\u6ee1\u5206|full\\s*score)\\s*[:：]?\\s*(\\d+(?:\\.\\d+)?)", RegexOption.IGNORE_CASE).find(text)?.groupValues?.getOrNull(1).orEmpty()
         val grade = Regex("(?:\u5e74\u7ea7|grade)\\s*[:：]?\\s*([^，,\\s]+)", RegexOption.IGNORE_CASE).find(text)?.groupValues?.getOrNull(1).orEmpty()
