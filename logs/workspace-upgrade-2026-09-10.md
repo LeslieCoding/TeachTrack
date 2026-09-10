@@ -172,6 +172,13 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - The AI action boundary remains local and validated; no model can issue raw SQL or bypass confirmation for writes.
 - `testDebugUnitTest` and `assembleDebug` passed.
 
+## 2026-09-11 - AI write safety and OnePlus validation
+
+- Added pre-write checks preventing missing scores from silently becoming `0`, and preventing blank course/homework/communication content from being written.
+- OnePlus `92f73a16` reconnected; current Debug APK installed successfully.
+- Android instrumentation passed: `OK (4 tests)`.
+- Copilot validation screenshot: `artifacts/screenshots/oneplus-v2/copilot-validation.png`.
+
 ## 2026-09-11 - Copilot full-operation contract increment
 
 - Revalidated the full path: provider interpretation, action normalization, confirmation gate, local registry execution, and repository writes.
