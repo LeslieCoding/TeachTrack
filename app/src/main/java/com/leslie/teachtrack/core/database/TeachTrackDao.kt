@@ -50,6 +50,7 @@ interface TeachTrackDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertTag(tag: TagEntity)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertStudentTag(studentTag: StudentTagEntity)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertAttachment(attachment: AttachmentEntity)
+    @Query("SELECT * FROM attachments WHERE id = :id LIMIT 1") suspend fun attachmentOnce(id: String): AttachmentEntity?
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertHistoricalLearningRecord(record: HistoricalLearningRecordEntity)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertHistoricalLearningRecords(records: List<HistoricalLearningRecordEntity>)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertStudentProgress(record: StudentProgressEntity)

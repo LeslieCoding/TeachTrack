@@ -125,3 +125,10 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Multi-entity save/import transaction boundaries need a separate low-risk pass.
 - Dashboard-wide history queries should be reviewed for bounded projections before larger datasets are used.
 - Automatic per-entity sync event emission and full second-device simulation remain incomplete.
+
+### Follow-up stability changes
+
+- Wrapped course save plus generated lesson-plan/problem records in one Room transaction when the production database is available.
+- Wrapped exam/score/optional score-item save in one Room transaction.
+- Changed attachment deletion to a revisioned tombstone (`deletedAt`) instead of physical deletion, preserving cross-device deletion semantics.
+- Build and JVM tests passed. OnePlus physical rerun was attempted but blocked because serial `92f73a16` disconnected; only OPPO serial `2d64f765` remained visible, and it was intentionally not used.
