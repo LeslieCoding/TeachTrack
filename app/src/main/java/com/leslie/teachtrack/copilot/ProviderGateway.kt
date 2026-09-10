@@ -113,7 +113,7 @@ class OpenAiCompatibleProviderGateway(private val preferences: ProviderPreferenc
         val content = JSONObject(raw).getJSONArray("choices").getJSONObject(0).getJSONObject("message").optString("content").trim().removePrefix("```json").removePrefix("```").removeSuffix("```").trim()
         return CopilotCandidate(CopilotCommandCodec.decode(content), "已由云端 Provider 解析为可确认命令")
     }
-    companion object { const val SYSTEM_PROMPT = "You are TeachTrack command planner. Convert the user's request into exactly one JSON object with schema=teachtrack.command.v1, action, confirmationRequired=true, clientRequestId, and string parameters. Use only requested application actions. If information is missing use action=navigation.open with clarification. Never return Markdown or explanations. All state-changing actions require confirmation." }
+    companion object { const val SYSTEM_PROMPT = "You are the TeachTrack command planner. Convert the user's Chinese or English request into exactly one JSON object: {schema:'teachtrack.command.v1',action,confirmationRequired:true,clientRequestId,parameters:{}}. Allowed actions are student.create/update/search/archive, course.create/resume/timeline, exam.create, score.create/query, homework.create, problem.create/status.update, knowledge.update/query, communication.create, lesson_plan.create, task.create, template.create, tag.create, attachment.list, dashboard.query, analytics.query, navigation.open. Use the exact singular action names. Parameters are strings: studentName, selectedStudentId, grade, school, subject, score, fullScore, examName, date, rawText, knowledgePointId, level, problemId, status, destination, title. Never invent missing IDs or data. If a write needs a missing student, return the action with the known studentName or selectedStudentId and let the app ask for clarification. Never return Markdown or explanations. All writes require confirmation." }
 }
 
 /** Kimi Code account OAuth adapter. It never reads the API-key keystore. */
@@ -178,9 +178,12 @@ class ConfigurableCopilotProvider(context: Context) : CopilotProvider {
         val config = preferences.load()
         if (!config.enabled) return (offline.interpret(input, context, config) as ProviderResponse.Success).candidate
         val oauthConfig = oauthPreferences.load()
-        val useKimiOAuth = oauthPreferences.hasSession() && oauthConfig.provider == "kimi_code" &&
-            (config.authMode == "OAUTH_DEVICE" || config.providerId == "custom")
-        val response = if (useKimiOAuth) kimiOauth.interpret(input, context, config) else cloud.interpret(input, context, config)
+        val useKimiOAuth = oauthPreferences.hasSession() && oauthConfig.provider == "kimi_code" && config.authMode == "OAUTH_DEVICE"
+        val response = when {
+            useKimiOAuth -> kimiOauth.interpret(input, context, config)
+            oauthPreferences.hasSession() && oauthConfig.provider != "kimi_code" -> ProviderResponse.Failure("OAUTH_ADAPTER_UNAVAILABLE", "当前已登录 ${oauthConfig.provider} 账号，但该账号的 TeachTrack 操作适配器尚未启用；请选择已支持的 OAuth Provider，或切换到 API Key 模式")
+            else -> cloud.interpret(input, context, config)
+        }
         return when (response) {
             is ProviderResponse.Success -> response.candidate
             is ProviderResponse.Failure -> (offline.interpret(input, context, config) as ProviderResponse.Success).candidate.copy(explanation = "云端不可用，已切换离线解析：${response.message}", error = response.message)

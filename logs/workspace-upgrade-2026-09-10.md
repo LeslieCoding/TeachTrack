@@ -147,3 +147,14 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Android instrumentation passed: `OK (4 tests)`.
 - Screen evidence: `artifacts/screenshots/oneplus-v2/hardening-reconnected.png`.
 - UI hierarchy evidence: `artifacts/teachtrack-hardening-reconnected-ui.xml`.
+
+## 2026-09-11 - Copilot command execution hardening
+
+- Root cause confirmed: the offline parser contained mojibake Chinese keywords, so normal Chinese requests could not be classified reliably.
+- Replaced the parser with encoding-stable Unicode matching for student, score, task, course, communication, homework and lesson-plan requests.
+- Added extraction for student name, score, full score, grade and subject, while retaining selected-student context.
+- Added provider action aliases (`students.add`, `scores.add`, `tasks.add`, etc.) and normalize them before validation/execution so cloud output can reach the existing local action registry.
+- Student-dependent actions can now resolve a selected student or an exact local student name before writing.
+- Expanded the cloud planner contract with the actual allowed action catalog and parameter names.
+- OAuth routing is now explicit: Kimi OAuth is used only when auth mode is `OAUTH_DEVICE`; other OAuth sessions no longer fall through to an API-Key configuration error.
+- Build and unit tests passed. OnePlus physical install was attempted but serial `92f73a16` disconnected and no ADB device remained; no other device was used.

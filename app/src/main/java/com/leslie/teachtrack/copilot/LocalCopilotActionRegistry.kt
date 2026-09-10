@@ -23,7 +23,8 @@ class LocalCopilotActionRegistry(private val repository: TeachTrackRepository) :
     override suspend fun execute(command: CopilotCommand): CopilotResult {
         val p = command.parameters
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        fun studentId(): String? = p["selectedStudentId"]?.takeIf { it.isNotBlank() }
+        suspend fun studentId(): String? = p["selectedStudentId"]?.takeIf { it.isNotBlank() }
+            ?: p["studentName"]?.takeIf { it.isNotBlank() }?.let { name -> repository.searchStudents(name).firstOrNull()?.id }
         fun missingStudent() = CopilotResult(false, "请先在学生工作台选择学生，或补充唯一学生姓名")
         return when (command.action) {
             "student.create" -> {

@@ -10,13 +10,18 @@ class CopilotContractsTest {
     @Test fun validatorAcceptsOnlyRegisteredActions() {
         val validator = CopilotCommandValidator(setOf("task.create"))
         assertEquals(null, validator.validate(CopilotCommand("task.create", true, emptyMap())))
-        assertEquals("此操作未被允许", validator.validate(CopilotCommand("danger.rawSql", true, emptyMap())))
+        assertEquals("此操作未被允许：danger.rawSql", validator.validate(CopilotCommand("danger.rawSql", true, emptyMap())))
     }
 
-    @Test fun fakeProviderRecognizesOfflineTaskWithoutNetwork() = runBlocking {
-        val candidate = FakeCopilotProvider().interpret("添加一个待办：周五检查作业", emptyMap())
+    @Test fun fakeProviderRecognizesChineseTaskWithoutNetwork() = runBlocking {
+        val candidate = FakeCopilotProvider().interpret("\u6dfb\u52a0\u4e00\u4e2a\u5f85\u529e\uff1a\u5468\u4e94\u68c0\u67e5\u4f5c\u4e1a", emptyMap())
         assertEquals("task.create", candidate.command?.action)
         assertTrue(candidate.command?.confirmationRequired == true)
+    }
+
+    @Test fun codecNormalizesProviderActionAliases() {
+        assertEquals("student.create", CopilotCommandCodec.normalizeAction("students.add"))
+        assertEquals("score.create", CopilotCommandCodec.normalizeAction("scores.add"))
     }
 
     @Test fun serviceRejectsUnknownActionBeforeExecution() = runBlocking {
