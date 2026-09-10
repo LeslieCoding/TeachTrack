@@ -39,3 +39,11 @@ Home text command composer, configurable-provider boundary, strict command envel
 - Student-scoped one-shot course and score queries now execute in SQLite instead of loading complete tables and filtering in memory.
 - No schema change was required; existing indexes remain applicable.
 - Remaining candidates: transaction boundaries around multi-entity saves/imports, bounded dashboard queries, and automatic per-entity sync event emission.
+
+## Persistent hardening backlog (user requested)
+
+- [ ] T3-HARDEN-002 Dashboard bounded projections/queries
+- [ ] T3-HARDEN-003 complete automatic per-entity SyncEvent generation
+- [ ] T3-HARDEN-004 Workspace two-device conflict simulation and resolution tests
+- [ ] T3-HARDEN-005 complete backup/restore round-trip validation
+- [ ] T3-HARDEN-006 expanded data-consistency and corruption tests

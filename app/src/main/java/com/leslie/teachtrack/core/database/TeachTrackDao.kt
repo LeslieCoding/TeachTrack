@@ -62,6 +62,7 @@ interface TeachTrackDao {
     @Query("SELECT * FROM lesson_plans ORDER BY plannedDate DESC") fun observeAllLessonPlans(): Flow<List<LessonPlanEntity>>
     @Query("SELECT * FROM course_sessions WHERE studentId = :studentId ORDER BY date DESC, startTime DESC") fun observeCourses(studentId: String): Flow<List<CourseSessionEntity>>
     @Query("SELECT * FROM course_sessions ORDER BY date DESC, startTime DESC") fun observeAllCourses(): Flow<List<CourseSessionEntity>>
+    @Query("SELECT * FROM course_sessions ORDER BY date DESC, startTime DESC LIMIT 200") fun observeDashboardCourses(): Flow<List<CourseSessionEntity>>
     @Query("SELECT * FROM course_sessions WHERE studentId = :studentId ORDER BY date DESC, startTime DESC LIMIT 1") suspend fun latestCourse(studentId: String): CourseSessionEntity?
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertKnowledge(point: KnowledgePointEntity)
     @Query("SELECT * FROM knowledge_points ORDER BY orderIndex, name") fun observeKnowledge(): Flow<List<KnowledgePointEntity>>
@@ -75,6 +76,7 @@ interface TeachTrackDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertScoreItem(item: ScoreItemEntity)
     @Query("SELECT * FROM student_scores WHERE studentId = :studentId ORDER BY id DESC") fun observeScores(studentId: String): Flow<List<StudentScoreEntity>>
     @Query("SELECT * FROM student_scores ORDER BY id DESC") fun observeAllScores(): Flow<List<StudentScoreEntity>>
+    @Query("SELECT * FROM student_scores ORDER BY id DESC LIMIT 200") fun observeDashboardScores(): Flow<List<StudentScoreEntity>>
     @Query("SELECT * FROM exams ORDER BY date DESC") fun observeAllExams(): Flow<List<ExamEntity>>
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertTask(task: TaskEntity)
     @Query("UPDATE tasks SET status = :status WHERE id = :id") suspend fun updateTaskStatus(id: String, status: String)

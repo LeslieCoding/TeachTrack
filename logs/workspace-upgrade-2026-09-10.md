@@ -132,3 +132,9 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Wrapped exam/score/optional score-item save in one Room transaction.
 - Changed attachment deletion to a revisioned tombstone (`deletedAt`) instead of physical deletion, preserving cross-device deletion semantics.
 - Build and JVM tests passed. OnePlus physical rerun was attempted but blocked because serial `92f73a16` disconnected; only OPPO serial `2d64f765` remained visible, and it was intentionally not used.
+
+## T3-HARDEN-002 - Dashboard bounded data source preparation
+
+- Added Room-backed dashboard course and score projections capped at the latest 200 records.
+- Kept the existing unbounded streams for full planning/analytics/history views; dashboard wiring remains the next safe UI integration step so historical analytics semantics are not changed accidentally.
+- Build and JVM tests passed; physical verification remains blocked until OnePlus `92f73a16` reconnects.
