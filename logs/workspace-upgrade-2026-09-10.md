@@ -165,6 +165,13 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Fixed Chinese-name extraction so `给学生王晨然录入成绩 126 分，满分 160` does not absorb following command text into the student name.
 - JVM test suite passed after the fix.
 
+## 2026-09-11 - Copilot query action increment
+
+- Added database-side count queries for active students, pending tasks, and knowledge points.
+- Connected `dashboard.query` and `knowledge.query` to real repository data instead of placeholder success messages.
+- The AI action boundary remains local and validated; no model can issue raw SQL or bypass confirmation for writes.
+- `testDebugUnitTest` and `assembleDebug` passed.
+
 ## 2026-09-11 - Copilot full-operation contract increment
 
 - Revalidated the full path: provider interpretation, action normalization, confirmation gate, local registry execution, and repository writes.

@@ -130,6 +130,9 @@ class TeachTrackRepository(private val dao: TeachTrackDao, private val sync: Wor
     suspend fun searchStudents(query: String) = dao.searchStudents(query)
     suspend fun allTags() = dao.allTags()
     suspend fun allAttachments() = dao.allAttachments()
+    suspend fun knowledgeCount() = dao.knowledgeCount()
+    suspend fun activeStudentCountOnce() = dao.activeStudentCountOnce()
+    suspend fun pendingTaskCountOnce() = dao.pendingTaskCountOnce()
     suspend fun saveCourse(course: CourseSessionEntity) { database?.withTransaction { saveCourseRows(course) } ?: saveCourseRows(course); sync?.record("CourseSession", course.id, "CREATE", JSONObject().put("studentId", course.studentId).put("date", course.date).put("title", course.title)) }
     private suspend fun saveCourseRows(course: CourseSessionEntity) { dao.upsertCourse(course); if (course.nextLessonPlan.isNotBlank()) dao.upsertLessonPlan(LessonPlanEntity(UUID.randomUUID().toString(), course.studentId, course.date, chapter = course.subject, focus = course.nextLessonPlan, notes = "由课程记录自动生成")); if (course.problems.isNotBlank()) dao.upsertProblemRecord(ProblemRecordEntity(UUID.randomUUID().toString(), course.studentId, courseId = course.id, title = course.problems.take(80), description = course.problems, date = course.date)) }
     suspend fun saveScore(exam: ExamEntity, score: StudentScoreEntity, item: ScoreItemEntity? = null) { database?.withTransaction { saveScoreRows(exam, score, item) } ?: saveScoreRows(exam, score, item); sync?.record("StudentScore", score.id, "CREATE", JSONObject().put("studentId", score.studentId).put("examId", score.examId).put("score", score.score).put("fullScore", score.fullScore)) }

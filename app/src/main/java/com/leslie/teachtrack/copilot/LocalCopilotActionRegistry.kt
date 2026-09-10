@@ -26,6 +26,8 @@ class LocalCopilotActionRegistry(private val repository: TeachTrackRepository) :
         suspend fun studentId(): String? = p["selectedStudentId"]?.takeIf { it.isNotBlank() }
             ?: p["studentName"]?.takeIf { it.isNotBlank() }?.let { name -> repository.searchStudents(name).firstOrNull()?.id }
         fun missingStudent() = CopilotResult(false, "请先在学生工作台选择学生，或补充唯一学生姓名")
+        if (command.action == "dashboard.query") return CopilotResult(true, "首页数据：在读学生 ${repository.activeStudentCountOnce()} 人，待处理事项 ${repository.pendingTaskCountOnce()} 项")
+        if (command.action == "knowledge.query") return CopilotResult(true, "本地知识点共 ${repository.knowledgeCount()} 个")
         return when (command.action) {
             "student.create" -> {
                 val name = p["studentName"].orEmpty()
