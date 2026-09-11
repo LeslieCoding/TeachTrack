@@ -14,11 +14,11 @@ class FakeCopilotProvider : CopilotProvider {
         val text = input.trim()
         if (text.isBlank()) return CopilotCandidate(null, "请输入要执行的内容", error = "EMPTY_INPUT")
         val action = when {
+            has(text, "\u5f85\u529e", "\u4efb\u52a1", "task", "todo") -> "task.create"
             has(text, "\u5b66\u751f", "student") && has(text, "\u67e5\u8be2", "\u67e5\u627e", "\u67e5\u770b", "search", "find") -> "student.search"
             has(text, "\u5b66\u751f", "student") && has(text, "\u6dfb\u52a0", "\u65b0\u589e", "\u65b0\u5efa", "add", "create") -> "student.create"
             has(text, "\u8003\u8bd5", "exam") && has(text, "\u521b\u5efa", "\u65b0\u5efa", "\u6dfb\u52a0", "add", "create") -> "exam.create"
             has(text, "\u6210\u7ee9", "\u5206\u6570", "score", "grade") -> if (has(text, "\u67e5\u8be2", "\u67e5\u770b", "\u591a\u5c11", "query", "list")) "score.query" else "score.create"
-            has(text, "\u5f85\u529e", "\u4efb\u52a1", "task", "todo") -> "task.create"
             has(text, "\u8bfe\u7a0b", "\u4e0a\u8bfe", "\u6388\u8bfe", "course", "lesson") -> "course.create"
             has(text, "\u6c9f\u901a", "\u5bb6\u957f", "\u5bb6\u6821", "communication", "parent") -> "communication.create"
             has(text, "\u4f5c\u4e1a", "homework", "assignment") -> "homework.create"
