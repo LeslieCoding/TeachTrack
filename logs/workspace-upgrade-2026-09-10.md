@@ -225,6 +225,13 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - OnePlus `92f73a16` installed the latest APK and passed Android instrumentation: `OK (4 tests)`.
 - Screenshot: `artifacts/screenshots/oneplus-v2/score-association-latest.png`.
 
+## 2026-09-11 - Backup round-trip consistency test
+
+- Added Android instrumentation coverage for Room → backup JSON → import into the same database.
+- Verified student/course counts remain unchanged and permanent IDs are preserved; repeated import is idempotent.
+- Both Debug and AndroidTest APKs installed on OnePlus `92f73a16`.
+- Instrumentation passed: `OK (5 tests)`.
+
 ## 2026-09-11 - Copilot full-operation contract increment
 
 - Revalidated the full path: provider interpretation, action normalization, confirmation gate, local registry execution, and repository writes.

@@ -11,6 +11,7 @@ import com.leslie.teachtrack.core.model.StudentKnowledgeEventEntity
 import com.leslie.teachtrack.core.model.StudentKnowledgeProgressEntity
 import com.leslie.teachtrack.core.model.CourseSessionEntity
 import com.leslie.teachtrack.core.model.StudentStatus
+import com.leslie.teachtrack.data.TeachTrackRepository
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.first
 import org.junit.After
@@ -74,5 +75,20 @@ class TeachTrackDatabaseInstrumentedTest {
         assertEquals(StudentStatus.ARCHIVED, dao.observeStudentOnce(studentId)?.status)
         assertEquals(1, dao.observeCourses(studentId).first().size)
         assertEquals(0, dao.observeActiveCount().first())
+    }
+
+    @Test fun backupJsonRoundTripIsIdempotentAndPreservesIds() = runBlocking {
+        val dao = db.dao()
+        val repository = TeachTrackRepository(dao, database = db)
+        val studentId = UUID.randomUUID().toString()
+        val courseId = UUID.randomUUID().toString()
+        dao.upsertStudent(StudentEntity(studentId, "Round Trip"))
+        dao.upsertCourse(CourseSessionEntity(courseId, studentId, "2026-09-11", title = "History"))
+        val backup = repository.exportBackupJson()
+        repository.importBackupJson(backup)
+        assertEquals(listOf(studentId), dao.allStudents().map { it.id })
+        assertEquals(listOf(courseId), dao.allCourses().map { it.id })
+        assertEquals(1, dao.allStudents().size)
+        assertEquals(1, dao.allCourses().size)
     }
 }
