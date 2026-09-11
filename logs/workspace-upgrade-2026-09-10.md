@@ -267,3 +267,11 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Existing course and score dashboard projections remain capped at 200 rows; full streams remain available only to their respective management screens.
 - Build verification passed through Kotlin compilation and Debug assembly; the bounded streams are isolated from existing student detail queries.
 - Follow-up remains: switch the Dashboard composable itself to the new bounded streams and add a query-bound regression test.
+
+## 2026-09-11 - Automatic SyncEvent coverage expansion
+
+- Extended repository write methods for exams, lesson plans, problem records, knowledge points, knowledge progress, parent contacts, and templates to emit SyncEvents after successful local writes.
+- Progress events use a stable composite entity key (`studentId:knowledgePointId`) because the current progress table is keyed by that relationship.
+- Existing transaction boundaries for course and score writes were preserved; no destructive migration or database replacement was introduced.
+- `testDebugUnitTest`, `assembleDebug`, and `assembleDebugAndroidTest` passed.
+- Physical-device installation was deferred for this source-only increment; the previous OnePlus instrumentation baseline remains `OK (6 tests)`.
