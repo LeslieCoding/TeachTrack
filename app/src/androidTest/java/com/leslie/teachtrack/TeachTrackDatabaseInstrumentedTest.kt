@@ -123,4 +123,14 @@ class TeachTrackDatabaseInstrumentedTest {
         assertEquals(true, engine.detectConflict(localRevision = 6, incomingBaseRevision = 5))
         assertEquals(true, engine.detectConflict(localRevision = 5, incomingBaseRevision = 4))
     }
+
+    @Test fun malformedBackupIsRejectedWithoutPartialImport() = runBlocking {
+        val dao = db.dao()
+        val repository = TeachTrackRepository(dao, database = db)
+        val valid = "{\"format\":\"TeachTrack Backup\",\"students\":[{\"id\":\"s1\",\"name\":\"Before\"}]}"
+        repository.importBackupJson(valid)
+        runCatching { repository.importBackupJson("{\"format\":\"TeachTrack Backup\",\"students\":[{\"id\":\"s2\"},{\"id\":\"s3\",\"name\":\"Broken\"}]") }
+            .onSuccess { error("malformed backup was accepted") }
+        assertEquals(listOf("s1"), dao.allStudents().map { it.id })
+    }
 }

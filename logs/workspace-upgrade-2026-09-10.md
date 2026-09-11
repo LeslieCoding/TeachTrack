@@ -304,3 +304,9 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Current connected device is OnePlus `92f73a16`; OPPO Pad `2d64f765` is absent from ADB and was not operated.
 - Updated project state to mark Dashboard bounded projections and current repository SyncEvent coverage as completed, while leaving revision unification, full conflict resolution simulation, expanded corruption testing, and second full physical workflow explicitly open.
 - No completion claim was made for OPPO regression because the device is not currently available.
+
+## 2026-09-11 - Backup corruption regression
+
+- Added an instrumentation test proving malformed backup JSON is rejected and Room transaction rollback prevents partial import.
+- Rebuilt Debug/AndroidTest APKs and installed them on OnePlus `92f73a16`.
+- Full instrumentation suite passed: `OK (8 tests)`.
