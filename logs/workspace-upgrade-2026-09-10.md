@@ -324,3 +324,10 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Verified health checking continues through invalid records and reports integrity issues instead of failing the entire workspace.
 - Rebuilt and installed Debug/AndroidTest APKs on OnePlus `92f73a16`.
 - Full instrumentation suite passed: `OK (9 tests)`.
+
+## 2026-09-11 - Idempotent conflict file handling
+
+- Sync scanner now derives conflict filenames from the source event ID and avoids rewriting/counting an already persisted conflict file on repeated scans.
+- Added a two-event repeated-scan regression test using an in-memory Workspace storage.
+- Rebuilt and installed Debug/AndroidTest APKs on OnePlus `92f73a16`.
+- Full instrumentation suite passed: `OK (10 tests)`.

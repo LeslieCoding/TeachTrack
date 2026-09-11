@@ -2,7 +2,6 @@ package com.leslie.teachtrack.data.workspace
 
 import com.leslie.teachtrack.core.workspace.SyncConflict
 import java.time.Instant
-import java.util.UUID
 import org.json.JSONObject
 
 data class SyncScanResult(val events: Int, val conflicts: Int, val issues: Int)
@@ -19,7 +18,13 @@ class SyncEventScanner(private val manager: WorkspaceManager) {
                     runCatching {
                         val o = JSONObject(line); val eventId = o.getString("eventId"); if (!seen.add(eventId)) return@runCatching
                         val key = "${o.getString("entityType")}:${o.getString("entityId")}"; val base = o.optLong("baseRevision"); val incoming = o.optLong("revision"); val current = revisions[key]
-                        if (current != null && engine.detectConflict(current, base)) { conflicts++; engine.writeConflict(storage, SyncConflict(UUID.randomUUID().toString(), manifest.workspaceId, o.getString("entityType"), o.getString("entityId"), current, base, "{}", o.optJSONObject("payload")?.toString() ?: "{}", Instant.now().toString())) } else revisions[key] = maxOf(current ?: 0L, incoming)
+                        if (current != null && engine.detectConflict(current, base)) {
+                            val conflictFile = "sync/conflicts/event-$eventId-conflict.json"
+                            if (!storage.exists(conflictFile)) {
+                                conflicts++
+                                engine.writeConflict(storage, SyncConflict("event-$eventId-conflict", manifest.workspaceId, o.getString("entityType"), o.getString("entityId"), current, base, "{}", o.optJSONObject("payload")?.toString() ?: "{}", Instant.now().toString()))
+                            }
+                        } else revisions[key] = maxOf(current ?: 0L, incoming)
                         events++; last = eventId
                     }.onFailure { issues++ }
                 }

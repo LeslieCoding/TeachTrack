@@ -16,6 +16,7 @@ import com.leslie.teachtrack.data.workspace.SyncEngine
 import com.leslie.teachtrack.data.workspace.WorkspaceManager
 import com.leslie.teachtrack.data.workspace.WorkspaceStorage
 import com.leslie.teachtrack.data.workspace.WorkspaceHealthChecker
+import com.leslie.teachtrack.data.workspace.SyncEventScanner
 import org.json.JSONObject
 import com.leslie.teachtrack.copilot.CopilotService
 import com.leslie.teachtrack.copilot.FakeCopilotProvider
@@ -25,6 +26,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.first
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.UUID
@@ -158,5 +160,21 @@ class TeachTrackDatabaseInstrumentedTest {
         assertEquals(manifest.workspaceId, report.workspaceId)
         assertEquals(2, report.records)
         assertEquals(true, report.issues.any { it.contains("not-json") || it.contains("attachment missing") })
+    }
+
+    @Test fun repeatedSyncScanKeepsOneConflictFilePerEvent() {
+        val storage = MemoryWorkspaceStorage()
+        val manager = WorkspaceManager(ApplicationProvider.getApplicationContext())
+        val manifest = manager.createManifest("sync-test")
+        manager.ensureStructure(storage, manifest)
+        val engine = SyncEngine(manager)
+        engine.appendEvent(storage, manifest.workspaceId, "Student", "s1", "UPDATE", 0, 1, JSONObject().put("name", "A"))
+        engine.appendEvent(storage, manifest.workspaceId, "Student", "s1", "UPDATE", 0, 1, JSONObject().put("name", "B"))
+        val scanner = SyncEventScanner(manager)
+        val first = scanner.scan(storage)
+        val second = scanner.scan(storage)
+        assertEquals(1, first.conflicts)
+        assertTrue(second.conflicts <= 1)
+        assertTrue(storage.list("sync/conflicts").count { it.endsWith(".json") } <= 2)
     }
 }
