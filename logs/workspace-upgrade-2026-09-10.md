@@ -366,6 +366,12 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - `git diff --check` passed.
 - Device status remains OnePlus `92f73a16` only; OPPO Pad is still unavailable.
 
+## 2026-09-11 - Sync revision concurrency guard
+
+- Serialized `WorkspaceSyncCoordinator.record()` so concurrent local writes cannot allocate duplicate revisions for the same device process.
+- Rebuilt and installed Debug/AndroidTest APKs on OnePlus `92f73a16`.
+- Full instrumentation suite passed: `OK (11 tests)`.
+
 ## 2026-09-11 - Copilot intent precedence audit
 
 - Reviewed the remaining uncommitted Copilot parser change: task phrases are intentionally evaluated before generic student-create phrases, so commands such as “给学生添加待办” cannot be misclassified as student creation.

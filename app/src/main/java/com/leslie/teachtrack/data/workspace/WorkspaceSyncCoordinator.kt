@@ -9,6 +9,7 @@ class WorkspaceSyncCoordinator(context: Context) {
     private val engine = SyncEngine(manager)
     private val revisionStore = context.getSharedPreferences("teachtrack_sync_revisions", Context.MODE_PRIVATE)
 
+    @Synchronized
     fun record(entityType: String, entityId: String, operation: String, payload: JSONObject, baseRevision: Long? = null, revision: Long? = null) {
         runCatching {
             val storage = manager.storage() ?: return
