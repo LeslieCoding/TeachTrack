@@ -338,3 +338,10 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - This protects offline devices from resurrecting deleted records during later workspace scans.
 - Rebuilt and installed Debug/AndroidTest APKs on OnePlus `92f73a16`.
 - Full instrumentation suite passed: `OK (11 tests)`.
+
+## 2026-09-11 - Final local artifact refresh
+
+- Rebuilt both Debug and Release variants after the latest sync changes.
+- Refreshed `artifacts/deliverables/` with the current APK binaries.
+- Added `docs/delivery-status-2026-09-11.md` to distinguish verified local scope from external prerequisites.
+- The connected-device check still shows only OnePlus `92f73a16`; OPPO Pad remains unavailable for a new regression run.
