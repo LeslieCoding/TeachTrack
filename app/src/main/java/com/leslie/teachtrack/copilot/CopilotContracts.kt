@@ -25,6 +25,11 @@ class FakeCopilotProvider : CopilotProvider {
             has(text, "\u8ba1\u5212", "\u4e0b\u8282\u8bfe", "plan", "next lesson") -> "lesson_plan.create"
             has(text, "\u77e5\u8bc6\u70b9", "\u638c\u63e1", "\u5df2\u5b66\u4f1a", "\u9700\u5de9\u56fa", "knowledge", "mastery") -> "knowledge.update"
             has(text, "\u7edf\u8ba1", "\u5206\u6790", "analytics", "statistics") -> "analytics.query"
+            has(text, "\u95ee\u9898", "\u9519\u9898", "problem") -> "problem.create"
+            has(text, "\u6a21\u677f", "template") -> "template.create"
+            has(text, "\u6807\u7b7e", "tag") -> "tag.create"
+            has(text, "\u9644\u4ef6", "attachment") -> "attachment.list"
+            has(text, "\u9996\u9875", "dashboard") -> "dashboard.query"
             else -> return CopilotCandidate(null, "我没有识别出要操作的模块，请说明要添加学生、课程、成绩、作业、待办或沟通。", needsClarification = true)
         }
         val namePattern = "[\\p{L}\\p{N}·]{2,6}"
@@ -35,6 +40,7 @@ class FakeCopilotProvider : CopilotProvider {
         val subject = Regex("(?:\u79d1\u76ee|subject)\\s*[:：]?\\s*([^，,\\s]+)", RegexOption.IGNORE_CASE).find(text)?.groupValues?.getOrNull(1).orEmpty()
         val knowledgeName = Regex("(?:\u77e5\u8bc6\u70b9|\u628a)\\s*[:：]?\\s*([\\p{L}\\p{N}·]{2,12})").find(text)?.groupValues?.getOrNull(1).orEmpty()
         val level = when { has(text, "\u719f\u7ec3", "mastered") -> "4"; has(text, "\u57fa\u672c\u638c\u63e1", "basic") -> "3"; has(text, "\u9700\u5de9\u56fa", "review", "weak") -> "2"; has(text, "\u5df2\u5b66\u4e60", "learned") -> "1"; else -> "" }
+        val tagName = Regex("(?:\u6807\u7b7e|tag)\\s*[:：]?\\s*([\\p{L}\\p{N}·]{1,20})", RegexOption.IGNORE_CASE).find(text)?.groupValues?.getOrNull(1).orEmpty()
         val params = buildMap {
             if (name.isNotBlank()) put("studentName", name)
             put("rawText", text)
@@ -45,6 +51,7 @@ class FakeCopilotProvider : CopilotProvider {
             if (subject.isNotBlank()) put("subject", subject)
             if (knowledgeName.isNotBlank()) put("knowledgeName", knowledgeName)
             if (level.isNotBlank()) put("level", level)
+            if (tagName.isNotBlank()) put("tagName", tagName)
             context["selectedStudentId"]?.let { put("selectedStudentId", it) }
         }
         return CopilotCandidate(CopilotCommand(action, true, params), "已识别为 $action，请确认后执行")

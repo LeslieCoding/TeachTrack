@@ -225,6 +225,14 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - OnePlus `92f73a16` installed the latest APK and passed Android instrumentation: `OK (4 tests)`.
 - Screenshot: `artifacts/screenshots/oneplus-v2/score-association-latest.png`.
 
+## 2026-09-11 - Offline Copilot module coverage
+
+- Extended offline intent classification to problem records, templates, tags, attachment queries and Dashboard queries.
+- Added regression assertions for problem, tag and Dashboard requests; all map to registered local actions.
+- Latest Debug APK installed on OnePlus `92f73a16`.
+- Android instrumentation passed: `OK (5 tests)`.
+- Screenshot: `artifacts/screenshots/oneplus-v2/copilot-module-coverage.png`.
+
 ## 2026-09-11 - Backup round-trip consistency test
 
 - Added Android instrumentation coverage for Room → backup JSON → import into the same database.

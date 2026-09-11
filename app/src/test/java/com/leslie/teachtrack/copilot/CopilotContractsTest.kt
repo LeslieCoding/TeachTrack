@@ -41,6 +41,9 @@ class CopilotContractsTest {
         val knowledge = provider.interpret("\u628a\u77e5\u8bc6\u70b9\u52a8\u6001\u7535\u8def\u6807\u8bb0\u4e3a\u9700\u5de9\u56fa", mapOf("selectedStudentId" to "student-1"))
         assertEquals("knowledge.update", knowledge.command?.action)
         assertEquals("2", knowledge.command?.parameters?.get("level"))
+        assertEquals("problem.create", provider.interpret("\u8bb0\u5f55\u4e00\u4e2a\u9519\u9898\u52a8\u6001\u7535\u8def", emptyMap()).command?.action)
+        assertEquals("tag.create", provider.interpret("\u521b\u5efa\u6807\u7b7e\u4e2d\u8003\u51b2\u523a", emptyMap()).command?.action)
+        assertEquals("dashboard.query", provider.interpret("\u67e5\u770b\u9996\u9875\u6570\u636e", emptyMap()).command?.action)
     }
 
     @Test fun serviceRejectsUnknownActionBeforeExecution() = runBlocking {
