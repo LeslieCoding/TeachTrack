@@ -346,6 +346,12 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Added `docs/delivery-status-2026-09-11.md` to distinguish verified local scope from external prerequisites.
 - The connected-device check still shows only OnePlus `92f73a16`; OPPO Pad remains unavailable for a new regression run.
 
+## 2026-09-11 - Final APK refresh and checksums
+
+- Rebuilt `assembleDebug` and `assembleRelease` after the latest sync/test changes.
+- Refreshed both APKs in `artifacts/deliverables/` and calculated SHA-256 checksums for handoff integrity.
+- OPPO Pad remains absent from ADB; no OPPO installation or screenshot claim was made.
+
 ## 2026-09-11 - Copilot intent precedence audit
 
 - Reviewed the remaining uncommitted Copilot parser change: task phrases are intentionally evaluated before generic student-create phrases, so commands such as “给学生添加待办” cannot be misclassified as student creation.
