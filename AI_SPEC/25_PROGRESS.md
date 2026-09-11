@@ -96,6 +96,8 @@
 - Added OAuth configuration unit tests and verified the expanded OAuth settings card on OnePlus.
 - Real OAuth login is not claimed because no external identity provider/client registration was supplied; callback cancellation/error handling remains safe.
 
+- 2026-09-11: Dashboard now consumes bounded latest-200 projections for overview collections; repository writes emit SyncEvents across the current business write surface; OnePlus instrumentation reached 7 passing tests.
+
 ## 2026-09-10 - OpenMinis-aligned authentication separation
 
 - Replaced the misleading OAuth catalog that mixed API-console providers with account authorization.

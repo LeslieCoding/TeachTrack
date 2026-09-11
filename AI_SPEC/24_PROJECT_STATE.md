@@ -42,8 +42,8 @@ Home text command composer, configurable-provider boundary, strict command envel
 
 ## Persistent hardening backlog (user requested)
 
-- [ ] T3-HARDEN-002 Dashboard bounded projections/queries
-- [ ] T3-HARDEN-003 complete automatic per-entity SyncEvent generation
+- [x] T3-HARDEN-002 Dashboard bounded projections/queries
+- [x] T3-HARDEN-003 repository write coverage for automatic SyncEvent generation (revision unification remains follow-up)
 - [ ] T3-HARDEN-004 Workspace two-device conflict simulation and resolution tests
 - [ ] T3-HARDEN-005 complete backup/restore round-trip validation
 - [ ] T3-HARDEN-006 expanded data-consistency and corruption tests

@@ -8,8 +8,8 @@
 
 ## 待办顺序
 
-- [ ] T3-HARDEN-002：为 Dashboard 增加数据库侧限量查询/投影，避免首页订阅完整历史集合。
-- [ ] T3-HARDEN-003：完善所有业务写入的自动 SyncEvent 生成，统一 CREATE/UPDATE/DELETE 与 revision。
+- [x] T3-HARDEN-002：为 Dashboard 增加数据库侧限量查询/投影，避免首页订阅完整历史集合。
+- [x] T3-HARDEN-003：已覆盖当前 Repository 业务写入的自动 SyncEvent 生成；统一 revision 仍列为后续增强。
 - [ ] T3-HARDEN-004：模拟 Device A/Device B 并发修改，验证冲突检测、冲突文件和三种解决方式。
 - [ ] T3-HARDEN-005：完成 Workspace 导出、删除本地库、恢复 `.ttbackup` 的完整往返测试，并核对数量与 ID。
 - [ ] T3-HARDEN-006：补充 JSONL 损坏行、重复事件、Tombstone、孤儿引用、附件哈希和迁移一致性测试。
