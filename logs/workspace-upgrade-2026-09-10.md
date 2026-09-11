@@ -282,3 +282,9 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Student detail screens continue to use student-scoped history streams; no historical student data is truncated at the source.
 - Rebuilt and installed Debug/AndroidTest APKs on OnePlus `92f73a16`.
 - Full Android instrumentation passed: `OK (6 tests)`.
+
+## 2026-09-11 - Sync conflict regression coverage
+
+- Added an Android instrumentation test for the two-device revision rule: equal base/current revisions merge, divergent revisions are detected as conflicts.
+- Rebuilt and installed both APKs on OnePlus `92f73a16`.
+- Instrumentation suite expanded to 7 tests and passed: `OK (7 tests)`.

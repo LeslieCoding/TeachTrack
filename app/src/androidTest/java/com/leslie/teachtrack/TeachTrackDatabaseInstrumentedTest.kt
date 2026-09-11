@@ -12,6 +12,12 @@ import com.leslie.teachtrack.core.model.StudentKnowledgeProgressEntity
 import com.leslie.teachtrack.core.model.CourseSessionEntity
 import com.leslie.teachtrack.core.model.StudentStatus
 import com.leslie.teachtrack.data.TeachTrackRepository
+import com.leslie.teachtrack.data.workspace.SyncEngine
+import com.leslie.teachtrack.data.workspace.WorkspaceManager
+import com.leslie.teachtrack.copilot.CopilotService
+import com.leslie.teachtrack.copilot.FakeCopilotProvider
+import com.leslie.teachtrack.copilot.LocalCopilotActionRegistry
+import com.leslie.teachtrack.copilot.CopilotCommand
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.first
 import org.junit.After
@@ -90,5 +96,31 @@ class TeachTrackDatabaseInstrumentedTest {
         assertEquals(listOf(courseId), dao.allCourses().map { it.id })
         assertEquals(1, dao.allStudents().size)
         assertEquals(1, dao.allCourses().size)
+    }
+
+    @Test fun naturalLanguageCommandWritesThroughLocalActionRegistry() = runBlocking {
+        val dao = db.dao()
+        val repository = TeachTrackRepository(dao, database = db)
+        val service = CopilotService(FakeCopilotProvider(), LocalCopilotActionRegistry(repository))
+        val candidate = service.interpret("\u6dfb\u52a0\u5b66\u751f\u738b\u6668\u7136")
+        val command = requireNotNull(candidate.command)
+        val result = service.execute(command, confirmed = true)
+        check(result.success) { result.message }
+        assertEquals(1, dao.allStudents().count { it.name == "王晨然" })
+        val studentId = dao.allStudents().single { it.name == "王晨然" }.id
+        val taskCandidate = service.interpret("\u7ed9\u5b66\u751f\u738b\u6668\u7136\u6dfb\u52a0\u5f85\u529e\u68c0\u67e5\u9519\u9898")
+        val taskCommand = requireNotNull(taskCandidate.command).copy(parameters = taskCandidate.command.parameters + ("selectedStudentId" to studentId))
+        assertEquals("task.create", taskCommand.action)
+        val taskResult = service.execute(taskCommand, confirmed = true)
+        check(taskResult.success) { "${taskCommand.action}: ${taskResult.message}" }
+        assertEquals(1, dao.allTasks().size)
+    }
+
+    @Test fun syncRevisionConflictRuleMatchesTwoDeviceEdits() {
+        val manager = WorkspaceManager(ApplicationProvider.getApplicationContext())
+        val engine = SyncEngine(manager)
+        assertEquals(false, engine.detectConflict(localRevision = 5, incomingBaseRevision = 5))
+        assertEquals(true, engine.detectConflict(localRevision = 6, incomingBaseRevision = 5))
+        assertEquals(true, engine.detectConflict(localRevision = 5, incomingBaseRevision = 4))
     }
 }
