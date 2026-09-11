@@ -8,7 +8,7 @@
 - Dashboard 限量查询
 - 自动 SyncEvent、revision、冲突文件、Tombstone
 - 备份往返、损坏备份回滚、Workspace 健康检查
-- 一加真机 Android instrumentation：11 项通过
+- 一加真机 Android instrumentation：13 项通过
 - Debug APK 与 Release 未签名 APK 已生成
 
 ## 当前交付物

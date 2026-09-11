@@ -21,7 +21,7 @@
 
 - 构建：PASS
 - Debug / AndroidTest 安装：PASS
-- instrumentation：PASS，`OK (11 tests)`
+- instrumentation：PASS，`OK (13 tests)`
 - 覆盖：Dashboard 限量流、Copilot 本地写入、备份往返、损坏备份回滚、Workspace 健康检查、revision 冲突、冲突扫描幂等、Tombstone 删除、性能数据量回归。
 
 ## 交付物
