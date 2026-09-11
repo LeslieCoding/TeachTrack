@@ -177,4 +177,15 @@ class TeachTrackDatabaseInstrumentedTest {
         assertTrue(second.conflicts <= 1)
         assertTrue(storage.list("sync/conflicts").count { it.endsWith(".json") } <= 2)
     }
+
+    @Test fun deleteEventWritesTombstoneForOfflineDevices() {
+        val storage = MemoryWorkspaceStorage()
+        val manager = WorkspaceManager(ApplicationProvider.getApplicationContext())
+        val manifest = manager.createManifest("tombstone-test")
+        manager.ensureStructure(storage, manifest)
+        SyncEngine(manager).appendEvent(storage, manifest.workspaceId, "CourseSession", "course-1", "DELETE", 3, 4, JSONObject())
+        val tombstone = storage.read("sync/tombstones/CourseSession-course-1.json")
+        assertTrue(tombstone?.contains("course-1") == true)
+        assertEquals(4L, JSONObject(tombstone!!).getLong("revision"))
+    }
 }

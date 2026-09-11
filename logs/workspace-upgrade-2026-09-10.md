@@ -331,3 +331,10 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Added a two-event repeated-scan regression test using an in-memory Workspace storage.
 - Rebuilt and installed Debug/AndroidTest APKs on OnePlus `92f73a16`.
 - Full instrumentation suite passed: `OK (10 tests)`.
+
+## 2026-09-11 - Tombstone deletion regression
+
+- Added a sync-engine regression test proving DELETE events write a persistent tombstone with entity ID and revision.
+- This protects offline devices from resurrecting deleted records during later workspace scans.
+- Rebuilt and installed Debug/AndroidTest APKs on OnePlus `92f73a16`.
+- Full instrumentation suite passed: `OK (11 tests)`.
