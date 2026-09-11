@@ -78,7 +78,7 @@
 
 - Fixed stale Compose status after returning from Kimi Code browser authorization.
 - Settings now reloads persisted OAuth status on resume and handles device-flow success/failure explicitly.
-- OnePlus rebuild/install/instrumentation passed: `OK (4 tests)`.
+- OnePlus rebuild/install/instrumentation passed: `OK (13 tests)`.
 
 ## 2026-09-10 - T3-HARDEN-001 query scoping
 

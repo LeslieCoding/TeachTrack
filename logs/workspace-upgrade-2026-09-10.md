@@ -357,6 +357,11 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Updated the delivery status matrix and regression-round document from 11 to 13 passing instrumentation tests.
 - No source behavior changed in this documentation-only update.
 
+## 2026-09-11 - Verification record consistency
+
+- Updated current-state AI_SPEC references that still reported the older 4-test OnePlus baseline to the verified 13-test baseline.
+- Historical earlier-round counts remain unchanged where they describe the original test run.
+
 ## 2026-09-11 - Regression round 3 record
 
 - Added `docs/testing-round-3.md` as the current consolidated test record.

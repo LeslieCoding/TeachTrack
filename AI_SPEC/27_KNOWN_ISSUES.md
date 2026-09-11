@@ -13,7 +13,7 @@
 6. No provider credential or vendor-specific endpoint has been supplied; real network adapters cannot be accepted yet.
 7. Runtime voice permission and the system recognizer boundary are implemented. The prior OPPO Pad recognizer returned no text and exited; end-to-end voice acceptance remains open.
 8. Sensitive-data consent, audit redaction, provider settings, and complete semantic coverage still require implementation and testing.
-9. OnePlus-only instrumentation has now passed 4 tests in the latest run; the full two-round physical regression remains open.
+9. OnePlus-only instrumentation has now passed 13 tests in the latest run; the OPPO Pad rerun remains open because the device is not currently connected.
 
 10. Provider configuration UI, offline gateway, and the generic OpenAI-compatible cloud adapter are implemented. Real vendor acceptance is pending a user-provided endpoint/model/API Key; no credential is present in the repository or test screenshots.
 11. OAuth Authorization Code + PKCE configuration, browser launch, callback validation, encrypted token storage, and logout are implemented. End-to-end login still requires a real identity-provider client registration and redirect URI allow-list entry.
