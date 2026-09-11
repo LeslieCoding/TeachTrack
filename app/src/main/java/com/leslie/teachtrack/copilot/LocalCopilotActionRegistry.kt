@@ -51,8 +51,8 @@ class LocalCopilotActionRegistry(private val repository: TeachTrackRepository) :
             } ?: missingStudent()
             "student.search" -> {
                 val query = p["query"].orEmpty()
-                val count = repository.searchStudents(query).size
-                CopilotResult(true, "已在本地学生档案中找到 $count 条记录")
+                val matches = repository.searchStudents(query)
+                CopilotResult(true, if (matches.isEmpty()) "未找到匹配学生" else "找到 ${matches.size} 名学生：${matches.take(5).joinToString("、") { it.name }}")
             }
             "student.archive" -> studentId()?.let { id -> repository.archiveStudent(id); CopilotResult(true, "已归档学生，历史记录保留") } ?: missingStudent()
             "task.create" -> {
@@ -79,7 +79,10 @@ class LocalCopilotActionRegistry(private val repository: TeachTrackRepository) :
                 repository.saveScore(exam, score)
                 CopilotResult(true, "已记录成绩，得分率 ${(score.scoreRate * 100).toInt()}%")
             } ?: missingStudent()
-            "score.query" -> studentId()?.let { id -> CopilotResult(true, "已读取成绩记录：${repository.scoresOnce(id).size} 条") } ?: missingStudent()
+            "score.query" -> studentId()?.let { id ->
+                val records = repository.scoresOnce(id)
+                CopilotResult(true, if (records.isEmpty()) "该学生暂无成绩记录" else "最近成绩：${records.take(5).joinToString("；") { "${it.score}/${it.fullScore}" }}")
+            } ?: missingStudent()
             "homework.create" -> studentId()?.let { id ->
                 repository.saveHomework(HomeworkEntity(UUID.randomUUID().toString(), id, name = p["rawText"].orEmpty().ifBlank { "新作业" }, assignedDate = today, content = p["rawText"].orEmpty()))
                 CopilotResult(true, "已布置作业")

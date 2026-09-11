@@ -179,6 +179,14 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Android instrumentation passed: `OK (4 tests)`.
 - Copilot validation screenshot: `artifacts/screenshots/oneplus-v2/copilot-validation.png`.
 
+## 2026-09-11 - Copilot query result and clarification increment
+
+- Student search now returns matched student names instead of only a count.
+- Score query now returns the latest score/full-score pairs instead of only a record count.
+- Existing required-field guards prevent incomplete writes from being silently accepted.
+- OnePlus `92f73a16` installed the latest Debug APK and passed Android instrumentation: `OK (4 tests)`.
+- Screenshot: `artifacts/screenshots/oneplus-v2/copilot-query-result.png`.
+
 ## 2026-09-11 - Copilot full-operation contract increment
 
 - Revalidated the full path: provider interpretation, action normalization, confirmation gate, local registry execution, and repository writes.
