@@ -14,6 +14,9 @@ import com.leslie.teachtrack.core.model.StudentStatus
 import com.leslie.teachtrack.data.TeachTrackRepository
 import com.leslie.teachtrack.data.workspace.SyncEngine
 import com.leslie.teachtrack.data.workspace.WorkspaceManager
+import com.leslie.teachtrack.data.workspace.WorkspaceStorage
+import com.leslie.teachtrack.data.workspace.WorkspaceHealthChecker
+import org.json.JSONObject
 import com.leslie.teachtrack.copilot.CopilotService
 import com.leslie.teachtrack.copilot.FakeCopilotProvider
 import com.leslie.teachtrack.copilot.LocalCopilotActionRegistry
@@ -28,6 +31,16 @@ import java.util.UUID
 
 @RunWith(AndroidJUnit4::class)
 class TeachTrackDatabaseInstrumentedTest {
+    private class MemoryWorkspaceStorage : WorkspaceStorage {
+        private val files = linkedMapOf<String, ByteArray>()
+        override fun read(name: String): String? = files[name]?.toString(Charsets.UTF_8)
+        override fun readBytes(name: String): ByteArray? = files[name]
+        override fun write(name: String, content: String) { files[name] = content.toByteArray(Charsets.UTF_8) }
+        override fun writeBytes(name: String, content: ByteArray) { files[name] = content }
+        override fun append(relativePath: String, content: String) { files[relativePath] = (read(relativePath).orEmpty() + content).toByteArray(Charsets.UTF_8) }
+        override fun exists(name: String): Boolean = files.containsKey(name)
+        override fun list(directory: String): List<String> = files.keys.filter { it.startsWith("$directory/") }
+    }
     private val db = Room.inMemoryDatabaseBuilder(
         ApplicationProvider.getApplicationContext<Context>(), TeachTrackDatabase::class.java
     ).allowMainThreadQueries().build()
@@ -132,5 +145,18 @@ class TeachTrackDatabaseInstrumentedTest {
         runCatching { repository.importBackupJson("{\"format\":\"TeachTrack Backup\",\"students\":[{\"id\":\"s2\"},{\"id\":\"s3\",\"name\":\"Broken\"}]") }
             .onSuccess { error("malformed backup was accepted") }
         assertEquals(listOf("s1"), dao.allStudents().map { it.id })
+    }
+
+    @Test fun workspaceHealthReportsCorruptJsonAndMissingAttachment() {
+        val storage = MemoryWorkspaceStorage()
+        val manager = WorkspaceManager(ApplicationProvider.getApplicationContext())
+        val manifest = manager.createManifest("health-test")
+        manager.ensureStructure(storage, manifest)
+        storage.write("data/students.jsonl", "{\"id\":\"s1\",\"workspaceId\":\"${manifest.workspaceId}\"}\nnot-json\n")
+        storage.write("data/attachments.jsonl", JSONObject().put("id", "a1").put("relativePath", "attachments/students/s1/missing.pdf").toString())
+        val report = WorkspaceHealthChecker(manager).check(storage)
+        assertEquals(manifest.workspaceId, report.workspaceId)
+        assertEquals(2, report.records)
+        assertEquals(true, report.issues.any { it.contains("not-json") || it.contains("attachment missing") })
     }
 }

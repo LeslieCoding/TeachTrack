@@ -317,3 +317,10 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Each automatic event now uses the previous revision as its base and increments the entity revision, while preserving best-effort behavior when no workspace is connected.
 - Rebuilt Debug/AndroidTest APKs, installed them on OnePlus `92f73a16`, and ran the complete instrumentation suite.
 - Result: `OK (8 tests)`.
+
+## 2026-09-11 - Workspace health and attachment integrity regression
+
+- Added a memory-backed Workspace health test covering a malformed JSONL line and a missing attachment reference.
+- Verified health checking continues through invalid records and reports integrity issues instead of failing the entire workspace.
+- Rebuilt and installed Debug/AndroidTest APKs on OnePlus `92f73a16`.
+- Full instrumentation suite passed: `OK (9 tests)`.
