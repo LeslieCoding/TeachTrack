@@ -187,6 +187,14 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - OnePlus `92f73a16` installed the latest Debug APK and passed Android instrumentation: `OK (4 tests)`.
 - Screenshot: `artifacts/screenshots/oneplus-v2/copilot-query-result.png`.
 
+## 2026-09-11 - Copilot latest query regression
+
+- Student search now returns up to five matched names.
+- Score query now returns up to five recent score/full-score pairs.
+- Latest Debug APK installed on OnePlus `92f73a16`.
+- Android instrumentation passed: `OK (4 tests)`.
+- Screenshot: `artifacts/screenshots/oneplus-v2/copilot-query-latest.png`.
+
 ## 2026-09-11 - Copilot full-operation contract increment
 
 - Revalidated the full path: provider interpretation, action normalization, confirmation gate, local registry execution, and repository writes.
