@@ -32,6 +32,14 @@ class CopilotContractsTest {
         assertEquals("160", candidate.command?.parameters?.get("fullScore"))
     }
 
+    @Test fun fakeProviderCoversCommonChineseOperations() = runBlocking {
+        val provider = FakeCopilotProvider()
+        assertEquals("student.create", provider.interpret("\u6dfb\u52a0\u5b66\u751f\u738b\u6668\u7136", emptyMap()).command?.action)
+        assertEquals("course.create", provider.interpret("\u7ed9\u5b66\u751f\u738b\u6668\u7136\u8bb0\u5f55\u8bfe\u7a0b\u52a8\u6001\u7535\u8def", emptyMap()).command?.action)
+        assertEquals("task.create", provider.interpret("\u7ed9\u738b\u6668\u7136\u6dfb\u52a0\u5f85\u529e\u6574\u7406\u9519\u9898", emptyMap()).command?.action)
+        assertEquals("student.search", provider.interpret("\u67e5\u627e\u5b66\u751f\u738b\u6668\u7136", emptyMap()).command?.action)
+    }
+
     @Test fun serviceRejectsUnknownActionBeforeExecution() = runBlocking {
         var executed = false
         val registry = object : CopilotActionRegistry {

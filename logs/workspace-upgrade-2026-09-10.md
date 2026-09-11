@@ -195,6 +195,12 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Android instrumentation passed: `OK (4 tests)`.
 - Screenshot: `artifacts/screenshots/oneplus-v2/copilot-query-latest.png`.
 
+## 2026-09-11 - Copilot common-language regression coverage
+
+- Added regression coverage for common Chinese requests: create student, record course, create task, and search student.
+- All covered requests map to registered local actions; the suite also verifies score extraction and provider action aliases.
+- `testDebugUnitTest` passed with 16 tests.
+
 ## 2026-09-11 - Copilot full-operation contract increment
 
 - Revalidated the full path: provider interpretation, action normalization, confirmation gate, local registry execution, and repository writes.
