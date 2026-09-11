@@ -13,6 +13,7 @@ class LocalCopilotActionRegistry(private val repository: TeachTrackRepository) :
         "student.create", "student.update", "student.search", "student.archive",
         "course.create", "course.resume", "course.timeline", "exam.create", "score.create", "score.query",
         "communication.create", "homework.create", "lesson_plan.create",
+        "task.create",
         "knowledge.update", "knowledge.query", "problem.create", "problem.status.update",
         "template.create", "tag.create", "attachment.list", "dashboard.query", "analytics.query", "navigation.open"
     )

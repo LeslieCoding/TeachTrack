@@ -250,3 +250,12 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Test additions cover Chinese task parsing, student/score/full-score extraction and action aliases.
 - `testDebugUnitTest`, `assembleDebug`, and `assembleDebugAndroidTest` passed.
 - OnePlus physical test was not run in this increment because ADB reported no connected devices; OPPO was not used.
+
+## 2026-09-11 - Copilot task action regression fix
+
+- Root cause: `task.create` was recognized by the offline intent parser but was missing from `LocalCopilotActionRegistry.allowedActions`, so the service rejected the command before reaching the Room write path.
+- Added `task.create` to the local action allow-list. The existing repository task write path is now reachable through confirmed Copilot commands.
+- Rebuilt Debug and AndroidTest APKs successfully.
+- Installed both APKs on OnePlus `92f73a16` only.
+- Android instrumentation passed: `OK (6 tests)`, including the end-to-end natural-language flow for creating a student and adding a task for that student.
+- Problem solved: a valid task command no longer reports `此操作未被允许：task.create`.
