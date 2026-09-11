@@ -259,3 +259,11 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Installed both APKs on OnePlus `92f73a16` only.
 - Android instrumentation passed: `OK (6 tests)`, including the end-to-end natural-language flow for creating a student and adding a task for that student.
 - Problem solved: a valid task command no longer reports `此操作未被允许：task.create`.
+
+## 2026-09-11 - Dashboard bounded query layer
+
+- Added dedicated Room dashboard projections for exams, homework, and communication records, each capped at the latest 200 rows.
+- Added repository and ViewModel dashboard streams so the UI can consume bounded data without changing detail-page streams.
+- Existing course and score dashboard projections remain capped at 200 rows; full streams remain available only to their respective management screens.
+- Build verification passed through Kotlin compilation and Debug assembly; the bounded streams are isolated from existing student detail queries.
+- Follow-up remains: switch the Dashboard composable itself to the new bounded streams and add a query-bound regression test.

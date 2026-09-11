@@ -86,6 +86,7 @@ interface TeachTrackDao {
     @Query("SELECT * FROM student_scores ORDER BY id DESC") fun observeAllScores(): Flow<List<StudentScoreEntity>>
     @Query("SELECT * FROM student_scores ORDER BY id DESC LIMIT 200") fun observeDashboardScores(): Flow<List<StudentScoreEntity>>
     @Query("SELECT * FROM exams ORDER BY date DESC") fun observeAllExams(): Flow<List<ExamEntity>>
+    @Query("SELECT * FROM exams ORDER BY date DESC LIMIT 200") fun observeDashboardExams(): Flow<List<ExamEntity>>
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertTask(task: TaskEntity)
     @Query("UPDATE tasks SET status = :status WHERE id = :id") suspend fun updateTaskStatus(id: String, status: String)
     @Query("SELECT * FROM tasks WHERE status != '已完成' ORDER BY dueDate IS NULL, dueDate") fun observeTasks(): Flow<List<TaskEntity>>
@@ -93,9 +94,11 @@ interface TeachTrackDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertParentContact(contact: ParentContactEntity)
     @Query("SELECT * FROM homework WHERE studentId = :studentId ORDER BY assignedDate DESC") fun observeHomework(studentId: String): Flow<List<HomeworkEntity>>
     @Query("SELECT * FROM homework ORDER BY assignedDate DESC") fun observeAllHomework(): Flow<List<HomeworkEntity>>
+    @Query("SELECT * FROM homework ORDER BY assignedDate DESC LIMIT 200") fun observeDashboardHomework(): Flow<List<HomeworkEntity>>
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertCommunication(record: CommunicationEntity)
     @Query("SELECT * FROM communications WHERE studentId = :studentId ORDER BY date DESC") fun observeCommunications(studentId: String): Flow<List<CommunicationEntity>>
     @Query("SELECT * FROM communications ORDER BY date DESC") fun observeAllCommunications(): Flow<List<CommunicationEntity>>
+    @Query("SELECT * FROM communications ORDER BY date DESC LIMIT 200") fun observeDashboardCommunications(): Flow<List<CommunicationEntity>>
     @Query("SELECT COUNT(*) FROM course_sessions") fun observeCourseCount(): Flow<Int>
     @Query("SELECT COUNT(*) FROM student_scores") fun observeScoreCount(): Flow<Int>
     @Query("SELECT COUNT(*) FROM tasks WHERE status != '已完成'") fun observePendingTaskCount(): Flow<Int>
