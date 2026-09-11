@@ -310,3 +310,10 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Added an instrumentation test proving malformed backup JSON is rejected and Room transaction rollback prevents partial import.
 - Rebuilt Debug/AndroidTest APKs and installed them on OnePlus `92f73a16`.
 - Full instrumentation suite passed: `OK (8 tests)`.
+
+## 2026-09-11 - Persistent sync revision sequencing
+
+- Changed `WorkspaceSyncCoordinator` from fixed `baseRevision=0/revision=1` events to per-workspace/entity persistent revision sequencing in Android preferences.
+- Each automatic event now uses the previous revision as its base and increments the entity revision, while preserving best-effort behavior when no workspace is connected.
+- Rebuilt Debug/AndroidTest APKs, installed them on OnePlus `92f73a16`, and ran the complete instrumentation suite.
+- Result: `OK (8 tests)`.
