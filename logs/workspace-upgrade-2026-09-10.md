@@ -297,3 +297,10 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
   - `TeachTrack-3.0.0-alpha.1-debug.apk`
   - `TeachTrack-3.0.0-alpha.1-release-unsigned.apk`
 - Release signing remains an external prerequisite and is recorded in `AI_SPEC/27_KNOWN_ISSUES.md`; no signing key was invented or stored.
+
+## 2026-09-11 - Delivery state audit
+
+- Rechecked `docs/prompts/00-09`, AI_SPEC acceptance records, hardening backlog, current Git history, and connected Android devices.
+- Current connected device is OnePlus `92f73a16`; OPPO Pad `2d64f765` is absent from ADB and was not operated.
+- Updated project state to mark Dashboard bounded projections and current repository SyncEvent coverage as completed, while leaving revision unification, full conflict resolution simulation, expanded corruption testing, and second full physical workflow explicitly open.
+- No completion claim was made for OPPO regression because the device is not currently available.
