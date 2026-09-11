@@ -275,3 +275,10 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Existing transaction boundaries for course and score writes were preserved; no destructive migration or database replacement was introduced.
 - `testDebugUnitTest`, `assembleDebug`, and `assembleDebugAndroidTest` passed.
 - Physical-device installation was deferred for this source-only increment; the previous OnePlus instrumentation baseline remains `OK (6 tests)`.
+
+## 2026-09-11 - Dashboard bounded streams connected
+
+- Changed the Dashboard-facing ViewModel streams for courses, scores, exams, homework, and communications to use the dedicated latest-200 Room projections.
+- Student detail screens continue to use student-scoped history streams; no historical student data is truncated at the source.
+- Rebuilt and installed Debug/AndroidTest APKs on OnePlus `92f73a16`.
+- Full Android instrumentation passed: `OK (6 tests)`.
