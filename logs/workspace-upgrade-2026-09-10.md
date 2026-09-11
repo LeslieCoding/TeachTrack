@@ -288,3 +288,12 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Added an Android instrumentation test for the two-device revision rule: equal base/current revisions merge, divergent revisions are detected as conflicts.
 - Rebuilt and installed both APKs on OnePlus `92f73a16`.
 - Instrumentation suite expanded to 7 tests and passed: `OK (7 tests)`.
+
+## 2026-09-11 - Build deliverables audit
+
+- Confirmed only OnePlus `92f73a16` is currently connected; OPPO Pad is not connected and was not touched.
+- Release build completed successfully with the existing unsigned release configuration.
+- Copied deliverables to `artifacts/deliverables/`:
+  - `TeachTrack-3.0.0-alpha.1-debug.apk`
+  - `TeachTrack-3.0.0-alpha.1-release-unsigned.apk`
+- Release signing remains an external prerequisite and is recorded in `AI_SPEC/27_KNOWN_ISSUES.md`; no signing key was invented or stored.
