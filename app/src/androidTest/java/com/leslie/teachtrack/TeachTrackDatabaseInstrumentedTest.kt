@@ -188,4 +188,15 @@ class TeachTrackDatabaseInstrumentedTest {
         assertTrue(tombstone?.contains("course-1") == true)
         assertEquals(4L, JSONObject(tombstone!!).getLong("revision"))
     }
+
+    @Test fun dashboardCourseProjectionIsBoundedAtTwoHundredRows() = runBlocking {
+        val dao = db.dao()
+        val studentId = "dashboard-student"
+        dao.upsertStudent(StudentEntity(studentId, "Dashboard"))
+        dao.upsertCourses((0..250).map { index ->
+            CourseSessionEntity("dashboard-course-$index", studentId, "2026-09-11", title = "Course $index")
+        })
+        val projection = dao.observeDashboardCourses().first()
+        assertEquals(200, projection.size)
+    }
 }

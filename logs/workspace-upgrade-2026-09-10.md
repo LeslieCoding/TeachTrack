@@ -339,6 +339,12 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Rebuilt and installed Debug/AndroidTest APKs on OnePlus `92f73a16`.
 - Full instrumentation suite passed: `OK (11 tests)`.
 
+## 2026-09-11 - Dashboard projection limit regression
+
+- Added a database-level test inserting 251 courses and verifying `observeDashboardCourses()` returns exactly 200 rows.
+- Rebuilt and installed Debug/AndroidTest APKs on OnePlus `92f73a16`.
+- Full instrumentation suite passed: `OK (12 tests)`.
+
 ## 2026-09-11 - Regression round 3 record
 
 - Added `docs/testing-round-3.md` as the current consolidated test record.
