@@ -362,6 +362,13 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Updated current-state AI_SPEC references that still reported the older 4-test OnePlus baseline to the verified 13-test baseline.
 - Historical earlier-round counts remain unchanged where they describe the original test run.
 
+## 2026-09-11 - OnePlus launch smoke check
+
+- Force-stopped and relaunched the installed Debug APK on OnePlus `92f73a16`.
+- Process remained alive (`pidof com.leslie.teachtrack` returned a PID).
+- UI hierarchy contained the expected greeting, Dashboard heading, empty-state content, navigation labels, and Copilot entry.
+- Captured UI hierarchy at `artifacts/oneplus-final-smoke-ui.xml`; this is device evidence and is intentionally not treated as OPPO evidence.
+
 ## 2026-09-11 - Regression round 3 record
 
 - Added `docs/testing-round-3.md` as the current consolidated test record.
