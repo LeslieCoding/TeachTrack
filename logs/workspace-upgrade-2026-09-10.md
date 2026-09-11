@@ -217,6 +217,14 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - Latest Debug APK installed on OnePlus `92f73a16`; Android instrumentation passed `OK (4 tests)`.
 - Screenshot: `artifacts/screenshots/oneplus-v2/analytics-command-latest.png`.
 
+## 2026-09-11 - Copilot score/exam association
+
+- Added exact-name Exam lookup at the DAO/repository boundary.
+- Copilot score creation now reuses an existing exam with the same name and only creates a new exam when none exists, preventing duplicate exam records.
+- Score writes continue to require a valid numeric score and use the existing transactional repository path.
+- OnePlus `92f73a16` installed the latest APK and passed Android instrumentation: `OK (4 tests)`.
+- Screenshot: `artifacts/screenshots/oneplus-v2/score-association-latest.png`.
+
 ## 2026-09-11 - Copilot full-operation contract increment
 
 - Revalidated the full path: provider interpretation, action normalization, confirmation gate, local registry execution, and repository writes.

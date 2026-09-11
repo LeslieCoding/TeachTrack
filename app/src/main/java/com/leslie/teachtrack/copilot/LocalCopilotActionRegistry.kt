@@ -41,6 +41,16 @@ class LocalCopilotActionRegistry(private val repository: TeachTrackRepository) :
             repository.saveProgress(StudentKnowledgeProgressEntity(id, pointId, p["level"]?.toIntOrNull() ?: 2, notes = p["rawText"].orEmpty()))
             return CopilotResult(true, "已更新知识点掌握情况")
         }
+        if (command.action == "score.create") {
+            val id = studentId() ?: return missingStudent()
+            val scoreValue = p["score"]?.toDoubleOrNull() ?: return CopilotResult(false, "还缺少成绩分数，请补充数字")
+            val fullValue = p["fullScore"]?.toDoubleOrNull() ?: 100.0
+            val examName = p["examName"].orEmpty().ifBlank { "Copilot 录入成绩" }
+            val exam = repository.examByName(examName) ?: ExamEntity(UUID.randomUUID().toString(), examName, p["date"].orEmpty().ifBlank { today }, subject = p["subject"].orEmpty())
+            val score = StudentScoreEntity(UUID.randomUUID().toString(), id, exam.id, scoreValue, fullValue, notes = p["rawText"].orEmpty())
+            repository.saveScore(exam, score)
+            return CopilotResult(true, "已记录成绩，得分率 ${(score.scoreRate * 100).toInt()}%（考试：${exam.name}）")
+        }
         return when (command.action) {
             "student.create" -> {
                 val name = p["studentName"].orEmpty()

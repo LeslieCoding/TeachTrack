@@ -22,6 +22,7 @@ interface TeachTrackDao {
     @Query("SELECT COUNT(*) FROM exams") suspend fun examCountOnce(): Int
     @Query("SELECT * FROM student_knowledge_progress") suspend fun allProgress(): List<StudentKnowledgeProgressEntity>
     @Query("SELECT * FROM exams") suspend fun allExams(): List<ExamEntity>
+    @Query("SELECT * FROM exams WHERE name = :name LIMIT 1") suspend fun examByName(name: String): ExamEntity?
     @Query("SELECT * FROM student_scores") suspend fun allScores(): List<StudentScoreEntity>
     @Query("SELECT * FROM student_scores WHERE studentId = :studentId ORDER BY id DESC") suspend fun scoresOnce(studentId: String): List<StudentScoreEntity>
     @Query("SELECT * FROM score_items") suspend fun allScoreItems(): List<ScoreItemEntity>
