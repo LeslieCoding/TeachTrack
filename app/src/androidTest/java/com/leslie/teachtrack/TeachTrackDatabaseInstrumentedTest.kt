@@ -9,6 +9,8 @@ import com.leslie.teachtrack.core.model.KnowledgePointEntity
 import com.leslie.teachtrack.core.model.StudentEntity
 import com.leslie.teachtrack.core.model.StudentKnowledgeEventEntity
 import com.leslie.teachtrack.core.model.StudentKnowledgeProgressEntity
+import com.leslie.teachtrack.core.model.ExamEntity
+import com.leslie.teachtrack.core.model.StudentScoreEntity
 import com.leslie.teachtrack.core.model.CourseSessionEntity
 import com.leslie.teachtrack.core.model.StudentStatus
 import com.leslie.teachtrack.data.TeachTrackRepository
@@ -198,5 +200,17 @@ class TeachTrackDatabaseInstrumentedTest {
         })
         val projection = dao.observeDashboardCourses().first()
         assertEquals(200, projection.size)
+    }
+
+    @Test fun scoreCsvEscapesCommasAndQuotes() = runBlocking {
+        val dao = db.dao()
+        val studentId = "csv-student"
+        val examId = "csv-exam"
+        dao.upsertStudent(StudentEntity(studentId, "李,老师"))
+        dao.upsertExam(ExamEntity(examId, "期中\"测验", "2026-09-11"))
+        dao.upsertScore(StudentScoreEntity("csv-score", studentId, examId, 88.0, 100.0))
+        val csv = TeachTrackRepository(dao, database = db).exportScoresCsv()
+        assertTrue(csv.contains("\"李,老师\""))
+        assertTrue(csv.contains("\"期中\"\"测验\""))
     }
 }
