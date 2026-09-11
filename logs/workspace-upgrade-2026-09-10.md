@@ -369,6 +369,12 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - UI hierarchy contained the expected greeting, Dashboard heading, empty-state content, navigation labels, and Copilot entry.
 - Captured UI hierarchy at `artifacts/oneplus-final-smoke-ui.xml`; this is device evidence and is intentionally not treated as OPPO evidence.
 
+## 2026-09-11 - Development monitor repair
+
+- Corrected `scripts/dev-monitor.ps1` to use the actual local ADB path `D:\Leslie\Tools\platform-tools\adb.exe`.
+- Added `-Once` mode for safe validation without waiting 30 minutes.
+- Executed one-shot validation successfully: network heartbeat was `True`, target OnePlus state was `device`.
+
 ## 2026-09-11 - Regression round 3 record
 
 - Added `docs/testing-round-3.md` as the current consolidated test record.
