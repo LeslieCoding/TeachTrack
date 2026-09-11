@@ -375,6 +375,14 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - OnePlus `92f73a16` was detected, Debug and AndroidTest APK installation both returned `Success`.
 - Full instrumentation completed successfully: `OK (13 tests)`.
 
+## 2026-09-11 - AI module regression
+
+- Ran all JVM Copilot tests through `testDebugUnitTest`, including command contract parsing, action validation, provider gateway fallback/configuration, OAuth configuration normalization, and provider/OAuth separation.
+- Rebuilt and installed Debug/AndroidTest APKs on OnePlus `92f73a16`.
+- Ran the complete Android instrumentation suite: `OK (13 tests)`.
+- Verified the local AI path remains functional: natural-language interpretation → confirmation gate → local action registry → Room write.
+- Real cloud provider calls and vendor OAuth completion remain intentionally unclaimed because no external credentials/client registration were supplied.
+
 ## 2026-09-11 - Development monitor repair
 
 - Corrected `scripts/dev-monitor.ps1` to use the actual local ADB path `D:\Leslie\Tools\platform-tools\adb.exe`.
