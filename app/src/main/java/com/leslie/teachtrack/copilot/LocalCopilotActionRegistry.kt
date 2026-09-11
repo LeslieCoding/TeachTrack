@@ -33,6 +33,7 @@ class LocalCopilotActionRegistry(private val repository: TeachTrackRepository) :
         if (command.action == "communication.create" && p["rawText"].orEmpty().isBlank()) return CopilotResult(false, "还缺少沟通内容")
         if (command.action == "dashboard.query") return CopilotResult(true, "首页数据：在读学生 ${repository.activeStudentCountOnce()} 人，待处理事项 ${repository.pendingTaskCountOnce()} 项")
         if (command.action == "knowledge.query") return CopilotResult(true, "本地知识点共 ${repository.knowledgeCount()} 个")
+        if (command.action == "analytics.query") return CopilotResult(true, "统计数据：课程 ${repository.courseCountOnce()} 条，考试 ${repository.examCountOnce()} 场，成绩 ${repository.scoreCountOnce()} 条")
         if (command.action == "knowledge.update") {
             val id = studentId() ?: return missingStudent()
             val pointId = p["knowledgePointId"] ?: p["knowledgeName"]?.let { repository.knowledgeByName(it)?.id }

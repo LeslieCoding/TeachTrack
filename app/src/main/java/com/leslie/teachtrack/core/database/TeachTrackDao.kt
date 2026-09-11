@@ -17,6 +17,9 @@ interface TeachTrackDao {
     @Query("SELECT COUNT(*) FROM knowledge_points") suspend fun knowledgeCount(): Int
     @Query("SELECT COUNT(*) FROM students WHERE status != 'ARCHIVED'") suspend fun activeStudentCountOnce(): Int
     @Query("SELECT COUNT(*) FROM tasks WHERE status NOT IN ('已完成', '完成', 'DONE')") suspend fun pendingTaskCountOnce(): Int
+    @Query("SELECT COUNT(*) FROM course_sessions") suspend fun courseCountOnce(): Int
+    @Query("SELECT COUNT(*) FROM student_scores") suspend fun scoreCountOnce(): Int
+    @Query("SELECT COUNT(*) FROM exams") suspend fun examCountOnce(): Int
     @Query("SELECT * FROM student_knowledge_progress") suspend fun allProgress(): List<StudentKnowledgeProgressEntity>
     @Query("SELECT * FROM exams") suspend fun allExams(): List<ExamEntity>
     @Query("SELECT * FROM student_scores") suspend fun allScores(): List<StudentScoreEntity>

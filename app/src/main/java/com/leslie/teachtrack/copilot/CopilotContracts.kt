@@ -24,6 +24,7 @@ class FakeCopilotProvider : CopilotProvider {
             has(text, "\u4f5c\u4e1a", "homework", "assignment") -> "homework.create"
             has(text, "\u8ba1\u5212", "\u4e0b\u8282\u8bfe", "plan", "next lesson") -> "lesson_plan.create"
             has(text, "\u77e5\u8bc6\u70b9", "\u638c\u63e1", "\u5df2\u5b66\u4f1a", "\u9700\u5de9\u56fa", "knowledge", "mastery") -> "knowledge.update"
+            has(text, "\u7edf\u8ba1", "\u5206\u6790", "analytics", "statistics") -> "analytics.query"
             else -> return CopilotCandidate(null, "我没有识别出要操作的模块，请说明要添加学生、课程、成绩、作业、待办或沟通。", needsClarification = true)
         }
         val namePattern = "[\\p{L}\\p{N}·]{2,6}"
