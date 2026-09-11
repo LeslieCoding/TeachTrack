@@ -13,6 +13,7 @@ interface TeachTrackDao {
     @Query("SELECT * FROM course_sessions") suspend fun allCourses(): List<CourseSessionEntity>
     @Query("SELECT * FROM course_sessions WHERE studentId = :studentId ORDER BY date DESC, startTime DESC") suspend fun coursesOnce(studentId: String): List<CourseSessionEntity>
     @Query("SELECT * FROM knowledge_points") suspend fun allKnowledge(): List<KnowledgePointEntity>
+    @Query("SELECT * FROM knowledge_points WHERE name = :name LIMIT 1") suspend fun knowledgeByName(name: String): KnowledgePointEntity?
     @Query("SELECT COUNT(*) FROM knowledge_points") suspend fun knowledgeCount(): Int
     @Query("SELECT COUNT(*) FROM students WHERE status != 'ARCHIVED'") suspend fun activeStudentCountOnce(): Int
     @Query("SELECT COUNT(*) FROM tasks WHERE status NOT IN ('已完成', '完成', 'DONE')") suspend fun pendingTaskCountOnce(): Int

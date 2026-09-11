@@ -131,6 +131,7 @@ class TeachTrackRepository(private val dao: TeachTrackDao, private val sync: Wor
     suspend fun allTags() = dao.allTags()
     suspend fun allAttachments() = dao.allAttachments()
     suspend fun knowledgeCount() = dao.knowledgeCount()
+    suspend fun knowledgeByName(name: String) = dao.knowledgeByName(name)
     suspend fun activeStudentCountOnce() = dao.activeStudentCountOnce()
     suspend fun pendingTaskCountOnce() = dao.pendingTaskCountOnce()
     suspend fun saveCourse(course: CourseSessionEntity) { database?.withTransaction { saveCourseRows(course) } ?: saveCourseRows(course); sync?.record("CourseSession", course.id, "CREATE", JSONObject().put("studentId", course.studentId).put("date", course.date).put("title", course.title)) }

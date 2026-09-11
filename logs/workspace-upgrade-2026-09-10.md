@@ -201,6 +201,14 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - All covered requests map to registered local actions; the suite also verifies score extraction and provider action aliases.
 - `testDebugUnitTest` passed with 16 tests.
 
+## 2026-09-11 - Knowledge-point Copilot operation
+
+- Added exact-name knowledge-point lookup in the DAO/repository boundary.
+- Natural language such as “把知识点动态电路标记为需巩固” now maps to `knowledge.update`, extracts level `2`, resolves the local knowledge-point ID, and writes StudentKnowledgeProgress after confirmation.
+- Added regression coverage for knowledge-point intent and mastery level extraction.
+- Latest APK installed on OnePlus `92f73a16`; Android instrumentation passed `OK (4 tests)`.
+- Screenshot: `artifacts/screenshots/oneplus-v2/knowledge-command-latest.png`.
+
 ## 2026-09-11 - Copilot full-operation contract increment
 
 - Revalidated the full path: provider interpretation, action normalization, confirmation gate, local registry execution, and repository writes.
