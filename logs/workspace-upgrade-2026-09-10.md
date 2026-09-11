@@ -369,6 +369,12 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 - UI hierarchy contained the expected greeting, Dashboard heading, empty-state content, navigation labels, and Copilot entry.
 - Captured UI hierarchy at `artifacts/oneplus-final-smoke-ui.xml`; this is device evidence and is intentionally not treated as OPPO evidence.
 
+## 2026-09-11 - OnePlus target resumed
+
+- User confirmed OnePlus is the active test target; OPPO Pad is not used in this run.
+- OnePlus `92f73a16` was detected, Debug and AndroidTest APK installation both returned `Success`.
+- Full instrumentation completed successfully: `OK (13 tests)`.
+
 ## 2026-09-11 - Development monitor repair
 
 - Corrected `scripts/dev-monitor.ps1` to use the actual local ADB path `D:\Leslie\Tools\platform-tools\adb.exe`.
