@@ -16,15 +16,19 @@ import com.leslie.teachtrack.core.model.StudentEntity
 import com.leslie.teachtrack.core.model.StudentKnowledgeProgressEntity
 import com.leslie.teachtrack.core.model.StudentScoreEntity
 import com.leslie.teachtrack.core.model.TaskEntity
+import com.leslie.teachtrack.agent.TeachTrackIntegrationSettings
+import com.leslie.teachtrack.agent.TeachTrackOffloadHandler
 import com.leslie.teachtrack.copilot.CopilotCommand
 import com.leslie.teachtrack.copilot.CopilotEffect
 import com.leslie.teachtrack.copilot.CopilotService
 import com.leslie.teachtrack.copilot.FakeCopilotProvider
 import com.leslie.teachtrack.copilot.LocalCopilotActionRegistry
 import com.leslie.teachtrack.data.TeachTrackRepository
+import com.openminis.app.sandbox.NativeOffloadRequest
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
+import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -317,5 +321,78 @@ class AgentNewActionsInstrumentedTest {
         assertEquals(2, dao.allTasks().size)
         assertEquals(1, dao.allTasks().count { it.studentId == "s-bt" })
         assertEquals(2, result.data["taskIds"]!!.split(",").size)
+    }
+
+    /** Spec §55: task.status.update issues an undo token; undo restores the previous status. */
+    @Test fun undoRestoresTaskStatus() = runBlocking {
+        val service = service()
+        val dao = db.dao()
+        dao.upsertStudent(StudentEntity("s-u", "撤销学生"))
+        dao.upsertTask(TaskEntity("t-u", "撤销测试待办", "s-u"))
+        val result = service.execute(
+            CopilotCommand("task.status.update", true, mapOf("taskId" to "t-u", "status" to "已完成")),
+            confirmed = true,
+        )
+        assertTrue(result.message, result.success)
+        assertEquals("已完成", dao.allTasks().first { it.id == "t-u" }.status)
+        val token = result.undoToken
+        assertTrue("undo token expected", token != null)
+        val undo = service.undo(token!!)
+        assertTrue(undo.message, undo.success)
+        assertEquals("待处理", dao.allTasks().first { it.id == "t-u" }.status)
+    }
+
+    /** Spec §55: batch.tasks.complete issues one token covering every completed task. */
+    @Test fun undoRestoresBatchTaskCompletion() = runBlocking {
+        val service = service()
+        val dao = db.dao()
+        dao.upsertTask(TaskEntity("t-b1", "批量撤销一"))
+        dao.upsertTask(TaskEntity("t-b2", "批量撤销二"))
+        val result = service.execute(
+            CopilotCommand("batch.tasks.complete", true, mapOf("items" to """[{"taskId":"t-b1"},{"taskId":"t-b2"}]""")),
+            confirmed = true,
+        )
+        assertTrue(result.message, result.success)
+        assertTrue("undo token expected", result.undoToken != null)
+        val undo = service.undo(result.undoToken!!)
+        assertTrue(undo.message, undo.success)
+        assertEquals(setOf("待处理"), dao.allTasks().map { it.status }.toSet())
+    }
+
+    /** Spec §55: student.create undo archives the new student (soft path, same as student.archive). */
+    @Test fun undoArchivesNewStudent() = runBlocking {
+        val service = service()
+        val dao = db.dao()
+        val result = service.execute(
+            CopilotCommand("student.create", true, mapOf("studentName" to "撤销新生")),
+            confirmed = true,
+        )
+        assertTrue(result.message, result.success)
+        val studentId = (result.effect as CopilotEffect.OpenStudent).studentId
+        val undo = service.undo(result.undoToken!!)
+        assertTrue(undo.message, undo.success)
+        assertEquals(com.leslie.teachtrack.core.model.StudentStatus.ARCHIVED, dao.observeStudentOnce(studentId)?.status)
+    }
+
+    /** Spec §43/§45: standard access mode refuses bridge writes; read-only actions still run. */
+    @Test fun standardAccessModeGatesOffloadWrites() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        TeachTrackIntegrationSettings.setAccessMode(context, TeachTrackIntegrationSettings.MODE_STANDARD)
+        try {
+            val handler = TeachTrackOffloadHandler(context, context.cacheDir)
+            fun rpc(json: String) = handler.handle(
+                NativeOffloadRequest(0, listOf("teachtrack", "rpc", "--json", json), emptyMap(), "/")
+            )
+            val write = rpc("""{"action":"task.create","params":{"title":"不应执行"}}""")
+            assertEquals(1, write.exitCode)
+            assertEquals(
+                "CONFIRMATION_REQUIRED",
+                JSONObject(write.output).getJSONObject("error").getString("code"),
+            )
+            val read = rpc("""{"action":"dashboard.query","params":{}}""")
+            assertEquals(read.output, 0, read.exitCode)
+        } finally {
+            TeachTrackIntegrationSettings.setAccessMode(context, TeachTrackIntegrationSettings.MODE_OWNER_TRUSTED)
+        }
     }
 }
