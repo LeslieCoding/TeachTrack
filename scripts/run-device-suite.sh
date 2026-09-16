@@ -29,7 +29,7 @@ MODE="${2:---foreground}"
 ADB="${ADB:-/root/android-sdk/platform-tools/adb} -s $DEVICE"
 PKG=com.leslie.teachtrack
 RUNNER="$PKG.test/androidx.test.runner.AndroidJUnitRunner"
-CLASSES="com.leslie.teachtrack.TeachTrackDatabaseInstrumentedTest,com.leslie.teachtrack.AgentNewActionsInstrumentedTest,com.leslie.teachtrack.SandboxEndToEndInstrumentedTest"
+CLASSES="${CLASSES:-com.leslie.teachtrack.TeachTrackDatabaseInstrumentedTest,com.leslie.teachtrack.AgentNewActionsInstrumentedTest,com.leslie.teachtrack.SandboxEndToEndInstrumentedTest}"
 STALL_SECS="${STALL_SECS:-120}"
 STAMP="${STAMP:-$(date +%Y%m%d)}"
 OUT="${OUT:-$(dirname "$0")/../artifacts/oneplus-androidtest-full-$STAMP.txt}"
@@ -47,14 +47,22 @@ if [ "$MODE" != "--background" ]; then
 fi
 
 : > "$OUT"
-$ADB shell am instrument -w -r -e class "$CLASSES" -e log true "$RUNNER" >> "$OUT" 2>&1 &
+$ADB shell am instrument -w -r -e class "$CLASSES" "$RUNNER" >> "$OUT" 2>&1 &
 IPID=$!
 
 last_size=0
 stale=0
 healed=0
+sticky_done=0
 while kill -0 $IPID 2>/dev/null; do
     sleep 10
+    # The pre-run `am unfreeze --sticky` is a no-op when the process does not
+    # exist yet ("could not find process"), and the instrumented process can
+    # be frozen DURING attach (observed: ApplicationThreadDeferred + zero
+    # logs). Re-issue the sticky unfreeze as soon as the process exists.
+    if [ "$sticky_done" = "0" ] && [ -n "$($ADB shell pidof $PKG 2>/dev/null | tr -d '\r')" ]; then
+        $ADB shell am unfreeze --sticky $PKG >/dev/null 2>&1 && sticky_done=1
+    fi
     size=$(stat -c %s "$OUT")
     if [ "$size" = "$last_size" ]; then
         stale=$((stale + 10))
