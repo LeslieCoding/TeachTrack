@@ -1681,12 +1681,12 @@ Do not create extraneous files: README.md, INSTALLATION_GUIDE.md, CHANGELOG.md, 
 // LAEP MASTER TASK / DEC-004 section 37. Bump the version string whenever
 // this content changes — installBundledSkill only re-applies when the
 // bundled version is newer than what's already installed.
-private const val TEACHTRACK_SKILL_VERSION = "1.6.0"
+private const val TEACHTRACK_SKILL_VERSION = "1.7.0"
 
 private val TEACHTRACK_SKILL_CONTENT = """
 ---
 name: teachtrack
-version: 1.0.0
+version: 1.7.0
 description: Operate TeachTrack, the teacher's own student-management app this Agent is embedded inside — query, create, and update students, courses, exams, scores, knowledge points, homework, problems, plans, parent communication, tasks, tags, templates, attachments, backups, and the sync Workspace, and navigate the app's UI. Use this whenever the user asks about a student, a class, a score, a lesson, homework, or anything about their teaching records — this is real local data, not something to answer from memory.
 ---
 
@@ -1746,9 +1746,13 @@ their history.
 
 Read-only (no confirmation semantics, safe to call freely):
 `student.search`, `student.overview.query`, `student.data.organize.preview`,
-`knowledge.weakness.query`, `knowledge.query`, `score.query`, `course.timeline`,
-`dashboard.query`, `analytics.query`, `navigation.open`, `attachment.list`,
-`attachment.query`, `parent_contact.query`, `template.list`, `template.render`,
+`knowledge.weakness.query`, `knowledge.query`, `score.query`, `score.trend`,
+`course.timeline`, `course.query`, `exam.query`, `homework.query`,
+`communication.query`, `problem.query`, `task.query`, `lesson_plan.query`,
+`timeline.query`, `search.global`, `tag.student.query`,
+`dashboard.query`, `analytics.query`, `navigation.open`, `ui.open.tab`,
+`ui.open.student`, `attachment.list`, `attachment.query`,
+`parent_contact.query`, `template.list`, `template.render`,
 `tag.query`, `backup.list`, `workspace.status.query`, `workspace.check`,
 `workspace.sync.scan`, `workspace.conflict.list`, `workspace.conflict.resolve`.
 
@@ -1762,7 +1766,9 @@ TeachTrack's own data rules, e.g. a score can't exceed its exam's full score):
 `knowledge.update`, `problem.create`, `problem.status.update`,
 `parent_contact.create`, `template.create`, `template.update`,
 `template.delete`, `tag.create`, `tag.assign`, `attachment.delete`,
-`backup.export`, `backup.restore`, `csv.export.scores`, `workspace.export`.
+`backup.export`, `backup.restore`, `csv.export.scores`, `workspace.export`,
+`batch.tasks.create`, `batch.scores.create`, `batch.courses.create`,
+`batch.tags.assign`, `batch.tasks.complete`.
 
 Several actions fall back to a `rawText` parameter (the natural-language
 sentence that triggered them) when their main content field is omitted —
@@ -1841,31 +1847,73 @@ Record a lesson (course + knowledge progress + next-lesson plan in one
 natural-language ask means multiple `teachtrack` calls, one per fact):
 ```
 teachtrack rpc --json '{"action":"course.create","params":{"studentId":"<id>","date":"2026-09-13","subject":"物理","title":"动态电路与U-I图像"}}'
-teachtrack rpc --json '{"action":"knowledge.update","params":{"studentId":"<id>","name":"动态电路","mastery":"一般"}}'
+teachtrack rpc --json '{"action":"knowledge.update","params":{"studentId":"<id>","knowledgeName":"动态电路","level":"2","notes":"范围题仍出错"}}'
 teachtrack rpc --json '{"action":"lesson_plan.create","params":{"studentId":"<id>","focus":"滑动变阻器范围题"}}'
 ```
+`knowledge.update`'s `level` is 0-4 (0=未学习 1=已学习 2=需巩固 3=基本掌握
+4=熟练掌握) — map the user's words to a number, don't pass words.
 
-Analyze a student ("欣阳最近学习了什么？"): call `student.overview.query` (or
-`student.search` first if you don't have the id), then `score.query` /
-`course.timeline` / `knowledge.weakness.query` / homework as needed — build
-the answer from what TeachTrack actually returns, never from memory of an
-earlier turn.
+Analyze a student ("欣阳最近学习了什么？" / "这个学生最近怎么样"): resolve the
+student once, then pull the real record — a good full pass is:
+`course.query` (recent lessons) + `score.trend` (得分率走势) +
+`knowledge.query` / `knowledge.weakness.query` (薄弱知识点) +
+`homework.query` (未交作业) + `problem.query` (待复习错题) — or
+`student.overview.query` for a one-call summary and `timeline.query` for the
+merged event feed. Build the answer from what TeachTrack actually returns,
+never from memory of an earlier turn.
 
-## Batch and cross-module tasks
+## Query actions (added after the first rollout — do not rely on memory of an older list)
 
-There is no single "batch" action — a request like "整理所有初三学生最近的成绩,
-按得分率排序" is a plan you execute yourself: `student.search` (or
-`dashboard.query`/`analytics.query`) to enumerate the students, then
-`score.query` per student, then compute and present the ranking yourself. A
-multi-step ask ("找出退步的学生, 标成重点关注, 生成复习计划") is the same
-pattern: query → compute → `tag.assign` → `lesson_plan.create`, one
-`teachtrack` call per real effect, reporting back what actually happened
-(never claim an action succeeded unless its `ok` was `true`).
+`course.query`, `exam.query`, `homework.query`, `communication.query`,
+`problem.query`, `task.query`, `lesson_plan.query` list the corresponding
+records; each takes an optional `studentId`/`studentName` to scope to one
+student (`communication.query` and `score.trend` REQUIRE one). Defaults:
+`homework.query`/`task.query` return pending/open items only — pass a
+`status` to see everything; `problem.query` returns open problems only.
+`score.trend` returns the student's last-10 score-rate line and a direction
+(上升/下降/平稳). `timeline.query` merges courses/scores/homework/
+communications/problems into one feed, exactly like the student's timeline
+card in the app. `search.global` runs one `query` across students, knowledge
+points, templates and tags — use it when you're not sure which module owns
+what the user mentioned. `tag.student.query` lists one student's tags.
+
+## Batch actions
+
+There ARE batch actions — prefer them over N sequential calls whenever the
+user gives you a list ("给这几个学生都记上成绩", "把这几个待办都标完成"):
+
+- `batch.scores.create` — `items`: JSON array (max 50) of
+  `{studentName|studentId, score, fullScore?, examName?, date?, subject?}`;
+  same validation as `score.create` per item.
+- `batch.courses.create` — `items`: `{studentName|studentId, content, date?,
+  subject?, title?, nextLessonPlan?}`; same as `course.create` per item.
+- `batch.tasks.create` — `items`: `{title, studentName?, dueDate?, priority?}`.
+- `batch.tasks.complete` — `items`: `{taskId}` or `{title}`; same
+  taskId-wins / unique-title-match resolution as `task.status.update`.
+- `batch.tags.assign` — `items`: `{studentName|studentId, tagName}` — e.g.
+  "把这几个学生标成重点关注".
+
+Every batch action returns `data.items`: a strict JSON array of
+`{"index":i,"ok":true|false,"message":"…"}` — one bad item never aborts the
+rest, so always read the per-item results and report failures honestly
+instead of claiming the whole batch succeeded on `ok:true`.
+
+For computed cross-module asks there is still no single mega-action: a
+request like "整理所有初三学生最近的成绩, 按得分率排序" is a plan you execute
+yourself: `student.search` (status filter) to enumerate, `score.query` /
+`score.trend` per student, then compute and present the ranking yourself. A
+multi-step ask ("找出退步的学生, 标成重点关注, 生成复习计划") chains query →
+compute → `batch.tags.assign` → `lesson_plan.create` — one `teachtrack`
+call per real effect, reporting back what actually happened (never claim an
+action succeeded unless its `ok` was `true`).
 
 ## Navigation
 
-`navigation.open` switches TeachTrack's own UI to a specific screen/student —
-use it when the user wants to *see* something ("打开晨然的档案"), not when
+`navigation.open` / `ui.open.tab` (identical) switches TeachTrack's own UI to
+a bottom-nav tab — `destination` accepts 首页/学生/计划/统计/设置/agent (or
+their English equivalents). `ui.open.student` opens one student's workspace
+screen (takes `studentId`/`studentName`, same resolution as everything else).
+Use these when the user wants to *see* something ("打开晨然的档案"), not when
 they want you to *do* something with the data (do that directly via the
 other actions instead of clicking through the UI).
 """.trimIndent()
