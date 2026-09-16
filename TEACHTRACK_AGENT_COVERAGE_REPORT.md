@@ -140,10 +140,17 @@ Legend: ✅ full / 🟡 partial / ❌ missing → action added this phase is mar
 - `CopilotService.execute(command, confirmed)`: any action **not** in
   `READ_ONLY_ACTIONS` has `confirmationRequired=true`; the in-app Copilot shows
   `preview()` and only executes on confirm. The offload bridge
-  (`TeachTrackOffloadHandler`) runs OWNER_TRUSTED with `confirmed=true`
+  (`TeachTrackOffloadHandler`) defaults to OWNER_TRUSTED with `confirmed=true`
   because the shell has no UI to confirm in — so `READ_ONLY_ACTIONS`
   membership decides what the Agent can fire silently. All 13 P2 read/navigation
   additions were added to `READ_ONLY_ACTIONS`; `batch.tasks.create` was not.
+- **Access mode (spec §43/§45, P5)**: persisted in SharedPreferences
+  `teachtrack_integration` / key `access_mode` (`TeachTrackIntegrationSettings`),
+  editable on the TeachTrack Integration settings screen. Default
+  `owner_trusted` (owner's personal app, previous behavior). In `standard`
+  mode the bridge refuses every non-`READ_ONLY_ACTIONS` action with
+  `{"ok":false,"error":{"code":"CONFIRMATION_REQUIRED",…}}` so the agent can
+  relay the refusal; read-only/navigation actions always run.
 - Hard boundaries: no permanent delete, no DB wipe, no workspace overwrite
   exists anywhere in the registry. The only hard delete is `template.delete`
   (templates carry no student history). `student.archive`,
@@ -185,3 +192,40 @@ Remaining uncovered, deliberately:
 Coverage: 68/68 registry actions Agent-reachable (64 after P2 + 4 P4 batch
 actions); every recurring UI business
 operation has an Agent equivalent except the five reasoned exclusions above.
+
+## P5 hardening batch 1 (spec §43/§45/§47/§55/§65)
+
+- **§47 Integration status page**: `TeachTrackIntegrationScreen` in the
+  OpenMinis settings tree (route `teachtrack_integration`, entry row
+  "TeachTrack Integration" in `SettingsScreen`). Shows live bridge-handler
+  registration (`NativeOffloadServer.registeredHandlers`), offload server
+  state (`NativeOffloadServer.isRunning` + abstract socket name), capability
+  count (registry `allowedActions.size`), skill version
+  (`TEACHTRACK_SKILL_VERSION`), and workspace health from the existing
+  `WorkspaceHealthChecker`. Application-scope state only — no Activity
+  coupling, so the embedded AgentHost gets it automatically. Verified on
+  device (`artifacts/integration-screen-ui-20260927.xml`).
+- **§43/§45 access mode**: `TeachTrackIntegrationSettings` (SharedPreferences
+  `teachtrack_integration`, key `access_mode`, values `standard` /
+  `owner_trusted`, default `owner_trusted`). `TeachTrackOffloadHandler`
+  refuses non-`READ_ONLY_ACTIONS` in standard mode with
+  `CONFIRMATION_REQUIRED`. Radio selector on the integration screen; skill
+  doc bumped to 1.7.1 documenting the mode and error code.
+- **§55 undo**: `CopilotUndoTokens` (URL-safe Base64 JSON) issued by
+  `task.status.update`, `batch.tasks.complete` (per-task previous statuses)
+  and `student.create` (archive as soft reversal).
+  `LocalCopilotActionRegistry.undo()` reverses via the same repository ops
+  (`updateTaskStatus`, `archiveStudent`) — no new delete paths. The
+  integration screen's "Agent 操作记录" section lists
+  `CopilotAuditStore` entries with a 撤销 button for token-bearing successes.
+  Deliberately unsupported (would need hard deletes the project's
+  archive-before-delete principle excludes): score/course/tag/task/… creates
+  and `tag.assign` — no token is issued, UI hides the button.
+- **§65 workspace health**: already covered by the existing
+  `workspace.check` read action (registry → `WorkspaceHealthChecker`, present
+  in `TEACHTRACK_CAPABILITIES.json`); no new action added. The integration
+  screen surfaces the same checker for humans.
+- Tests: JVM `CopilotUndoTokensTest`; device
+  `AgentNewActionsInstrumentedTest` gains 4 tests (undo task status / batch
+  completion / student archive, standard-mode gate) — 43/43 OK on OnePlus
+  PKG110 (`artifacts/oneplus-androidtest-20260927-p5.txt`).
