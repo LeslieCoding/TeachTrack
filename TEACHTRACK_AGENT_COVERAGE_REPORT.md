@@ -333,7 +333,28 @@ operation has an Agent equivalent except the five reasoned exclusions above.
   `am unfreeze --sticky` for the process lifetime, (2) keeps MainActivity
   foreground during the run, and (3) watches for stalls and heals them
   with `am unfreeze` while capturing `dumpsys activity processes`
-  (`isFrozen`/`isPendingFreeze`) for forensics. Proof:
-  `artifacts/oneplus-androidtest-full-20260917.txt` — consecutive
-  single-invocation full-suite runs, 52/52 each.
+  (`isFrozen`/`isPendingFreeze`) for forensics.
+- **Correction (2026-09-17): the earlier "6 consecutive 52/52" proof was
+  invalid — androidx.test `-e log true` is discovery/log-only mode.** The
+  runs recorded in `artifacts/oneplus-androidtest-full-20260917.txt` were
+  produced by `scripts/run-device-suite.sh` while it passed `-e log true`
+  to `am instrument`. In androidx.test that flag switches the runner into
+  log/discovery mode: it emits per-test start/pass status events with
+  near-zero durations (`Time: 0.004`–`0.068`) **without executing the test
+  bodies** (verified: no marker files, no test logcat output, no side
+  effects across repeated runs). Those "52/52" results are therefore not
+  execution proof and must not be cited as such. The genuine real-execution
+  evidence is: `artifacts/oneplus-ace5-androidtest-20260916.txt` (52/52 via
+  split run, real durations), `artifacts/oneplus-androidtest-20260927.txt`
+  (e.g. `Time: 8.68`), and `artifacts/oneplus-sandbox-e2e-20260927.txt`
+  (`Time: 2.059`/`3.261`). The runner script has been fixed: the `-e log
+  true` flag is removed, and the sticky-unfreeze is now re-issued after the
+  instrumented process exists (the pre-run `am unfreeze --sticky` was a
+  no-op when the process had not started yet; the process could be frozen
+  during attach — re-confirmed 2026-09-17 red-handed via
+  `ApplicationThreadDeferred` in `dumpsys activity processes` with total
+  log silence). A full single-invocation real-execution re-proof of all 52
+  tests with the fixed runner is still pending (the OEM freezer is
+  aggressive when the device is idle and can freeze the headless
+  instrumented process mid-suite even after healing attempts).
 
