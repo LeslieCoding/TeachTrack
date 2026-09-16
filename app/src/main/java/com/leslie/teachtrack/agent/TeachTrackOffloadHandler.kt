@@ -26,10 +26,10 @@ import java.io.File
  *  1. parses the `teachtrack <subcommand> ...` argv the guest shell issued,
  *  2. turns it into the exact same [CopilotCommand] the existing in-app
  *     Copilot chat window already builds and sends through [CopilotService],
- *  3. runs it with `confirmed = true` (OWNER_TRUSTED — see spec section 43;
- *     TeachTrack's existing 50-action allow-list contains no true
- *     hard-destructive action per the project's own "archive before delete"
- *     principle, so there is nothing this needs to hold back on),
+ *  3. runs it with `confirmed = true` in OWNER_TRUSTED access mode (the
+ *     default — spec section 43); in STANDARD mode every non-read-only
+ *     action is refused with a CONFIRMATION_REQUIRED JSON error instead
+ *     (see `TeachTrackIntegrationSettings`),
  *  4. formats the [CopilotResult] as the strict JSON envelope spec section
  *     35 defines, so the Agent never has to parse natural-language errors.
  *
@@ -100,13 +100,27 @@ class TeachTrackOffloadHandler(private val context: Context, private val rootfsD
             return errorResult(1, "VALIDATION_ERROR", validationError, action)
         }
 
-        // OWNER_TRUSTED (spec section 43): the Agent has no UI to show an
-        // interactive confirmation dialog to, so confirmed = true always.
+        // Access mode (spec §43/§45): OWNER_TRUSTED (the default for the
+        // owner's personal app) auto-confirms writes because the Agent has no
+        // UI to show an interactive confirmation dialog to. STANDARD refuses
+        // every non-read-only action with CONFIRMATION_REQUIRED so the agent
+        // can relay the refusal instead of silently writing. Read-only and
+        // navigation actions always run in both modes.
         // Section 44's short hard-boundary list (permanent delete, DB wipe,
         // Workspace overwrite/restore) has no corresponding entry in
         // TeachTrack's own allowedActions today — the project's standing
         // "archive before delete" principle already keeps destructive
         // operations out of this surface (see STATE/DECISIONS.md DEC-001).
+        if (TeachTrackIntegrationSettings.accessMode(context) == TeachTrackIntegrationSettings.MODE_STANDARD
+            && action !in READ_ONLY_ACTIONS
+        ) {
+            return errorResult(
+                1, "CONFIRMATION_REQUIRED",
+                "Access mode is 'standard': write action '$action' was not executed. " +
+                    "Ask the user to switch to Owner Trusted in Settings → TeachTrack Integration, or confirm the change in the app.",
+                action,
+            )
+        }
         val result = runBlocking { service.execute(command, confirmed = true) }
         return formatResult(action, result)
     }

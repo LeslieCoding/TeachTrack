@@ -1681,12 +1681,12 @@ Do not create extraneous files: README.md, INSTALLATION_GUIDE.md, CHANGELOG.md, 
 // LAEP MASTER TASK / DEC-004 section 37. Bump the version string whenever
 // this content changes — installBundledSkill only re-applies when the
 // bundled version is newer than what's already installed.
-private const val TEACHTRACK_SKILL_VERSION = "1.7.0"
+internal const val TEACHTRACK_SKILL_VERSION = "1.7.1"
 
 private val TEACHTRACK_SKILL_CONTENT = """
 ---
 name: teachtrack
-version: 1.7.0
+version: 1.7.1
 description: Operate TeachTrack, the teacher's own student-management app this Agent is embedded inside — query, create, and update students, courses, exams, scores, knowledge points, homework, problems, plans, parent communication, tasks, tags, templates, attachments, backups, and the sync Workspace, and navigate the app's UI. Use this whenever the user asks about a student, a class, a score, a lesson, homework, or anything about their teaching records — this is real local data, not something to answer from memory.
 ---
 
@@ -1724,7 +1724,18 @@ arguments), `PARSE_ERROR` (invalid JSON), `VALIDATION_ERROR` (action not
 recognized, or a parameter TeachTrack's own validator rejected),
 `EXECUTION_FAILED` (the action ran but TeachTrack's business logic rejected
 it — read `error.message`, it is the real reason, e.g. a score exceeding the
-exam's full score), `UNKNOWN_SUBCOMMAND` / `INTERNAL_ERROR`.
+exam's full score), `CONFIRMATION_REQUIRED` (the integration's access mode is
+"standard", so write actions are refused — tell the user to switch to Owner
+Trusted in Settings → TeachTrack Integration, or confirm the change in the
+app; read-only and navigation actions still run), `UNKNOWN_SUBCOMMAND` /
+`INTERNAL_ERROR`.
+
+Successful write results may include an `undoToken` field (spec §55). Tokens
+are issued only for actions the app can safely reverse through existing
+operations (task-status changes, `batch.tasks.complete`, `student.create`);
+the user can revoke them from the Agent 操作记录 section of the TeachTrack
+Integration settings screen. Actions without a token are not undoable —
+never promise an undo the token list doesn't support.
 
 Run `teachtrack capabilities` any time you're unsure exactly which actions
 exist right now — it reflects the real, currently-running code, and is more
