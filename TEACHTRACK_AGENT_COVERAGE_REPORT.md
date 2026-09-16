@@ -19,9 +19,13 @@ none — the registry calls the same repository methods the ViewModels call).
   `MainActivity.kt` + `FeatureScreens.kt` and every `TeachTrackViewModel`
   method.
 - Test status column: `JVM` = covered by `app/src/test` unit tests,
-  `device` = covered by the 27/27 OnePlus instrumentation run
-  (`artifacts/oneplus-androidtest-20260914.txt`), `manual` = verified by
-  inspection/build only (new P2 actions, device run pending).
+  `device` = covered by the 39/39 OnePlus instrumentation run
+  (`artifacts/oneplus-androidtest-20260927.txt`; P2/P4 additions verified in
+  `AgentNewActionsInstrumentedTest`, earlier 27 actions in
+  `artifacts/oneplus-androidtest-20260914.txt`), `manual` = verified by
+  inspection/build only. Embedded Agent tab + 「问 Agent」entry verified on
+  device via uiautomator (`artifacts/agent-tab-ui-20260927.xml`,
+  `artifacts/ask-agent-ui-20260927.xml`).
 
 ## Per-module matrix
 
@@ -44,16 +48,16 @@ Legend: ✅ full / 🟡 partial / ❌ missing → action added this phase is mar
 | Record course (CourseDialog) | ✅ `course.create` | device |
 | Resume last plan (快速续课) | ✅ `course.resume` | device |
 | Course history in timeline | ✅ `course.timeline` | device |
-| Browse course list (Dashboard/Planning) | ✅ `course.query` **(P2 new)** | manual |
+| Browse course list (Dashboard/Planning) | ✅ `course.query` **(P2 new)** | device |
 
 ### exam.* / score.*
 | UI operation | Agent action | Test |
 |---|---|---|
 | Create exam (implicit in score flow) | ✅ `exam.create` | device |
-| Browse exams (Dashboard 最近考试) | ✅ `exam.query` **(P2 new)** | manual |
+| Browse exams (Dashboard 最近考试) | ✅ `exam.query` **(P2 new)** | device |
 | Record score (ScoreDialog) | ✅ `score.create` (validates score ≤ fullScore) | device |
 | View scores | ✅ `score.query` | device |
-| Score trend card (ScoreTrendCard) | ✅ `score.trend` **(P2 new)** | manual |
+| Score trend card (ScoreTrendCard) | ✅ `score.trend` **(P2 new)** | device |
 | Export scores CSV (Settings) | ✅ `csv.export.scores` | device |
 
 ### knowledge.*
@@ -68,48 +72,48 @@ Legend: ✅ full / 🟡 partial / ❌ missing → action added this phase is mar
 | UI operation | Agent action | Test |
 |---|---|---|
 | Assign homework (HomeworkDialog) | ✅ `homework.create` | device |
-| View homework (SummaryLine/Dashboard) | ✅ `homework.query` **(P2 new)** | manual |
+| View homework (SummaryLine/Dashboard) | ✅ `homework.query` **(P2 new)** | device |
 | Change homework status | 🟡 no UI write path either — the UI never edits homework status; nothing to mirror. Out of scope for both. | — |
 | Record problem (快速记录) | ✅ `problem.create` | device |
 | Update problem status (ProblemStatusDialog) | ✅ `problem.status.update` | device |
-| View problems (ProblemSummaryCard) | ✅ `problem.query` **(P2 new)** | manual |
+| View problems (ProblemSummaryCard) | ✅ `problem.query` **(P2 new)** | device |
 
 ### plan.* / task.*
 | UI operation | Agent action | Test |
 |---|---|---|
 | Set next-lesson plan | ✅ `lesson_plan.create` | device |
-| View plans (PlanningScreen/CalendarAgenda) | ✅ `lesson_plan.query` **(P2 new)** | manual |
+| View plans (PlanningScreen/CalendarAgenda) | ✅ `lesson_plan.query` **(P2 new)** | device |
 | New todo (TaskDialog) | ✅ `task.create` | device |
 | Toggle todo status (TaskCard AssistChip) | ✅ `task.status.update` (same 已完成/待处理 vocabulary) | device |
-| View todo list | ✅ `task.query` **(P2 new)** | manual |
-| Bulk todo entry | ✅ `batch.tasks.create` **(P2 new)** (Agent-only convenience; UI has no bulk entry) | manual |
-| Bulk score entry | ✅ `batch.scores.create` **(P4 new)** — shared `createScoreRecord` with `score.create`, strict per-item ok/error in `data.items` | manual |
-| Bulk course entry | ✅ `batch.courses.create` **(P4 new)** — shared `createCourseRecord` | manual |
-| Bulk tagging (标记重点关注) | ✅ `batch.tags.assign` **(P4 new)** — shared `assignTagToStudent` | manual |
-| Bulk todo complete | ✅ `batch.tasks.complete` **(P4 new)** — shared `resolveOpenTaskId` | manual |
+| View todo list | ✅ `task.query` **(P2 new)** | device |
+| Bulk todo entry | ✅ `batch.tasks.create` **(P2 new)** (Agent-only convenience; UI has no bulk entry) | device |
+| Bulk score entry | ✅ `batch.scores.create` **(P4 new)** — shared `createScoreRecord` with `score.create`, strict per-item ok/error in `data.items` | device |
+| Bulk course entry | ✅ `batch.courses.create` **(P4 new)** — shared `createCourseRecord` | device |
+| Bulk tagging (标记重点关注) | ✅ `batch.tags.assign` **(P4 new)** — shared `assignTagToStudent` | device |
+| Bulk todo complete | ✅ `batch.tasks.complete` **(P4 new)** — shared `resolveOpenTaskId` | device |
 
 ### communication.*
 | UI operation | Agent action | Test |
 |---|---|---|
 | Record communication (CommunicationDialog) | ✅ `communication.create` | device |
-| View communications (SummaryLine/Dashboard) | ✅ `communication.query` **(P2 new)** | manual |
+| View communications (SummaryLine/Dashboard) | ✅ `communication.query` **(P2 new)** | device |
 | Add parent contact | ✅ `parent_contact.create` | device |
 | View parent contacts | ✅ `parent_contact.query` | device |
 
 ### timeline.* / analytics.* / search.global
 | UI operation | Agent action | Test |
 |---|---|---|
-| StudentTimeline card | ✅ `timeline.query` **(P2 new)** (same five event sources, same sort) | manual |
+| StudentTimeline card | ✅ `timeline.query` **(P2 new)** (same five event sources, same sort) | device |
 | Dashboard headline | ✅ `dashboard.query` | device |
 | Analytics tab counts | ✅ `analytics.query` | device |
-| Global search | ✅ `search.global` **(P2 new)** (students+knowledge+templates+tags; the UI has per-screen search only) | manual |
+| Global search | ✅ `search.global` **(P2 new)** (students+knowledge+templates+tags; the UI has per-screen search only) | device |
 
 ### template.* / tag.*
 | UI operation | Agent action | Test |
 |---|---|---|
 | Template create/edit/delete/use | ✅ `template.create/update/delete/render` + `template.list` | device |
 | Tags | ✅ `tag.create/assign/query`; UI has no tag screen — Agent + data model only | device |
-| Tags of one student | ✅ `tag.student.query` **(P2 new)** | manual |
+| Tags of one student | ✅ `tag.student.query` **(P2 new)** | device |
 
 ### attachment.*
 | UI operation | Agent action | Test |
@@ -128,8 +132,8 @@ Legend: ✅ full / 🟡 partial / ❌ missing → action added this phase is mar
 ### ui.open.*
 | UI operation | Agent action | Test |
 |---|---|---|
-| Bottom-nav tab switch | ✅ `navigation.open` / `ui.open.tab` **(P2 new alias; now also maps "agent" → tab 5)** | JVM/manual |
-| Open student workspace | ✅ `ui.open.student` **(P2 new)** via `CopilotEffect.OpenStudent` (the existing effect mechanism; MainActivity already consumes it at `TeachTrackApp`'s `LaunchedEffect(copilotEffect)`) | manual |
+| Bottom-nav tab switch | ✅ `navigation.open` / `ui.open.tab` **(P2 new alias; now also maps "agent" → tab 5)** | JVM/device |
+| Open student workspace | ✅ `ui.open.student` **(P2 new)** via `CopilotEffect.OpenStudent` (the existing effect mechanism; MainActivity already consumes it at `TeachTrackApp`'s `LaunchedEffect(copilotEffect)`) | device |
 
 ## Confirmation / destructive policy (spec §44)
 
