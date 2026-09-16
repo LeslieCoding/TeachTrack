@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Build
 import com.leslie.teachtrack.core.workspace.WorkspaceDevice
 import java.util.UUID
-import java.time.Instant
 import org.json.JSONObject
 
 class DeviceIdentity(private val context: Context) {
@@ -12,7 +11,7 @@ class DeviceIdentity(private val context: Context) {
     val deviceId: String = prefs.getString("deviceId", null) ?: UUID.randomUUID().toString().also { prefs.edit().putString("deviceId", it).apply() }
     fun descriptor(): WorkspaceDevice {
         val version = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "unknown"
-        return WorkspaceDevice(deviceId, "${Build.MANUFACTURER} ${Build.MODEL}", "ANDROID", version, Instant.now().toString())
+        return WorkspaceDevice(deviceId, "${Build.MANUFACTURER} ${Build.MODEL}", "ANDROID", version, IsoTimestamp.now())
     }
     fun json(): JSONObject = JSONObject().put("deviceId", descriptor().deviceId).put("deviceName", descriptor().deviceName).put("platform", descriptor().platform).put("appVersion", descriptor().appVersion).put("lastSeenAt", descriptor().lastSeenAt)
 }

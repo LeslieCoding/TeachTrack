@@ -16,7 +16,7 @@ class WorkspaceArchiveManager {
                     val bytes = storage.readBytes(path) ?: return@forEach
                     zip.putNextEntry(ZipEntry(path)); zip.write(bytes); zip.closeEntry()
                 }
-                zip.putNextEntry(ZipEntry("backup.json")); zip.write(JSONObject().put("backupFormatVersion", 1).put("workspaceId", workspaceId).put("createdAt", java.time.Instant.now().toString()).put("appVersion", appVersion).put("schemaVersion", schemaVersion).put("counts", counts).toString(2).toByteArray(Charsets.UTF_8)); zip.closeEntry()
+                zip.putNextEntry(ZipEntry("backup.json")); zip.write(JSONObject().put("backupFormatVersion", 1).put("workspaceId", workspaceId).put("createdAt", IsoTimestamp.now()).put("appVersion", appVersion).put("schemaVersion", schemaVersion).put("counts", counts).toString(2).toByteArray(Charsets.UTF_8)); zip.closeEntry()
             }
         } ?: error("Cannot create .ttbackup")
     }

@@ -4,9 +4,9 @@ TeachTrack is a local-first Android workspace for a teacher managing long-term s
 
 ## Current version
 
-`TeachTrack 2.0 · TeachTrack Copilot` — Android `2.0.0-alpha.1`.
+`TeachTrack 3.0 · TeachTrack Copilot` — Android `3.0.0-alpha.1`.
 
-The 1.x local-first MVP remains usable without an account, cloud service, network, or AI. Version 2 adds a planned optional natural-language command layer: typed or voice input is interpreted by a configurable provider and converted into validated local actions.
+The 1.x local-first MVP remains usable without an account, cloud service, network, or AI. Version 2 added an optional natural-language command layer: typed or voice input is interpreted by a configurable provider and converted into validated local actions. Version 3 adds the Portable Workspace foundation and completes Copilot's Action Registry coverage across every implemented module (see `AI_SPEC/31_V2_REQUIREMENTS.md` `V2-REQ-040`).
 
 ## Safety model
 
@@ -28,3 +28,10 @@ The model cannot access Room or execute arbitrary code. It can only produce a ve
 - `AI_SPEC/35_V2_VERIFICATION_MATRIX.yaml`
 - `AI_SPEC/36_V2_INVARIANTS.yaml`
 - `docs/prompts/10-v2-command-composer.prompt.md` through `16-v2-privacy-testing.prompt.md`
+
+## 3.0 delivery status
+
+- Current Android version: `3.0.0-alpha.1`.
+- Current Debug and debug-signed Release build artifacts are in `artifacts/deliverables/`; checksums are in `SHA256SUMS.txt`.
+- Latest OnePlus database instrumentation result: `OK (27 tests)`. The current ColorOS installer policy prevented a fresh Compose/full-suite rerun; see `docs/testing-round-5.md`.
+- Real provider OAuth approval and Release signing require external credentials/material.

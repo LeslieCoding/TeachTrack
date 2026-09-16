@@ -1,0 +1,1 @@
+/mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a

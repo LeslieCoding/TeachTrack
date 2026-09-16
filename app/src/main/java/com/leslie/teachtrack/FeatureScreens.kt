@@ -43,6 +43,18 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlinx.coroutines.launch
 
+private fun openExternalUrl(context: android.content.Context, url: String): Boolean {
+    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
+        .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+    return runCatching {
+        if (intent.resolveActivity(context.packageManager) != null) {
+            context.startActivity(intent)
+        } else {
+            context.startActivity(android.content.Intent(context, ExternalWebActivity::class.java).putExtra(ExternalWebActivity.EXTRA_URL, url).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+        }
+        true
+    }.getOrDefault(false)
+}
 private val FeatureGreen = Color(0xFF176B57)
 private val FeatureMint = Color(0xFFDDF5EA)
 private val FeatureInk = Color(0xFF15312A)
@@ -193,7 +205,7 @@ private fun OAuthSettingsCard(context: android.content.Context) {
         }
     }
     Text(selectedPreset.note, color = Color.Gray, fontSize = 12.sp)
-    if (selectedPreset.consoleUrl.isNotBlank()) OutlinedButton(onClick = { runCatching { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(selectedPreset.consoleUrl))) } }) { Text("打开 ${selectedPreset.displayName} 控制台") }
+    if (selectedPreset.consoleUrl.isNotBlank()) OutlinedButton(onClick = { status = if (openExternalUrl(context, selectedPreset.consoleUrl)) "已打开 ${selectedPreset.displayName} 官方页面" else "未找到可打开网页的浏览器" }) { Text("打开 ${selectedPreset.displayName} 控制台") }
     Card(Modifier.fillMaxWidth().padding(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(14.dp)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -271,13 +283,13 @@ private fun OAuthSimpleSettingsCard(context: android.content.Context) {
                 } else if (selected.authMode == "OAUTH_PKCE" && config.authorizationEndpoint.isNotBlank() && config.clientId.isNotBlank()) {
                     status = if (OAuthManager.startAuthorization(context, config)) "已打开浏览器，请完成登录" else "OAuth 配置不可用"
                 } else if (selected.consoleUrl.isNotBlank()) {
-                    runCatching { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(selected.consoleUrl))) }
+                    openExternalUrl(context, selected.consoleUrl)
                     status = "已打开 ${selected.displayName} 官方页面"
                 } else {
                     status = "该服务商需要配置 OAuth 应用后才能登录"
                 }
             }, colors = ButtonDefaults.buttonColors(containerColor = FeatureGreen)) {
-                Text(if (selected.authMode == "OAUTH_PKCE") "浏览器登录" else "打开官方控制台")
+                Text(if (selected.authMode == "OAUTH_PKCE") "浏览器登录" else "开始 Kimi OAuth 登录")
             }
             if (preferences.hasSession()) {
                 Text("已登录，Token 已由 Android Keystore 加密保存", color = FeatureGreen, fontSize = 13.sp)

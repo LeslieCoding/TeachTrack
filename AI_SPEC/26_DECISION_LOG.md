@@ -35,3 +35,10 @@
 - Trigger: the user explicitly requested that subsequent testing use the connected OnePlus phone because the Pad is needed for use.
 - Decision: all subsequent installation, screenshot, UI, shell, and regression commands target OnePlus `92f73a16` only.
 - OPPO Pad `2d64f765` remains historical evidence and is not operated unless the user changes the target again.
+
+## D-20260912-01 — Extend the Copilot Action Registry to full module coverage instead of rewriting it
+
+- Source: `USER_EXPLICIT`, via the `/laep` bootstrap request, with an explicit conditional rewrite authorization.
+- Decision: after reading the full Copilot pipeline, Repository/DAO layer, and all UI modules, the existing `CopilotCommand`/`LocalCopilotActionRegistry`/`ProviderGateway` architecture was judged sound and already device-verified; the user's rewrite condition ("if the current version cannot achieve this") is not met, so the work proceeds as an extension of the existing Action Registry to close its coverage gaps, not a rewrite.
+- Reason: minimum necessary change to reach the stated goal; a rewrite would only add regression risk against 28 already-verified actions without adding capability the user asked for.
+- Full analysis, Gap Matrix, and explicit exclusions: `LAEP/STATE/DECISIONS.md` DEC-001; task breakdown: `LAEP/STATE/BACKLOG.md` B-01..B-15.

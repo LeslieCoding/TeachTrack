@@ -27,7 +27,7 @@
 
 ## Module coverage
 
-- `V2-REQ-040`: Action Registry covers students, profile/parent contact, courses, exams/scores, knowledge progress, homework/problems, communication, lesson plans, tasks, templates, tags, attachments, dashboard queries, analytics queries, backup/export entry points, and navigation.
+- `V2-REQ-040`: Action Registry covers students (create/update/search/archive/overview), profile/parent contact (create/query), courses, exams/scores (including score breakdown and class/grade rank), knowledge progress (including creating a new knowledge point), homework/problems, communication, lesson plans, tasks (including marking status), templates (create/list/update/delete/render), tags (create/assign/query), attachments (list/per-student query/delete), dashboard queries, analytics queries, backup/export entry points (export/list/restore, CSV export), Portable Workspace status/export/integrity-check/sync-scan/conflict-list/conflict-resolve, and navigation. As of `T3-AI-COVERAGE-001` this is the full module surface the app implements; see `AI_SPEC/32_V2_ARCHITECTURE.md` for the two areas intentionally excluded (Provider/OAuth self-configuration; SAF-gated workspace creation/attach and `.ttbackup` create/restore, which require a one-time system picker gesture Android does not let a background command bypass).
 - `V2-REQ-041`: Student context can be selected explicitly and can be resolved from a unique name; ambiguous names require a choice.
 - `V2-REQ-042`: Natural language can create a draft record but never invents missing required values without marking them for confirmation.
 

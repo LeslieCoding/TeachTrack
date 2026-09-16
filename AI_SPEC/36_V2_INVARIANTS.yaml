@@ -46,3 +46,18 @@ invariants:
     effective_from: "2026-09-09"
     status: "ACTIVE"
     evidence: []
+  - id: "INV-V2-004"
+    title: "AI cannot reconfigure its own Provider or OAuth settings"
+    description: "No action in the Copilot Action Registry may change provider selection, endpoint, model, timeout, API key, or OAuth login/logout state. That surface stays a manual Settings-only boundary even as the Action Registry grows to cover every other module, because the model's own outbound configuration and credentials are a self-privilege-escalation risk."
+    source: "AI_RECOMMENDED"
+    scope: ["copilot", "security", "settings"]
+    trigger: "any request to change Provider/OAuth configuration via natural language"
+    prohibited_changes: ["adding a provider.update/oauth.login-style action to allowedActions", "any Action Registry branch that writes ProviderPreferences or OAuthPreferences"]
+    verification: ["allowedActions set review", "LocalCopilotActionRegistry code review"]
+    related_tests: []
+    severity: "CRITICAL"
+    owner: "TeachTrack"
+    version: 1
+    effective_from: "2026-09-12"
+    status: "ACTIVE"
+    evidence: []

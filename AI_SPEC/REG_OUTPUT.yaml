@@ -1,10 +1,10 @@
-﻿version: '5.0.0'
-request_id: 'T3-HARDEN-001'
-input_level: 'ENGINEERING_REQUIREMENT'
-original_statement: '继续完善 TeachTrack 的架构、性能与稳定性；保持 Local First、数据不丢失、OnePlus-only physical testing, no destructive migration.'
+﻿version: '5.4.0'
+request_id: 'TASK-000'
+input_level: 'IDEA'
+original_statement: ''
 intent: 'Preserve intent; complete necessary engineering conditions without arbitrary expansion.'
-status: 'READY_WITH_LIMITATIONS'
-next_phase: 'ARCHITECTURE'
+status: 'NEEDS_COMPLETION'
+next_phase: 'REG'
 traceability_required: true
 assumptions_required: true
 engineering_baseline_required: true

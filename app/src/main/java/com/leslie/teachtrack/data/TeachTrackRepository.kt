@@ -27,6 +27,14 @@ data class BackupPreview(
     val total: Int
 )
 
+/** Read-only projection used by the AI command runtime for cross-module reports. */
+data class CopilotOrganizationData(
+    val students: List<StudentEntity>, val courses: List<CourseSessionEntity>,
+    val homework: List<HomeworkEntity>, val tasks: List<TaskEntity>,
+    val problems: List<ProblemRecordEntity>, val knowledge: List<KnowledgePointEntity>,
+    val progress: List<StudentKnowledgeProgressEntity>
+)
+
 class TeachTrackRepository(private val dao: TeachTrackDao, private val sync: WorkspaceSyncCoordinator? = null, private val database: TeachTrackDatabase? = null) {
     fun daoForSeed(): TeachTrackDao = dao
     fun previewBackupJson(json: String): BackupPreview {
@@ -135,6 +143,8 @@ class TeachTrackRepository(private val dao: TeachTrackDao, private val sync: Wor
     suspend fun allAttachments() = dao.allAttachments()
     suspend fun knowledgeCount() = dao.knowledgeCount()
     suspend fun knowledgeByName(name: String) = dao.knowledgeByName(name)
+    suspend fun knowledgeById(id: String) = dao.knowledgeById(id)
+    suspend fun allKnowledge() = dao.allKnowledge()
     suspend fun activeStudentCountOnce() = dao.activeStudentCountOnce()
     suspend fun pendingTaskCountOnce() = dao.pendingTaskCountOnce()
     suspend fun courseCountOnce() = dao.courseCountOnce()
@@ -163,4 +173,25 @@ class TeachTrackRepository(private val dao: TeachTrackDao, private val sync: Wor
     suspend fun updateProblemStatus(id: String, status: String, notes: String = "") = dao.updateProblemStatus(id, status, notes)
     fun renderTemplate(template: TemplateEntity, values: Map<String, String>): String = TemplateRenderer.render(template.content, values)
     suspend fun latestCourse(studentId: String) = dao.latestCourse(studentId)
+    // Scoped to ACTIVE students only. This projection feeds student.data.organize.preview,
+    // student.followup.tasks.create, and knowledge.weakness.query — all of which report on or
+    // act on "students I should currently be paying attention to." Scanning the full historical
+    // roster here (PAUSED/ENDED/ARCHIVED included) surfaced non-active students in AI follow-up
+    // findings and auto-created follow-up tasks for them; see LAEP/STATE/BACKLOG.md
+    // T-STUDENT-SCOPE-FILTER-001 for the real-device evidence that found this.
+    suspend fun copilotOrganizationData() = CopilotOrganizationData(
+        students = dao.allStudents().filter { it.status == StudentStatus.ACTIVE }, courses = dao.allCourses(), homework = dao.allHomework(), tasks = dao.allTasks(),
+        problems = dao.allProblemRecords(), knowledge = dao.allKnowledge(), progress = dao.allProgress()
+    )
+    suspend fun parentContactsOnce(studentId: String) = dao.parentContactsOnce(studentId)
+    suspend fun attachmentsOnce(studentId: String) = dao.attachmentsOnce(studentId)
+    suspend fun homeworkOnce(studentId: String) = dao.homeworkOnce(studentId)
+    suspend fun problemRecordsOnce(studentId: String) = dao.problemRecordsOnce(studentId)
+    suspend fun progressOnce(studentId: String) = dao.progressOnce(studentId)
+    suspend fun templateByName(name: String) = dao.templateByName(name)
+    suspend fun allTemplatesOnce() = dao.allTemplates()
+    suspend fun tagByName(name: String) = dao.tagByName(name)
+    suspend fun studentTagsOnce(studentId: String) = dao.studentTagsOnce(studentId)
+    suspend fun allTasksOnce() = dao.allTasks()
+    suspend fun assignTag(studentId: String, tagId: String) { dao.upsertStudentTag(StudentTagEntity(studentId, tagId)); sync?.record("StudentTag", "$studentId:$tagId", "CREATE", JSONObject().put("studentId", studentId).put("tagId", tagId)) }
 }

@@ -12,6 +12,12 @@
 - Added workspace health checking, tombstone files and relative attachment copying with SHA-256 metadata.
 - Final OnePlus regression after workspace continuation: 4 tests passed.
 
+## 2026-09-14 - Delivery and Workspace Evidence Hardening
+
+- Fresh single-process Release and Debug/JVM builds passed. Current JVM report is 28 tests with zero failures/errors; the current main Debug APK was installed over the existing OnePlus app without clearing data and launched to `MainActivity` successfully.
+- Added compiled Android instrumentation coverage for actual two-device conflict/resolution, duplicate-event idempotence, and Room A -> backup -> fresh Room B restoration of linked records. It is deliberately recorded as compiled but not device-executed until the generated AndroidTest APK can be packaged and ColorOS permits its installation.
+- Refreshed deliverables and SHA-256 values; the release candidate is accurately named `release-debug-signed`, not misrepresented as production signed.
+
 ## 2026-09-09 — V2 planning baseline
 
 - Compiled the new cloud-assisted command workflow into `V2-EPIC-001` and requirements `V2-REQ-001` through `V2-REQ-053`.
@@ -106,3 +112,32 @@
 - Added OpenAI Codex and Claude account OAuth metadata for provider-specific PKCE authorization/token exchange.
 - Added OnePlus visual evidence: `artifacts/screenshots/oneplus-v2/oauth-separated-settings.png` and `oauth-separated-menu.png`.
 - Build and unit/instrumentation APK assembly passed; no real provider credential was entered.
+
+## 2026-09-11 - AI Command Runtime upgrade
+
+- Added structured `CopilotEffect` results so successful commands drive real module and student-workspace navigation.
+- Added typed `AppCommand` boundary, risk metadata, validation, conservative student resolution, and ordered multi-command plans.
+- Added course-plan expansion for course + knowledge progress + homework + next-lesson requests.
+- Wired command execution to the local audit store and expanded the Kimi-compatible structured command schema.
+- Verified JVM Copilot tests (21 passing), Debug assembly, and OnePlus instrumentation (13 passing).
+
+## 2026-09-11 - Silent OnePlus deployment
+
+- Added `scripts/deploy-oneplus.ps1` as the default deployment entry point.
+- It targets only OnePlus serial `92f73a16`, uses `adb install -r -d`, force-stops/restarts the app, and optionally runs connected instrumentation without requiring a user click.
+
+## 2026-09-12 - AI cross-module organization runtime
+
+- Implemented a real Room-backed organization workflow instead of treating “整理所有学生数据” as a navigation request or a chat reply.
+- Added a local report projection spanning students, courses, homework, tasks, problem records, knowledge points and progress; it returns grouped, per-student follow-up facts without filling unknown data.
+- Added planner policy for API and Kimi Code OAuth providers so their structured output can select the new read-only action; local allow-list validation remains authoritative.
+- Added unit tests for intent mapping and non-fabrication, plus a OnePlus instrumentation test proving the report reads real Room data and does not mutate rows.
+- `:app:testDebugUnitTest` and `:app:assembleDebug` passed. OnePlus test report: 14 tests, 0 failures, 0 errors.
+- Added an explicit, confirmation-gated command to turn organization findings into de-duplicated student follow-up tasks. Its JVM contract test passed. The immediate OnePlus UTP rerun stalled without a result, was stopped automatically, and is marked pending rather than passed. The newly built Debug app was silently installed and launched on OnePlus after that interruption.
+
+## 2026-09-14 - Agent bridge and historical-data reliability
+
+- Historical partial-name students are searchable by their recorded `displayName`; no missing legal/full name is inferred or written.
+- The Agent RPC file-payload resolver now enforces canonical rootfs containment.
+- The device test suite no longer depends on, or mutates, a real persisted Workspace connection.
+- OnePlus `92f73a16`: Debug and AndroidTest APKs were installed in place; `TeachTrackDatabaseInstrumentedTest` passed **27/27**. The run included `displayNameOnlyHistoricalStudentIsSearchableAndResolvable` and `agentRpcFilePayloadCannotEscapeRootfs`.

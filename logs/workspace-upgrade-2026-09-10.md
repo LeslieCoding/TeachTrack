@@ -431,3 +431,139 @@ Full per-entity sync event emission, conflict editor, attachment copy/hash verif
 
 - Reviewed the remaining uncommitted Copilot parser change: task phrases are intentionally evaluated before generic student-create phrases, so commands such as “给学生添加待办” cannot be misclassified as student creation.
 - Revalidated the change through the existing end-to-end test suite; no unrelated working-tree files were staged.
+
+## 2026-09-11 - OAuth account/provider handoff fix
+
+- Investigated the reported OAuth failure against the OnePlus device state and source flow.
+- Root cause: Kimi Code OAuth could save an encrypted account token while the separate cloud Provider preference remained in `API_KEY` mode. Copilot then ignored the OAuth session and asked for endpoint/model/API key.
+- Updated successful Kimi Code device authorization to activate the Kimi Code OAuth adapter, enable the provider, set `providerId=kimi_code`, set `authMode=OAUTH_DEVICE`, and apply `kimi-for-coding` only when no model was already selected.
+- Verified with `testDebugUnitTest` and installed the rebuilt Debug APK on OnePlus `92f73a16`; install returned `Success`.
+- Limitation recorded: OpenAI/Claude account OAuth cannot be declared operational without provider-issued client registration and a real account/browser approval.
+
+## 2026-09-11 - External browser launch fix
+
+- Investigated the OnePlus message reporting that no Activity handled the official-console intent.
+- Cause: settings screens receive the application context, while several URL buttons called `startActivity()` without `FLAG_ACTIVITY_NEW_TASK`.
+- Added a shared external URL launcher with the required task flag and `resolveActivity` check. OAuth/API console links now either open the browser or show a clear browser-unavailable status.
+- `testDebugUnitTest` and `assembleDebug` passed; rebuilt Debug APK installed successfully on OnePlus `92f73a16`.
+
+## 2026-09-11 - Browser absence fallback
+
+- Direct OnePlus package resolution for an HTTPS URL returned `No activity found`; the device currently has no browser handler installed.
+- Added a non-exported in-app `ExternalWebActivity` WebView fallback with JavaScript/DOM storage enabled for official login pages. OAuth custom-scheme callbacks are forwarded to the app.
+- Rebuilt and installed Debug APK successfully on OnePlus `92f73a16`; `testDebugUnitTest` passed.
+
+## 2026-09-11 - OAuth entrypoint fallback completion
+
+- The first fallback covered official-console links, but OAuth authorization itself still called the system browser directly.
+- Updated both PKCE authorization and Kimi device verification URL launches to use the same external-browser-or-in-app-WebView fallback.
+- Rebuilt, ran unit tests, and installed Debug APK successfully on OnePlus `92f73a16`.
+
+## 2026-09-11 - OnePlus runtime verification
+
+- Tapped the Kimi official-page action on the installed APK; ActivityManager showed `ExternalWebActivity` resumed over `MainActivity`.
+- UIAutomator confirmed the foreground view is an enabled `android.webkit.WebView`.
+- Renamed the Kimi device-flow action to `开始 Kimi OAuth 登录` to distinguish it from opening an API console.
+- Rebuilt, passed unit tests, and installed the latest Debug APK on OnePlus `92f73a16`.
+
+## 2026-09-11 - Full OnePlus regression after OAuth fixes
+
+- Rebuilt `assembleDebugAndroidTest` and installed both application/test APKs on OnePlus `92f73a16`.
+- Force-stopped both packages before execution to remove stale OAuth/WebView task state.
+- Instrumentation result: `OK (13 tests)`.
+- Coverage included Dashboard projection bounds, backup round trip, sync revision/conflict/tombstone behavior, local Copilot write path, workspace corruption handling, performance data volume, CSV escaping, and Compose dashboard smoke.
+- OPPO Pad remains disconnected; no current OPPO evidence was created or claimed.
+
+## 2026-09-11 - Final dashboard visual evidence
+
+- Launched the installed Debug APK on OnePlus `92f73a16` and captured `artifacts/screenshots/oneplus-v2/final-dashboard-2026-09-11.png` using `adb pull` to preserve a valid PNG.
+- Visual check confirms the green dashboard, greeting, quick actions, 41 local students, bottom navigation, and Copilot floating entry are rendered without clipping on the phone viewport.
+- UIAutomator evidence was refreshed at `artifacts/oneplus-final-smoke-ui.xml`.
+
+## 2026-09-11 - Release artifact refresh
+
+- Ran `testDebugUnitTest` and `assembleRelease` after all OAuth/WebView changes; build completed successfully.
+- Replaced the stale unsigned Release APK in `artifacts/deliverables/` with the current build.
+- Updated `SHA256SUMS.txt`: Release unsigned SHA-256 is `E5AC0B165A67399D28073D3F18E680F351766EC6B19FF92E230B943A8A744EF0`.
+- Release signing remains intentionally unavailable because no signing key/material was supplied.
+
+## 2026-09-11 - Kimi OAuth device-flow entry regression
+
+- On OnePlus, opened Settings and confirmed the selected provider is Kimi Code.
+- The UI displayed a real device authorization code and the polling status (`App 正在轮询`), proving the request reached the device-flow stage.
+- Tapping `开始 Kimi OAuth 登录` brought `ExternalWebActivity` to the foreground over `MainActivity`; this confirms the Kimi verification URL uses the in-app fallback on the browserless device.
+- No account approval was performed, so no token/session success was claimed.
+
+## 2026-09-11 - API 24 lint hardening and regression
+
+- Full `gradlew check` initially exposed 11 API-level errors from direct `java.time.Instant.now()` calls in Workspace/sync code while minSdk is 24.
+- Replaced those calls with an API-24-compatible UTC ISO-8601 timestamp utility; portable data format remains unchanged.
+- Re-ran `gradlew check`: `BUILD SUCCESSFUL`.
+- Rebuilt Debug, AndroidTest, and unsigned Release APKs; refreshed SHA256 sums.
+- Installed refreshed Debug and AndroidTest APKs on OnePlus `92f73a16`.
+- Instrumentation result after the hardening change: `OK (13 tests)`.
+
+## 2026-09-11 - Lint warning hardening and final regression
+
+- Added HTTPS intent visibility declaration for browser detection.
+- Added Android 12+ data extraction rules that exclude private local data from cloud/device backup.
+- Removed explicit activity orientation declarations to preserve phone/tablet and portrait/landscape behavior.
+- Added adaptive launcher monochrome layer.
+- Explicitly reviewed/suppressed the intentional WebView JavaScript lint warning at the narrow activity boundary.
+- `gradlew check`: `BUILD SUCCESSFUL`.
+- Rebuilt and installed Debug/AndroidTest; OnePlus instrumentation: `OK (13 tests)`.
+- Refreshed Debug/Release unsigned APKs and SHA256 sums.
+
+## 2026-09-11 - OAuth page content inspection
+
+- UIAutomator inspected the foreground WebView, not only the Activity stack.
+- The page loaded successfully with title `Kimi AI 官网 - K3 上线，专为智能体编程与知识工作打造` and displayed Kimi's phone-number login form, verification-code field, consent checkbox, and login button.
+- This proves network/page rendering is working. The remaining step is an actual Kimi account login/consent, which cannot be completed or fabricated by the local test runner.
+
+## 2026-09-11 - AI Natural Language Control Runtime
+
+Task: T3-AI-RUNTIME-001 / V2-REQ-004, V2-REQ-005
+
+What changed:
+
+- Added structured `CopilotEffect` results and connected the Copilot composer to the main app shell. Successful commands now open the requested tab or student workspace and can start quick-resume/score capture.
+- Rebuilt `LocalCopilotActionRegistry` around local repository operations for students, courses, exams, scores, homework, communication, lesson plans, tasks, knowledge progress, problems, dashboard, analytics, and navigation.
+- Added `AiCommandRuntime.kt` with typed AppCommand boundary, risk levels, command specs, validation, conservative entity resolution, and command plans.
+- Added multi-action planning for course requests containing knowledge reinforcement, homework, and next-lesson instructions. Execution stops on the first failed sub-command and reports actual results.
+- Added audit callback wiring. Audit stores action/status metadata only and does not persist raw student parameters.
+- Expanded provider system schema and offline parser for score labels, module navigation, student aliases, and structured content fields.
+
+Problem solved:
+
+The previous implementation often returned a textual confirmation without causing the corresponding TeachTrack screen or data workflow to update. The runtime now keeps model planning separate from local command execution and returns explicit execution effects.
+
+Verification:
+
+- `:app:testDebugUnitTest`: 21 passed.
+- `:app:assembleDebug`: passed.
+- OnePlus `92f73a16`: `:app:connectedDebugAndroidTest`, 13 passed.
+- Debug APK installed successfully on the OnePlus test device.
+
+Known limits:
+
+- Real Kimi/OAuth authorization still depends on the user's external account approval.
+- The current cloud envelope is one JSON command; the fully remote multi-tool loop can be added later, while the offline/local planner already supports the ordered plan path.
+- No OPPO Pad claim is made; it was not the selected device for this run.
+
+## 2026-09-12 - Cross-module student-data organization
+
+Task: `T3-AI-RUNTIME-002`
+
+- Implemented `student.data.organize.preview` as a local, Room-backed cross-module report. It groups real findings by student: no course record or next lesson plan, pending homework/tasks, open problem records, and recorded weak knowledge progress.
+- The command is read-only by design. It does not infer school, family information, grades, or any other unknown field; it does not bulk-edit historical records.
+- Added `knowledge.weakness.query`, cloud-planner policy for both API and Kimi OAuth routes, immediate execution for read-only commands, and explicit ambiguity feedback for student-name resolution.
+- JVM: `:app:testDebugUnitTest` and `:app:assembleDebug` passed.
+- OnePlus `92f73a16`: instrumentation report recorded 14 tests, 0 failures, 0 errors; the new Room end-to-end test proved the organization command leaves students/courses/homework/tasks unchanged.
+- Direct post-test ADB deployment did not complete because Android 16 ADB package installation hung after the test runner cleanup. No package-install UI was shown and no false deployment success is recorded.
+
+## 2026-09-12 - Explicit organization follow-up action
+
+- Added `student.followup.tasks.create`: only an explicit request to turn organization findings into follow-up tasks can select it; it is confirmation-gated.
+- On confirmation, it creates at most one open task per affected student, skips an existing matching task, and uses the normal repository/sync-event path.
+- JVM build and unit suite passed after the change. A OnePlus UTP rerun stalled before result output and was stopped automatically; the new write-specific device test is deliberately recorded as pending.
+- The newly built Debug app was then silently installed and started with ADB on OnePlus (process ID `22060`). No manual installation or user input was requested.

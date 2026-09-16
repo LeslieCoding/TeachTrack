@@ -14,9 +14,17 @@ interface TeachTrackDao {
     @Query("SELECT * FROM course_sessions WHERE studentId = :studentId ORDER BY date DESC, startTime DESC") suspend fun coursesOnce(studentId: String): List<CourseSessionEntity>
     @Query("SELECT * FROM knowledge_points") suspend fun allKnowledge(): List<KnowledgePointEntity>
     @Query("SELECT * FROM knowledge_points WHERE name = :name LIMIT 1") suspend fun knowledgeByName(name: String): KnowledgePointEntity?
+    @Query("SELECT * FROM knowledge_points WHERE id = :id LIMIT 1") suspend fun knowledgeById(id: String): KnowledgePointEntity?
     @Query("SELECT COUNT(*) FROM knowledge_points") suspend fun knowledgeCount(): Int
-    @Query("SELECT COUNT(*) FROM students WHERE status != 'ARCHIVED'") suspend fun activeStudentCountOnce(): Int
-    @Query("SELECT COUNT(*) FROM tasks WHERE status NOT IN ('已完成', '完成', 'DONE')") suspend fun pendingTaskCountOnce(): Int
+    // T-STUDENT-SCOPE-FILTER-001: was `status != 'ARCHIVED'`, which silently
+    // included PAUSED and ENDED students — every caller labels this figure
+    // "在读学生" (Settings, Analytics, dashboard.query RPC), which promises
+    // strict ACTIVE semantics, matching student.search(status=在读).
+    @Query("SELECT COUNT(*) FROM students WHERE status = 'ACTIVE'") suspend fun activeStudentCountOnce(): Int
+    // T-STUDENT-SCOPE-FILTER-001: same ActiveStudentScope as
+    // observePendingTaskCount() above — a task with no studentId (a general
+    // todo) still counts; one tied to a non-active student's id does not.
+    @Query("SELECT COUNT(*) FROM tasks WHERE status NOT IN ('已完成', '完成', 'DONE') AND (studentId IS NULL OR studentId IN (SELECT id FROM students WHERE status = 'ACTIVE'))") suspend fun pendingTaskCountOnce(): Int
     @Query("SELECT COUNT(*) FROM course_sessions") suspend fun courseCountOnce(): Int
     @Query("SELECT COUNT(*) FROM student_scores") suspend fun scoreCountOnce(): Int
     @Query("SELECT COUNT(*) FROM exams") suspend fun examCountOnce(): Int
@@ -46,7 +54,14 @@ interface TeachTrackDao {
     @Query("SELECT * FROM students WHERE status != 'ARCHIVED' ORDER BY updatedAt DESC") fun observeStudents(): Flow<List<StudentEntity>>
     @Query("SELECT * FROM students WHERE id = :id LIMIT 1") fun observeStudent(id: String): Flow<StudentEntity?>
     @Query("SELECT * FROM students WHERE id = :id LIMIT 1") suspend fun observeStudentOnce(id: String): StudentEntity?
-    @Query("SELECT * FROM students WHERE name LIKE '%' || :query || '%' ORDER BY updatedAt DESC") suspend fun searchStudents(query: String): List<StudentEntity>
+    /**
+     * Historical imports may intentionally have only a daily teaching name
+     * (displayName) when no reliable full name exists. Both names are first
+     * class lookup keys; no caller should have to invent a full name merely
+     * to find that student.
+     */
+    @Query("SELECT * FROM students WHERE name LIKE '%' || :query || '%' OR displayName LIKE '%' || :query || '%' ORDER BY updatedAt DESC")
+    suspend fun searchStudents(query: String): List<StudentEntity>
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertStudent(student: StudentEntity)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertStudents(students: List<StudentEntity>)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertCourse(course: CourseSessionEntity)
@@ -101,6 +116,19 @@ interface TeachTrackDao {
     @Query("SELECT * FROM communications ORDER BY date DESC LIMIT 200") fun observeDashboardCommunications(): Flow<List<CommunicationEntity>>
     @Query("SELECT COUNT(*) FROM course_sessions") fun observeCourseCount(): Flow<Int>
     @Query("SELECT COUNT(*) FROM student_scores") fun observeScoreCount(): Flow<Int>
-    @Query("SELECT COUNT(*) FROM tasks WHERE status != '已完成'") fun observePendingTaskCount(): Flow<Int>
+    // T-STUDENT-SCOPE-FILTER-001: excludes tasks tied to a non-active student
+    // (PAUSED/ENDED/ARCHIVED) so the Dashboard "待处理" headline number shares
+    // the same ActiveStudentScope as every other Dashboard card — a task with
+    // no studentId at all (a general, non-student-specific todo) still counts.
+    @Query("SELECT COUNT(*) FROM tasks WHERE status != '已完成' AND (studentId IS NULL OR studentId IN (SELECT id FROM students WHERE status = 'ACTIVE'))") fun observePendingTaskCount(): Flow<Int>
     @Query("SELECT COUNT(*) FROM students WHERE status = 'ACTIVE'") fun observeActiveCount(): Flow<Int>
+
+    @Query("SELECT * FROM parent_contacts WHERE studentId = :studentId") suspend fun parentContactsOnce(studentId: String): List<ParentContactEntity>
+    @Query("SELECT * FROM attachments WHERE studentId = :studentId ORDER BY createdAt DESC") suspend fun attachmentsOnce(studentId: String): List<AttachmentEntity>
+    @Query("SELECT * FROM homework WHERE studentId = :studentId ORDER BY assignedDate DESC") suspend fun homeworkOnce(studentId: String): List<HomeworkEntity>
+    @Query("SELECT * FROM problem_records WHERE studentId = :studentId ORDER BY date DESC") suspend fun problemRecordsOnce(studentId: String): List<ProblemRecordEntity>
+    @Query("SELECT * FROM student_knowledge_progress WHERE studentId = :studentId") suspend fun progressOnce(studentId: String): List<StudentKnowledgeProgressEntity>
+    @Query("SELECT * FROM templates WHERE name = :name LIMIT 1") suspend fun templateByName(name: String): TemplateEntity?
+    @Query("SELECT * FROM tags WHERE name = :name LIMIT 1") suspend fun tagByName(name: String): TagEntity?
+    @Query("SELECT * FROM student_tags WHERE studentId = :studentId") suspend fun studentTagsOnce(studentId: String): List<StudentTagEntity>
 }

@@ -23,3 +23,6 @@ Thumbs.db
 
 # Build deliverables are distributed separately from the source repository
 artifacts/apk/
+
+# Isolated build dirs (WSL/device-test sandboxes)
+.build-isolated*/

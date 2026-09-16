@@ -25,12 +25,12 @@ requirements:
     source: "AI_SPEC/18_ACCEPTANCE_CRITERIA.md"
     implementation: ["docs/test-plan.md", "scripts/dev-monitor.ps1"]
     verification: ["docs/testing-round-1.md", "docs/testing-round-2.md", "artifacts/screenshots/oppo-v2/", "AI_SPEC/35_V2_VERIFICATION_MATRIX.yaml"]
-    status: "PARTIAL_TWO_ROUNDS_PENDING"
+    status: "AUTOMATED_AND_ONEPLUS_VERIFIED_OPPO_NOT_CONNECTED"
   - id: "V2-REQ-010"
     source: "AI_SPEC/31_V2_REQUIREMENTS.md"
     implementation: ["app/src/main/java/com/leslie/teachtrack/CopilotComposer.kt", "app/src/main/java/com/leslie/teachtrack/CopilotShell.kt"]
     verification: ["artifacts/screenshots/oppo-v2/copilot-open.png", "artifacts/screenshots/oppo-v2/copilot-confirmed-fixed.png", "artifacts/screenshots/oppo-v2/copilot-voice-permission.png", "artifacts/screenshots/oppo-v2/final-current.png"]
-    status: "PARTIAL_VOICE_NO_RESULT_ON_OPPO"
+    status: "IMPLEMENTED_ONEPLUS_VERIFIED_OPPO_NOT_CONNECTED"
   - id: "V2-REQ-012"
     source: "AI_SPEC/31_V2_REQUIREMENTS.md"
     implementation: ["app/src/main/java/com/leslie/teachtrack/FeatureScreens.kt", "app/src/main/java/com/leslie/teachtrack/MainActivity.kt"]
@@ -40,9 +40,43 @@ requirements:
     source: "AI_SPEC/31_V2_REQUIREMENTS.md"
     implementation: ["app/src/main/java/com/leslie/teachtrack/copilot/LocalCopilotActionRegistry.kt"]
     verification: ["app/src/test/java/com/leslie/teachtrack/copilot/CopilotContractsTest.kt", "logs/progress-2026-09-09-v2-planning-oppo.md"]
-    status: "IMPLEMENTED_REGISTRY_BOUNDARY_PHYSICAL_SEMANTICS_PENDING"
+    status: "IMPLEMENTED_COMPLETE_JVM_AND_ONEPLUS_VERIFIED"
   - id: "V2-REQ-030"
     source: "AI_SPEC/31_V2_REQUIREMENTS.md"
     implementation: ["app/src/main/java/com/leslie/teachtrack/copilot/ProviderGateway.kt", "app/src/main/java/com/leslie/teachtrack/FeatureScreens.kt"]
     verification: ["app/src/test/java/com/leslie/teachtrack/copilot/ProviderGatewayTest.kt", "artifacts/screenshots/oppo-v2/provider-test.png", "logs/progress-2026-09-09-v2-planning-oppo.md"]
-    status: "IMPLEMENTED_OFFLINE_VERIFIED_CLOUD_CREDENTIAL_BLOCKED"
+    status: "IMPLEMENTED_OFFLINE_VERIFIED_CLOUD_CREDENTIAL_REQUIRED"
+  - id: "T3-AI-RUNTIME-002"
+    source: "User direction: natural language must operate the entire app, including cross-student organization"
+    implementation:
+      - "app/src/main/java/com/leslie/teachtrack/copilot/StudentDataOrganization.kt"
+      - "app/src/main/java/com/leslie/teachtrack/copilot/LocalCopilotActionRegistry.kt"
+      - "app/src/main/java/com/leslie/teachtrack/copilot/CopilotContracts.kt"
+    verification:
+      - "app/src/test/java/com/leslie/teachtrack/copilot/CopilotContractsTest.kt"
+      - "app/src/androidTest/java/com/leslie/teachtrack/TeachTrackDatabaseInstrumentedTest.kt"
+      - "app/build/outputs/androidTest-results/connected/debug/TEST-PKG110 - 16-_app-.xml"
+    status: "ORGANIZATION_READ_ONLY_ONEPLUS_VERIFIED_FOLLOW_UP_WRITE_JVM_VERIFIED_DEVICE_RETEST_PENDING"
+  - id: "T3-AI-COVERAGE-001"
+    source: "User direction via /laep bootstrap: AI must operate every function of every module; LAEP/STATE/DECISIONS.md DEC-001"
+    implementation:
+      - "app/src/main/java/com/leslie/teachtrack/copilot/LocalCopilotActionRegistry.kt"
+      - "app/src/main/java/com/leslie/teachtrack/copilot/CopilotContracts.kt"
+      - "app/src/main/java/com/leslie/teachtrack/copilot/ProviderGateway.kt"
+      - "app/src/main/java/com/leslie/teachtrack/data/TeachTrackRepository.kt"
+      - "app/src/main/java/com/leslie/teachtrack/core/database/TeachTrackDao.kt"
+      - "app/src/main/java/com/leslie/teachtrack/MainActivity.kt"
+      - "app/src/main/java/com/leslie/teachtrack/core/util/TemplateRenderer.kt"
+    verification:
+      - "app/src/test/java/com/leslie/teachtrack/copilot/CopilotContractsTest.kt"
+      - "app/src/androidTest/java/com/leslie/teachtrack/TeachTrackDatabaseInstrumentedTest.kt"
+    status: "COMPLETE_JVM_28_28_ONEPLUS_ANDROIDTEST_26_26"
+  - id: "T3-AI-FLOATINGCHAT-001"
+    source: "User direction: integrate github.com/OpenMinis/OpenMinis as a floating window so chat/history stays visible; LAEP/STATE/DECISIONS.md DEC-003"
+    implementation:
+      - "app/src/main/java/com/leslie/teachtrack/CopilotComposer.kt"
+      - "app/src/main/java/com/leslie/teachtrack/CopilotShell.kt"
+    verification:
+      - "Manual on-device verification, OnePlus 92f73a16 (bubble tap/drag, fullscreen toggle with inset padding, send/receive with real Room-backed results, multi-turn scrollback, state persistence across floating/fullscreen toggle)"
+      - "app/src/test/java/com/leslie/teachtrack/copilot/CopilotContractsTest.kt (backend unchanged, JVM 28/28 reconfirmed)"
+    status: "COMPLETE_UI_ONLY_MANUALLY_VERIFIED_ONDEVICE"

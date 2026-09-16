@@ -2,6 +2,7 @@ package com.leslie.teachtrack.copilot
 
 import android.content.Context
 import android.content.Intent
+import android.content.ComponentName
 import android.net.Uri
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
@@ -106,12 +107,20 @@ internal class OAuthTokenStore(private val context: Context) {
 
 object OAuthManager {
     const val REDIRECT_URI = "teachtrack://oauth/callback"
+    private fun openAuthorizationPage(context: Context, uri: Uri): Boolean {
+        val browserIntent = Intent(Intent.ACTION_VIEW, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        return runCatching {
+            if (browserIntent.resolveActivity(context.packageManager) != null) context.startActivity(browserIntent)
+            else context.startActivity(Intent().setComponent(ComponentName(context, "${context.packageName}.ExternalWebActivity")).putExtra("external_url", uri.toString()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            true
+        }.getOrDefault(false)
+    }
     fun startAuthorization(context: Context, config: OAuthConfig): Boolean {
         val safe = config.normalized(); if (safe.authorizationEndpoint.isBlank() || safe.clientId.isBlank()) return false
         val preferences = OAuthPreferences(context); val state = randomToken(24); val verifier = randomToken(48); preferences.savePending(state, verifier)
         val challenge = Base64.encodeToString(MessageDigest.getInstance("SHA-256").digest(verifier.toByteArray(StandardCharsets.US_ASCII)), Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
         val uri = Uri.parse(safe.authorizationEndpoint).buildUpon().appendQueryParameter("response_type", "code").appendQueryParameter("client_id", safe.clientId).appendQueryParameter("redirect_uri", REDIRECT_URI).appendQueryParameter("scope", safe.scopes).appendQueryParameter("state", state).appendQueryParameter("code_challenge", challenge).appendQueryParameter("code_challenge_method", "S256").build()
-        return runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); true }.getOrDefault(false)
+        return openAuthorizationPage(context, uri)
     }
     fun handleCallback(activity: ComponentActivity, intent: Intent?) {
         val uri = intent?.data ?: return; if (uri.scheme != "teachtrack" || uri.host != "oauth" || uri.path != "/callback") return
@@ -128,10 +137,15 @@ object OAuthManager {
     suspend fun startKimiDeviceLogin(context: Context): String = withContext(Dispatchers.IO) {
         val clientId = "17e5f671-d194-4dfb-9706-5516cb48c098"; val auth = postForm("https://auth.kimi.com/api/oauth/device_authorization", mapOf("client_id" to clientId)); if (auth.code !in 200..299) error("Kimi device authorization HTTP ${auth.code}")
         val deviceCode = auth.json.optString("device_code").ifBlank { error("Kimi device_code missing") }; val userCode = auth.json.optString("user_code").ifBlank { error("Kimi user_code missing") }; val verifyUrl = auth.json.optString("verification_uri_complete").ifBlank { auth.json.optString("verification_uri", "https://auth.kimi.com") }
-        withContext(Dispatchers.Main) { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(verifyUrl)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }; OAuthPreferences(context).fail("Kimi Code 授权码 $userCode：请在浏览器确认，App 正在轮询")
+        withContext(Dispatchers.Main) { if (!openAuthorizationPage(context, Uri.parse(verifyUrl))) error("无法打开 Kimi 授权页面") }; OAuthPreferences(context).fail("Kimi Code 授权码 $userCode：请在浏览器确认，App 正在轮询")
         val deadline = System.currentTimeMillis() + auth.json.optLong("expires_in", 900) * 1000; var interval = auth.json.optLong("interval", 5)
-        while (System.currentTimeMillis() < deadline) { delay(interval * 1000); val poll = postForm("https://auth.kimi.com/api/oauth/token", mapOf("grant_type" to "urn:ietf:params:oauth:grant-type:device_code", "device_code" to deviceCode, "client_id" to clientId)); val access = poll.json.optString("access_token"); if (poll.code in 200..299 && access.isNotBlank()) { OAuthPreferences(context).saveTokens(poll.json.toString()); return@withContext "success" }; when (poll.json.optString("error")) { "authorization_pending" -> Unit; "slow_down" -> interval += 5; "access_denied", "expired_token" -> error("Kimi OAuth ${poll.json.optString("error")}") } }
+        while (System.currentTimeMillis() < deadline) { delay(interval * 1000); val poll = postForm("https://auth.kimi.com/api/oauth/token", mapOf("grant_type" to "urn:ietf:params:oauth:grant-type:device_code", "device_code" to deviceCode, "client_id" to clientId)); val access = poll.json.optString("access_token"); if (poll.code in 200..299 && access.isNotBlank()) { OAuthPreferences(context).saveTokens(poll.json.toString()); activateKimiProvider(context); return@withContext "success" }; when (poll.json.optString("error")) { "authorization_pending" -> Unit; "slow_down" -> interval += 5; "access_denied", "expired_token" -> error("Kimi OAuth ${poll.json.optString("error")}") } }
         error("Kimi OAuth timed out")
+    }
+    private fun activateKimiProvider(context: Context) {
+        val preferences = ProviderPreferences(context.applicationContext)
+        val current = preferences.load()
+        preferences.save(current.copy(enabled = true, vendor = "Kimi Code", providerId = "kimi_code", authMode = "OAUTH_DEVICE", model = current.model.ifBlank { "kimi-for-coding" }))
     }
     private data class FormResponse(val code: Int, val json: JSONObject)
     private fun postForm(url: String, params: Map<String, String>): FormResponse { val body = params.entries.joinToString("&") { "${it.key}=${URLEncoder.encode(it.value, "UTF-8")}" }; val connection = (URL(url).openConnection() as HttpURLConnection).apply { requestMethod = "POST"; connectTimeout = 15_000; readTimeout = 15_000; doOutput = true; setRequestProperty("Content-Type", "application/x-www-form-urlencoded") }; connection.outputStream.use { it.write(body.toByteArray(StandardCharsets.UTF_8)) }; val text = (if (connection.responseCode in 200..299) connection.inputStream else connection.errorStream)?.bufferedReader()?.use { it.readText() }.orEmpty(); return FormResponse(connection.responseCode, runCatching { JSONObject(text) }.getOrDefault(JSONObject())) }

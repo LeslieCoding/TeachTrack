@@ -2,7 +2,6 @@ package com.leslie.teachtrack.data.workspace
 
 import com.leslie.teachtrack.core.workspace.*
 import com.leslie.teachtrack.data.TeachTrackRepository
-import java.time.Instant
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -54,7 +53,7 @@ class WorkspaceExporter(private val repository: TeachTrackRepository, private va
         repository.daoForSeed().allAttachments().forEach { attachment ->
             if (attachment.relativePath.isNotBlank() && attachment.uri.startsWith("content://")) runCatching { manager.copyUriToWorkspace(android.net.Uri.parse(attachment.uri), storage, attachment.relativePath) }
         }
-        manager.ensureStructure(storage, manifest.copy(name = name, appMinVersion = "3.0.0", updatedAt = Instant.now().toString()))
+        manager.ensureStructure(storage, manifest.copy(name = name, appMinVersion = "3.0.0", updatedAt = IsoTimestamp.now()))
         return WorkspaceExportResult(manifest.workspaceId, records, files)
     }
 }
