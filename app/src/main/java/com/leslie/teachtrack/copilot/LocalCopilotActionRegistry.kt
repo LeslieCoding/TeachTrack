@@ -84,11 +84,21 @@ class LocalCopilotActionRegistry(
     }
 
     /** Resolve a per-item student reference (studentId, else studentName via the shared resolver). */
-    private suspend fun resolveItemStudentId(p: Map<String, String>): String? =
-        p["studentId"]?.takeIf { it.isNotBlank() }
-            ?: p["studentName"]?.takeIf { it.isNotBlank() }?.let { query ->
-                (entityResolver.resolve(query) as? EntityResolution.Resolved)?.student?.id
-            }
+    private data class ItemStudentResolution(val id: String?, val errorCode: String?, val message: String)
+
+    private suspend fun resolveItemStudent(p: Map<String, String>): ItemStudentResolution {
+        p["studentId"]?.takeIf { it.isNotBlank() }?.let { return ItemStudentResolution(it, null, "") }
+        val query = p["studentName"]?.takeIf { it.isNotBlank() }
+            ?: return ItemStudentResolution(null, ERROR_STUDENT_NOT_FOUND, "未能定位学生（studentId 或唯一 studentName 必填）")
+        return when (val result = entityResolver.resolve(query)) {
+            is EntityResolution.Resolved -> ItemStudentResolution(result.student.id, null, "")
+            is EntityResolution.Ambiguous -> ItemStudentResolution(
+                null, ERROR_AMBIGUOUS_STUDENT,
+                "找到多个匹配学生：${result.candidates.joinToString("、") { it.displayName.ifBlank { it.name } }}",
+            )
+            EntityResolution.NotFound -> ItemStudentResolution(null, ERROR_STUDENT_NOT_FOUND, "未找到学生：$query")
+        }
+    }
 
     private fun jsonItemParams(item: org.json.JSONObject): Map<String, String> = buildMap {
         item.keys().forEach { key -> put(key, item.optString(key)) }
@@ -101,6 +111,11 @@ class LocalCopilotActionRegistry(
         put("items", items.toString())
         if (extraIdKey != null) put(extraIdKey, ids.joinToString(","))
     }
+
+    /** One per-item outcome entry; carries the stable error code when the item failed with one (spec §71). */
+    private fun batchOutcome(index: Int, result: CopilotResult): org.json.JSONObject =
+        org.json.JSONObject().put("index", index).put("ok", result.success).put("message", result.message)
+            .also { entry -> result.errorCode?.let { entry.put("code", it) } }
 
     override val allowedActions = setOf(
         "student.create", "student.update", "student.search", "student.archive",
@@ -163,23 +178,32 @@ class LocalCopilotActionRegistry(
         val p = command.parameters
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         var resolutionMessage = ""
+        var resolutionCode: String? = null
+        var resolutionCandidates = emptyList<String>()
         suspend fun studentId(): String? = p["selectedStudentId"]?.takeIf { it.isNotBlank() }
             ?: p["studentId"]?.takeIf { it.isNotBlank() }
             ?: p["studentName"]?.takeIf { it.isNotBlank() }?.let { query ->
                 when (val result = entityResolver.resolve(query)) {
                     is EntityResolution.Resolved -> result.student.id
                     is EntityResolution.Ambiguous -> {
-                        resolutionMessage = "找到多个匹配学生：${result.candidates.joinToString("、") { it.displayName.ifBlank { it.name } }}；请在学生工作台选择后重试"
+                        resolutionCode = ERROR_AMBIGUOUS_STUDENT
+                        resolutionCandidates = result.candidates.map { it.displayName.ifBlank { it.name } }
+                        resolutionMessage = "找到多个匹配学生：${resolutionCandidates.joinToString("、")}；请在学生工作台选择后重试"
                         null
                     }
                     EntityResolution.NotFound -> {
+                        resolutionCode = ERROR_STUDENT_NOT_FOUND
                         resolutionMessage = "未找到学生：$query"
                         null
                     }
                 }
             }
         fun v(key: String, fallback: String = "") = p[key].orEmpty().ifBlank { fallback }
-        fun missing() = CopilotResult(false, resolutionMessage.ifBlank { "请提供唯一学生姓名，或先在学生工作台选择学生" })
+        fun missing() = CopilotResult(
+            false, resolutionMessage.ifBlank { "请提供唯一学生姓名，或先在学生工作台选择学生" },
+            errorCode = resolutionCode,
+            data = if (resolutionCandidates.isNotEmpty()) mapOf("candidates" to resolutionCandidates.joinToString(",")) else emptyMap(),
+        )
 
         when (command.action) {
             "student.followup.tasks.create" -> {
@@ -240,7 +264,7 @@ class LocalCopilotActionRegistry(
                 return CopilotResult(true, "已添加学生：$name", undoToken = CopilotUndoTokens.studentArchive(id), effect = CopilotEffect.OpenStudent(id))
             }
             "student.update" -> {
-                val id = studentId() ?: return missing(); val old = repository.studentOnce(id) ?: return CopilotResult(false, "未找到学生")
+                val id = studentId() ?: return missing(); val old = repository.studentOnce(id) ?: return CopilotResult(false, "未找到学生", errorCode = ERROR_STUDENT_NOT_FOUND)
                 val statusInput = v("status")
                 val newStatus = if (statusInput.isBlank()) old.status else parseStudentStatus(statusInput)
                     ?: return CopilotResult(false, "无法识别的学生状态：$statusInput，请使用 在读/暂停/结束")
@@ -260,7 +284,7 @@ class LocalCopilotActionRegistry(
             }
             "student.archive" -> { val id = studentId() ?: return missing(); repository.archiveStudent(id); return CopilotResult(true, "已归档学生，历史记录保留") }
             "student.overview.query" -> {
-                val id = studentId() ?: return missing(); val student = repository.studentOnce(id) ?: return CopilotResult(false, "未找到学生")
+                val id = studentId() ?: return missing(); val student = repository.studentOnce(id) ?: return CopilotResult(false, "未找到学生", errorCode = ERROR_STUDENT_NOT_FOUND)
                 val latest = repository.latestCourse(id); val scores = repository.scoresOnce(id)
                 val pendingHomework = repository.homeworkOnce(id).count { it.status !in setOf("已完成", "完成", "DONE", "已检查") }
                 val openProblems = repository.problemRecordsOnce(id).count { it.status !in setOf("已改善", "已解决") }
@@ -562,7 +586,7 @@ class LocalCopilotActionRegistry(
             }
             "ui.open.student" -> {
                 val id = studentId() ?: return missing()
-                val student = repository.studentOnce(id) ?: return CopilotResult(false, "未找到学生")
+                val student = repository.studentOnce(id) ?: return CopilotResult(false, "未找到学生", errorCode = ERROR_STUDENT_NOT_FOUND)
                 return CopilotResult(true, "已打开学生工作台：${student.displayName.ifBlank { student.name }}", effect = CopilotEffect.OpenStudent(id), data = mapOf("studentId" to id))
             }
             "batch.tasks.create" -> {
@@ -600,14 +624,14 @@ class LocalCopilotActionRegistry(
                 for (i in 0 until array.length().coerceAtMost(50)) {
                     val item = array.optJSONObject(i)
                     val ip = item?.let { jsonItemParams(it) }.orEmpty()
-                    val id = resolveItemStudentId(ip)
+                    val resolution = resolveItemStudent(ip)
                     val result = when {
                         item == null -> CopilotResult(false, "条目不是 JSON 对象")
-                        id == null -> CopilotResult(false, "未能定位学生（studentId 或唯一 studentName 必填）")
-                        else -> createScoreRecord(ip, id, today)
+                        resolution.id == null -> CopilotResult(false, resolution.message, errorCode = resolution.errorCode)
+                        else -> createScoreRecord(ip, resolution.id, today)
                     }
                     if (result.success) created++ else failed++
-                    outcomes.put(org.json.JSONObject().put("index", i).put("ok", result.success).put("message", result.message))
+                    outcomes.put(batchOutcome(i, result))
                 }
                 return CopilotResult(true, "已批量录入 $created 条成绩${if (failed > 0) "，失败 $failed 条" else ""}", data = batchData(outcomes, created, failed))
             }
@@ -621,14 +645,14 @@ class LocalCopilotActionRegistry(
                 for (i in 0 until array.length().coerceAtMost(50)) {
                     val item = array.optJSONObject(i)
                     val ip = item?.let { jsonItemParams(it) }.orEmpty()
-                    val id = resolveItemStudentId(ip)
+                    val resolution = resolveItemStudent(ip)
                     val result = when {
                         item == null -> CopilotResult(false, "条目不是 JSON 对象")
-                        id == null -> CopilotResult(false, "未能定位学生（studentId 或唯一 studentName 必填）")
-                        else -> createCourseRecord(ip, id, today)
+                        resolution.id == null -> CopilotResult(false, resolution.message, errorCode = resolution.errorCode)
+                        else -> createCourseRecord(ip, resolution.id, today)
                     }
                     if (result.success) created++ else failed++
-                    outcomes.put(org.json.JSONObject().put("index", i).put("ok", result.success).put("message", result.message))
+                    outcomes.put(batchOutcome(i, result))
                 }
                 return CopilotResult(true, "已批量记录 $created 条课程${if (failed > 0) "，失败 $failed 条" else ""}", data = batchData(outcomes, created, failed))
             }
@@ -643,16 +667,16 @@ class LocalCopilotActionRegistry(
                 for (i in 0 until array.length().coerceAtMost(50)) {
                     val item = array.optJSONObject(i)
                     val ip = item?.let { jsonItemParams(it) }.orEmpty()
-                    val id = resolveItemStudentId(ip)
+                    val resolution = resolveItemStudent(ip)
                     val tagName = ip["tagName"].orEmpty().ifBlank { ip["name"].orEmpty() }
                     val result = when {
                         item == null -> CopilotResult(false, "条目不是 JSON 对象")
-                        id == null -> CopilotResult(false, "未能定位学生（studentId 或唯一 studentName 必填）")
+                        resolution.id == null -> CopilotResult(false, resolution.message, errorCode = resolution.errorCode)
                         tagName.isBlank() -> CopilotResult(false, "缺少标签名称")
-                        else -> assignTagToStudent(id, tagName)
+                        else -> assignTagToStudent(resolution.id, tagName)
                     }
                     if (result.success) created++ else failed++
-                    outcomes.put(org.json.JSONObject().put("index", i).put("ok", result.success).put("message", result.message))
+                    outcomes.put(batchOutcome(i, result))
                 }
                 return CopilotResult(true, "已为 $created 名学生添加标签${if (failed > 0) "，失败 $failed 项" else ""}", data = batchData(outcomes, created, failed))
             }
@@ -682,7 +706,7 @@ class LocalCopilotActionRegistry(
                         }
                     }
                     if (result.success) created++ else failed++
-                    outcomes.put(org.json.JSONObject().put("index", i).put("ok", result.success).put("message", result.message))
+                    outcomes.put(batchOutcome(i, result))
                 }
                 return CopilotResult(
                     true, "已批量完成 $created 项待办${if (failed > 0) "，失败 $failed 项" else ""}",

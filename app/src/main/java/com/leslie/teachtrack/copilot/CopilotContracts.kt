@@ -10,7 +10,16 @@ sealed interface CopilotEffect {
     data class OpenStudent(val studentId: String, val startCourse: Boolean = false, val startScore: Boolean = false) : CopilotEffect
 }
 
-data class CopilotResult(val success: Boolean, val message: String, val undoToken: String? = null, val effect: CopilotEffect? = null, val data: Map<String, String> = emptyMap())
+data class CopilotResult(val success: Boolean, val message: String, val undoToken: String? = null, val effect: CopilotEffect? = null, val data: Map<String, String> = emptyMap(), val errorCode: String? = null)
+
+/**
+ * Stable machine-readable error codes for student resolution failures
+ * (spec §71). The offload bridge maps these into the strict JSON envelope's
+ * `error.code` (falling back to EXECUTION_FAILED for legacy failures), and
+ * batch actions repeat them per-item in `data.items[].code`.
+ */
+const val ERROR_AMBIGUOUS_STUDENT = "AMBIGUOUS_STUDENT"
+const val ERROR_STUDENT_NOT_FOUND = "STUDENT_NOT_FOUND"
 
 /**
  * Single source of truth for which actions are read-only (no confirmation needed

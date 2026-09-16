@@ -395,4 +395,41 @@ class AgentNewActionsInstrumentedTest {
             TeachTrackIntegrationSettings.setAccessMode(context, TeachTrackIntegrationSettings.MODE_OWNER_TRUSTED)
         }
     }
+
+    /** Spec §71: an ambiguous student name fails with a stable code and a candidate list. */
+    @Test fun ambiguousStudentReturnsStableCodeAndCandidates() = runBlocking {
+        val service = service()
+        val dao = db.dao()
+        dao.upsertStudent(StudentEntity("s-a1", "重名学生"))
+        dao.upsertStudent(StudentEntity("s-a2", "重名学生"))
+        val result = run(service, "score.query", mapOf("studentName" to "重名学生"))
+        assertTrue(!result.success)
+        assertEquals("AMBIGUOUS_STUDENT", result.errorCode)
+        assertTrue(result.data["candidates"]!!.contains("重名学生"))
+    }
+
+    /** Spec §71: an unknown student name fails with the stable not-found code. */
+    @Test fun notFoundStudentReturnsStableCode() = runBlocking {
+        val service = service()
+        val result = run(service, "score.query", mapOf("studentName" to "不存在的学生"))
+        assertTrue(!result.success)
+        assertEquals("STUDENT_NOT_FOUND", result.errorCode)
+    }
+
+    /** Spec §71: batch per-item failures carry the SAME codes as single actions. */
+    @Test fun batchItemsCarrySameErrorCodes() = runBlocking {
+        val service = service()
+        val dao = db.dao()
+        dao.upsertStudent(StudentEntity("s-b1", "重名批次"))
+        dao.upsertStudent(StudentEntity("s-b2", "重名批次"))
+        val result = run(service, "batch.scores.create", mapOf("items" to """[
+            {"studentName":"重名批次","score":"120","fullScore":"160"},
+            {"studentName":"不存在批次","score":"120"}
+        ]""".trimIndent()))
+        assertTrue(result.message, result.success) // per-item failure isolation: overall still ok
+        assertEquals("2", result.data["failed"])
+        val items = JSONArray(result.data["items"]!!)
+        assertEquals("AMBIGUOUS_STUDENT", items.getJSONObject(0).getString("code"))
+        assertEquals("STUDENT_NOT_FOUND", items.getJSONObject(1).getString("code"))
+    }
 }

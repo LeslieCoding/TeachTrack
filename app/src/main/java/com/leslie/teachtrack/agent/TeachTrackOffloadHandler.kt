@@ -159,7 +159,17 @@ class TeachTrackOffloadHandler(private val context: Context, private val rootfsD
             JSONObject()
                 .put("ok", false)
                 .put("operation", action)
-                .put("error", JSONObject().put("code", "EXECUTION_FAILED").put("message", result.message))
+                .put(
+                    "error",
+                    // §71: registry-issued stable codes (AMBIGUOUS_STUDENT /
+                    // STUDENT_NOT_FOUND) pass through; anything older stays
+                    // EXECUTION_FAILED. Structured extras (e.g. candidates)
+                    // ride along as error.data when present.
+                    JSONObject()
+                        .put("code", result.errorCode ?: "EXECUTION_FAILED")
+                        .put("message", result.message)
+                        .also { err -> if (result.data.isNotEmpty()) err.put("data", JSONObject(result.data)) },
+                )
         }
         return NativeOffloadResult(if (result.success) 0 else 1, body.toString() + "\n")
     }
