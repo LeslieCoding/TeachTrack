@@ -1681,12 +1681,12 @@ Do not create extraneous files: README.md, INSTALLATION_GUIDE.md, CHANGELOG.md, 
 // LAEP MASTER TASK / DEC-004 section 37. Bump the version string whenever
 // this content changes — installBundledSkill only re-applies when the
 // bundled version is newer than what's already installed.
-internal const val TEACHTRACK_SKILL_VERSION = "1.7.1"
+internal const val TEACHTRACK_SKILL_VERSION = "1.7.2"
 
 private val TEACHTRACK_SKILL_CONTENT = """
 ---
 name: teachtrack
-version: 1.7.1
+version: 1.7.2
 description: Operate TeachTrack, the teacher's own student-management app this Agent is embedded inside — query, create, and update students, courses, exams, scores, knowledge points, homework, problems, plans, parent communication, tasks, tags, templates, attachments, backups, and the sync Workspace, and navigate the app's UI. Use this whenever the user asks about a student, a class, a score, a lesson, homework, or anything about their teaching records — this is real local data, not something to answer from memory.
 ---
 
@@ -1724,7 +1724,12 @@ arguments), `PARSE_ERROR` (invalid JSON), `VALIDATION_ERROR` (action not
 recognized, or a parameter TeachTrack's own validator rejected),
 `EXECUTION_FAILED` (the action ran but TeachTrack's business logic rejected
 it — read `error.message`, it is the real reason, e.g. a score exceeding the
-exam's full score), `CONFIRMATION_REQUIRED` (the integration's access mode is
+exam's full score), `AMBIGUOUS_STUDENT` (a student name matched several
+students — `error.data.candidates` lists the display names as a
+comma-separated string; ask the user which one, or re-run with the exact
+`studentId`), `STUDENT_NOT_FOUND` (no student by that name/id — the same
+code is used for single actions, id-based lookups, and per-item batch
+failures in `result.data.items[].code`), `CONFIRMATION_REQUIRED` (the integration's access mode is
 "standard", so write actions are refused — tell the user to switch to Owner
 Trusted in Settings → TeachTrack Integration, or confirm the change in the
 app; read-only and navigation actions still run), `UNKNOWN_SUBCOMMAND` /
@@ -1746,12 +1751,27 @@ trustworthy than this list if the two ever disagree.
 Most actions take either an entity `id` (a UUID you got from a previous
 query) or enough identifying fields (e.g. a student `name`) for TeachTrack to
 resolve it itself. When a name is ambiguous (two students share it), the
-result comes back as `ok:false` with `error.code":"VALIDATION_ERROR"` and a
-message naming the conflict — ask the user to disambiguate rather than
-guessing which one they meant. Student, course, exam, score, and other
+result comes back as `ok:false` with `error.code":"AMBIGUOUS_STUDENT"` and
+the candidates listed in `error.data.candidates` — ask the user to
+disambiguate rather than guessing which one they meant. Student, course,
+exam, score, and other
 records are never truly deleted (archive-before-delete is a standing project
 principle) — `student.archive` hides a student from normal lists but keeps
 their history.
+
+## Privacy (spec §46)
+
+This is the teacher's private data — minimize what you pull into the
+conversation:
+
+- Query as narrowly as the task allows: resolve a student with
+  `student.search` (a name is enough) before fetching `student.overview.query`,
+  and prefer one targeted query over several broad ones.
+- Never dump whole tables (all students, all scores, all communications)
+  into the chat when a filtered query answers the question.
+- Don't read sensitive fields — parent contacts, communication summaries,
+  free-text notes — unless the user explicitly asked about them.
+- Summarize what you retrieved instead of echoing raw JSON back to the user.
 
 ## Actions
 

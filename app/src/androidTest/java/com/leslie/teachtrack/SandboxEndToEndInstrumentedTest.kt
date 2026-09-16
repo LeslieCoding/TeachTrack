@@ -115,7 +115,7 @@ class SandboxEndToEndInstrumentedTest {
         assertEquals(result.output, 0, result.exitCode)
         assertTrue(result.output, result.output.contains("name: teachtrack"))
         val version = sh("grep '^version:' /var/minis/skills/teachtrack/SKILL.md")
-        assertTrue(version.output, version.output.contains("version: 1.7.1"))
+        assertTrue(version.output, version.output.contains("version: 1.7.2"))
     }
 
     /** §52(c): re-registering the handler and re-starting the server are idempotent no-ops. */
