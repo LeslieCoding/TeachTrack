@@ -4,7 +4,7 @@ import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
 
-data class CopilotAuditEntry(val id: String, val action: String, val timestamp: Long, val status: String, val undoToken: String?)
+data class CopilotAuditEntry(val id: String, val action: String, val timestamp: Long, val status: String, val undoToken: String?, val sessionId: String? = null)
 
 /** Local audit history. It deliberately persists action metadata only, never raw parameters. */
 class CopilotAuditStore(context: Context) {
@@ -12,14 +12,20 @@ class CopilotAuditStore(context: Context) {
 
     fun record(command: CopilotCommand, result: CopilotResult) {
         val entries = JSONArray(prefs.getString("entries", "[]"))
-        entries.put(JSONObject().put("id", command.clientRequestId.ifBlank { java.util.UUID.randomUUID().toString() }).put("action", command.action).put("timestamp", System.currentTimeMillis()).put("status", if (result.success) "SUCCESS" else "FAILURE").put("undoToken", result.undoToken))
+        // Spec §53 audit session linkage: on the Agent (offload) path,
+        // TeachTrackOffloadHandler sets clientRequestId to the chat session id
+        // the sandbox exported as MINIS_CHAT_SESSION_ID, so persisting it here
+        // ties every audit entry back to the Agent conversation that caused
+        // it. In-app Copilot calls leave it blank (no chat session) and old
+        // entries simply lack the field — both read back as null.
+        entries.put(JSONObject().put("id", command.clientRequestId.ifBlank { java.util.UUID.randomUUID().toString() }).put("action", command.action).put("timestamp", System.currentTimeMillis()).put("status", if (result.success) "SUCCESS" else "FAILURE").put("undoToken", result.undoToken).put("sessionId", command.clientRequestId.ifBlank { null }))
         while (entries.length() > 100) entries.remove(0)
         prefs.edit().putString("entries", entries.toString()).apply()
     }
 
     fun list(): List<CopilotAuditEntry> {
         val entries = JSONArray(prefs.getString("entries", "[]"))
-        return (0 until entries.length()).mapNotNull { index -> entries.optJSONObject(index)?.let { item -> CopilotAuditEntry(item.optString("id"), item.optString("action"), item.optLong("timestamp"), item.optString("status"), item.optString("undoToken").takeIf { it.isNotBlank() && it != "null" }) } }.reversed()
+        return (0 until entries.length()).mapNotNull { index -> entries.optJSONObject(index)?.let { item -> CopilotAuditEntry(item.optString("id"), item.optString("action"), item.optLong("timestamp"), item.optString("status"), item.optString("undoToken").takeIf { it.isNotBlank() && it != "null" }, item.optString("sessionId").takeIf { it.isNotBlank() && it != "null" }) } }.reversed()
     }
 
     fun clear() { prefs.edit().remove("entries").apply() }
