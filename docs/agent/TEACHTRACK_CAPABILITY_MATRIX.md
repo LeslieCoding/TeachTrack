@@ -1,5 +1,16 @@
 # TeachTrack Agent Capability Matrix
 
+## P4 batch + skill-sync update (2026-09-27)
+
+4 batch actions added (`batch.scores.create`, `batch.courses.create`,
+`batch.tags.assign`, `batch.tasks.complete`) — each loops the SAME shared
+per-record helper as its single-op counterpart (`createScoreRecord`,
+`createCourseRecord`, `assignTagToStudent`, `resolveOpenTaskId`), max 50
+items, per-item failure isolation, strict per-item `{"index","ok","message"}`
+array in `data.items`. Bundled teachtrack skill bumped to v1.7.0 covering all
+68 actions plus batch/navigation guidance; audit entries now persist the
+Agent chat `sessionId` (spec §53).
+
 ## P2 coverage-audit update (2026-09-27)
 
 14 actions added (`course.query`, `exam.query`, `score.trend`,
@@ -61,6 +72,10 @@ Status legend:
 | `task.status.update` | Student Workspace → tasks | AVAILABLE_TO_AGENT | needs `taskId` (preferred) or a `title` substring match |
 | `task.query` | Planning → 待办 | AVAILABLE_TO_AGENT | P2: pending by default, returns taskIds |
 | `batch.tasks.create` | Planning → 待办 | AVAILABLE_TO_AGENT | P2: JSON-array bulk create, max 50, per-item failure isolation |
+| `batch.scores.create` | Student Workspace → 录入成绩 | AVAILABLE_TO_AGENT | P4: N × score.create (shared helper), per-item ok/error in data.items |
+| `batch.courses.create` | Student Workspace → 记录课程 | AVAILABLE_TO_AGENT | P4: N × course.create (shared helper), per-item ok/error in data.items |
+| `batch.tags.assign` | Student Workspace → tags | AVAILABLE_TO_AGENT | P4: N × tag.assign (shared helper), per-item ok/error in data.items |
+| `batch.tasks.complete` | Planning → 待办 | AVAILABLE_TO_AGENT | P4: N × task.status.update(已完成) (shared resolver), per-item ok/error in data.items |
 | `knowledge.create` | Student Workspace → knowledge tree | AVAILABLE_TO_AGENT | rejects duplicate names |
 | `knowledge.update` | Student Workspace → knowledge tree | AVAILABLE_TO_AGENT | fixed: `knowledgePointId` lookup and `notes` param were both broken (see DECISIONS.md/BACKLOG.md) |
 | `knowledge.query` | Student Workspace → knowledge tree | AVAILABLE_TO_AGENT | fixed: with a student it now returns real progress data instead of a no-op navigation message |
@@ -112,13 +127,14 @@ Status legend:
 
 ## Coverage summary
 
-- 64 actions in `LocalCopilotActionRegistry.allowedActions` (49 pre-P2 + 14
-  added in the P2 coverage audit + `ui.open.tab` alias), all reachable
+- 68 actions in `LocalCopilotActionRegistry.allowedActions` (49 pre-P2 + 14
+  added in the P2 coverage audit + `ui.open.tab` alias + 4 P4 batch actions),
+  all reachable
   from the Agent via `TeachTrackOffloadHandler` → `CopilotService.execute()`
   → the same registry the in-app Copilot chat window uses (LAEP MASTER TASK
   sections 12-13: one business logic per feature, no duplicate
   implementation for the Agent path).
-- 61 map to a real UI screen; 3 (`student.data.organize.preview`,
+- 65 map to a real UI screen; 3 (`student.data.organize.preview`,
   `csv.export.scores`, `search.global`) are Agent-reachable capabilities the
   DAO/Repository layer already had, with no dedicated UI screen of their own.
 - 0 actions are silently unsupported (`UNSUPPORTED`) — every action in the

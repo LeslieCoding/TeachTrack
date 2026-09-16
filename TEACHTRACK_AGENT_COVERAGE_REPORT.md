@@ -1,6 +1,6 @@
 # TeachTrack Agent Coverage Report (P2, spec §90)
 
-Date: 2026-09-27. Baseline: commit 8da1391 + P2 gap-closing changes in this commit range.
+Date: 2026-09-27 (P2); P4 batch + skill-sync addendum same day. Baseline: commit 8da1391 + P2/P4 changes in this commit range.
 
 Scope: every user-facing business operation in the normal TeachTrack UI
 (`MainActivity.kt`, `FeatureScreens.kt`) vs. what the Agent can do via
@@ -83,6 +83,10 @@ Legend: ✅ full / 🟡 partial / ❌ missing → action added this phase is mar
 | Toggle todo status (TaskCard AssistChip) | ✅ `task.status.update` (same 已完成/待处理 vocabulary) | device |
 | View todo list | ✅ `task.query` **(P2 new)** | manual |
 | Bulk todo entry | ✅ `batch.tasks.create` **(P2 new)** (Agent-only convenience; UI has no bulk entry) | manual |
+| Bulk score entry | ✅ `batch.scores.create` **(P4 new)** — shared `createScoreRecord` with `score.create`, strict per-item ok/error in `data.items` | manual |
+| Bulk course entry | ✅ `batch.courses.create` **(P4 new)** — shared `createCourseRecord` | manual |
+| Bulk tagging (标记重点关注) | ✅ `batch.tags.assign` **(P4 new)** — shared `assignTagToStudent` | manual |
+| Bulk todo complete | ✅ `batch.tasks.complete` **(P4 new)** — shared `resolveOpenTaskId` | manual |
 
 ### communication.*
 | UI operation | Agent action | Test |
@@ -144,6 +148,16 @@ Legend: ✅ full / 🟡 partial / ❌ missing → action added this phase is mar
 - Provider/OAuth self-configuration remains a permanent exclusion (INV-V2-004):
   the model must never reconfigure its own credentials.
 
+## Audit session linkage (spec §53, P4)
+
+The offload protocol already carries the chat session id: the sandbox
+exports `MINIS_CHAT_SESSION_ID`, `NativeOffloadServer` forwards it as
+`NativeOffloadRequest.sessionId`, and `TeachTrackOffloadHandler` sets it as
+the command's `clientRequestId`. P4 makes it a first-class audit field:
+`CopilotAuditEntry.sessionId` (persisted as `sessionId` in the audit JSON,
+null for in-app Copilot calls and pre-P4 entries), so every Agent-originated
+operation can be traced back to the Agent conversation that caused it.
+
 ## Gaps found and resolution
 
 Found (now closed): `course.query`, `exam.query`, `score.trend`,
@@ -164,5 +178,6 @@ Remaining uncovered, deliberately:
    one-off migration tool; not a recurring business operation.
 5. **Homework status edit** — no UI write path exists to mirror.
 
-Coverage: 64/64 registry actions Agent-reachable; every recurring UI business
+Coverage: 68/68 registry actions Agent-reachable (64 after P2 + 4 P4 batch
+actions); every recurring UI business
 operation has an Agent equivalent except the five reasoned exclusions above.
