@@ -33,6 +33,7 @@ import androidx.compose.material.icons.outlined.Feedback
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.FolderShared
 import androidx.compose.material.icons.outlined.FrontHand
+import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Lock
@@ -105,6 +106,9 @@ fun SettingsScreen(
     // About row below still has a TODO onClick in HEAD; future settings-bucket
     // work will wire this through.
     onAboutClick: () -> Unit = {},
+    // Spec §47: TeachTrack Integration status page. Default no-op for callers
+    // that haven't wired the route yet.
+    onTeachTrackIntegrationClick: () -> Unit = {},
 ) {
     val context = LocalContext.current
     var showFeedbackSheet by remember { mutableStateOf(false) }
@@ -276,6 +280,18 @@ fun SettingsScreen(
                     title = stringResource(R.string.settings_section_logs),
                     subtitle = stringResource(R.string.settings_logs_subtitle),
                     onClick = onLogsClick,
+                    showDivider = false,
+                )
+            }
+
+            // -- TeachTrack Integration (spec §47) --
+            SettingsSection(title = "TeachTrack") {
+                SettingsItem(
+                    icon = Icons.Outlined.Hub,
+                    iconColor = Color(0xFF007AFF),
+                    title = "TeachTrack Integration",
+                    subtitle = "桥接状态、访问模式与 Agent 操作记录",
+                    onClick = onTeachTrackIntegrationClick,
                     showDivider = false,
                 )
             }

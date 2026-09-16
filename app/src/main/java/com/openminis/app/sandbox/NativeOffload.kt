@@ -84,6 +84,9 @@ object NativeOffloadServer {
 
     val registeredHandlers: Set<String> get() = handlers.keys.toSet()
 
+    /** True once [start] has bound the abstract socket (no port — it's a LocalSocket). */
+    val isRunning: Boolean get() = serverSocket != null
+
     fun register(name: String, handler: NativeOffloadHandler) {
         require(name.isNotEmpty())
         handlers[name] = handler

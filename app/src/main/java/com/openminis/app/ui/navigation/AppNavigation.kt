@@ -33,6 +33,7 @@ import com.openminis.app.data.repository.ProviderRepository
 import com.openminis.app.ui.chat.ChatScreen
 import com.openminis.app.ui.sessions.SessionListScreen
 import com.openminis.app.ui.settings.AboutScreen
+import com.openminis.app.ui.settings.TeachTrackIntegrationScreen
 import com.openminis.app.ui.settings.AddAgentLoopGroupsScreen
 import com.openminis.app.ui.settings.AddAgentLoopModelsScreen
 import com.openminis.app.ui.settings.AddCustomModelScreen
@@ -153,6 +154,7 @@ object Routes {
     const val APPEARANCE = "appearance"
     const val BACKGROUND = "background"
     const val ABOUT = "about"
+    const val TEACHTRACK_INTEGRATION = "teachtrack_integration"
     const val ONBOARDING_MODELS = "onboarding_models"
     /** T219-2: Mount external folders settings + detail. */
     const val MOUNTED_FOLDERS = "mounted_folders"
@@ -581,6 +583,7 @@ fun AppNavigation(
                 onAboutClick = { navController.safeNavigate(Routes.ABOUT) },
                 onMountedFoldersClick = { navController.safeNavigate(Routes.MOUNTED_FOLDERS) },
                 onSharedFoldersClick = { navController.safeNavigate(Routes.SHARED_FOLDERS) },
+                onTeachTrackIntegrationClick = { navController.safeNavigate(Routes.TEACHTRACK_INTEGRATION) },
             )
         }
 
@@ -1157,6 +1160,12 @@ fun AppNavigation(
 
         composable(Routes.ABOUT) {
             AboutScreen(onBack = { navController.safePopBackStack() })
+        }
+
+        // Spec §47: TeachTrack integration status page. Lives inside the
+        // OpenMinis settings tree, so the embedded AgentHost gets it for free.
+        composable(Routes.TEACHTRACK_INTEGRATION) {
+            TeachTrackIntegrationScreen(onBack = { navController.safePopBackStack() })
         }
 
         composable(Routes.LOGS) {
