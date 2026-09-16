@@ -1,0 +1,140 @@
+== /proc/31261/task/31261
+Name:	slie.teachtrack
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31270
+Name:	Signal Catcher
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31271
+Name:	perfetto_hprof_
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31272
+Name:	ADB-JDWP Connec
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31273
+Name:	Jit thread pool
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31274
+Name:	HeapTaskDaemon
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31275
+Name:	ReferenceQueueD
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31276
+Name:	FinalizerDaemon
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31277
+Name:	FinalizerWatchd
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31278
+Name:	binder:31261_1
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31279
+Name:	binder:31261_2
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31281
+Name:	binder:31261_3
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31284
+Name:	Profile Saver
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31291
+Name:	roidJUnitRunner
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31297
+Name:	HangDetector-wa
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31302
+Name:	DefaultDispatch
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31303
+Name:	DefaultDispatch
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31304
+Name:	DefaultDispatch
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31311
+Name:	ConnectivityThr
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31312
+Name:	arch_disk_io_0
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31314
+Name:	DefaultDispatch
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31315
+Name:	DefaultDispatch
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31316
+Name:	arch_disk_io_1
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31317
+Name:	native-offload-
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31318
+Name:	arch_disk_io_2
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31320
+Name:	arch_disk_io_3
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31327
+Name:	Instrumentation
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31328
+Name:	queued-work-loo
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31331
+Name:	CachedPool-1
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31332
+Name:	CachedPool-2
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31343
+Name:	CachedPool-3
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31344
+Name:	CachedPool-4
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31350
+Name:	DefaultExecutor
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31352
+Name:	process reaper
+State:	S (sleeping)
+get_signal
+== /proc/31261/task/31367
+Name:	binder:31261_4
+State:	S (sleeping)
+get_signal

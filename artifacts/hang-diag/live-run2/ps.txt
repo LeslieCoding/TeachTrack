@@ -1,0 +1,876 @@
+  PID  PPID STAT  WCHAN                          CMD            
+    1     0 S     0                              init
+    2     0 S     0                              kthreadd
+    3     2 I<    0                              rcu_gp
+    4     2 I<    0                              slub_flushwq
+    5     2 I<    0                              netns
+    7     2 I<    0                              kworker/0:0H-events_highpri
+    9     2 I<    0                              mm_percpu_wq
+   11     2 I     0                              rcu_tasks_kthread
+   12     2 I     0                              rcu_tasks_trace_kthread
+   13     2 S     0                              ksoftirqd/0
+   14     2 I     0                              rcu_preempt
+   15     2 S     0                              rcuog/0
+   16     2 S     0                              rcuop/0
+   17     2 S     0                              rcub/0
+   18     2 S     0                              rcu_exp_gp_kthread_worker
+   19     2 S     0                              rcu_exp_par_gp_kthread_worker
+   20     2 S     0                              migration/0
+   21     2 S     0                              idle_inject/0
+   22     2 S     0                              cpuhp/0
+   23     2 S     0                              cpuhp/1
+   24     2 S     0                              idle_inject/1
+   25     2 S     0                              migration/1
+   26     2 S     0                              ksoftirqd/1
+   29     2 S     0                              rcuop/1
+   30     2 S     0                              cpuhp/2
+   31     2 S     0                              idle_inject/2
+   32     2 S     0                              migration/2
+   33     2 S     0                              ksoftirqd/2
+   36     2 S     0                              rcuop/2
+   37     2 S     0                              cpuhp/3
+   38     2 S     0                              idle_inject/3
+   39     2 S     0                              migration/3
+   40     2 S     0                              ksoftirqd/3
+   43     2 S     0                              rcuop/3
+   44     2 S     0                              cpuhp/4
+   45     2 S     0                              idle_inject/4
+   46     2 S     0                              migration/4
+   47     2 S     0                              ksoftirqd/4
+   49     2 I<    0                              kworker/4:0H-events_highpri
+   50     2 S     0                              rcuog/4
+   51     2 S     0                              rcuop/4
+   52     2 S     0                              cpuhp/5
+   53     2 S     0                              idle_inject/5
+   54     2 S     0                              migration/5
+   55     2 S     0                              ksoftirqd/5
+   58     2 S     0                              rcuop/5
+   59     2 S     0                              cpuhp/6
+   60     2 S     0                              idle_inject/6
+   61     2 S     0                              migration/6
+   62     2 S     0                              ksoftirqd/6
+   64     2 I<    0                              kworker/6:0H-events_highpri
+   65     2 S     0                              rcuop/6
+   66     2 S     0                              cpuhp/7
+   67     2 S     0                              idle_inject/7
+   68     2 S     0                              migration/7
+   69     2 S     0                              ksoftirqd/7
+   71     2 I<    0                              kworker/7:0H-cb_qos_wq
+   72     2 S     0                              rcuop/7
+   73     2 I<    0                              inet_frag_wq
+   74     2 S     0                              kauditd
+   75     2 S     0                              khungtaskd
+   76     2 S     0                              oom_reaper
+   77     2 I<    0                              writeback
+   78     2 S     0                              kcompactd0
+   80     2 S     0                              blk_run_queue0
+   81     2 S     0                              blk_run_queue1
+   82     2 S     0                              blk_run_queue2
+   83     2 S     0                              blk_run_queue3
+   84     2 S     0                              blk_run_queue4
+   85     2 S     0                              blk_run_queue5
+   86     2 S     0                              blk_run_queue6
+   87     2 S     0                              blk_run_queue7
+   88     2 I<    0                              kblockd
+   89     2 I<    0                              blkcg_punt_bio
+   91     2 I<    0                              edac-poller
+   92     2 I<    0                              devfreq_wq
+   93     2 S     0                              watchdogd
+   97     2 I<    0                              kworker/7:1H-fsverity_read_queue
+   99     2 S     0                              kswapd0
+  101     2 S     0                              erofs_worker/0
+  102     2 S     0                              erofs_worker/1
+  103     2 S     0                              erofs_worker/2
+  104     2 S     0                              erofs_worker/3
+  105     2 S     0                              erofs_worker/4
+  106     2 S     0                              erofs_worker/5
+  107     2 S     0                              erofs_worker/6
+  108     2 S     0                              erofs_worker/7
+  109     2 I<    0                              kthrotld
+  111     2 SN    0                              dmabuf-deferred-free-worker
+  112     2 I<    0                              nvme-wq
+  113     2 I<    0                              nvme-reset-wq
+  114     2 I<    0                              nvme-delete-wq
+  115     2 I<    0                              uas
+  116     2 I<    0                              dm_bufio_cache
+  117     2 S     0                              hwrng
+  118     2 S     0                              irq/16-gh_msgq_rx
+  119     2 I<    0                              kworker/6:1H-kblockd
+  120     2 I<    0                              mld
+  121     2 I<    0                              ipv6_addrconf
+  132     2 I<    0                              bsp_kevent_wq
+  133     2 S     0                              fb_flush
+  136     2 I<    0                              kworker/0:1H-kblockd
+  139     2 I<    0                              kworker/3:1H-cb_qos_wq
+  147     2 S     0                              oplus-omrg
+  148     2 S     0                              msm_perf:events_notify
+  158     2 I<    0                              kworker/2:2H-kblockd
+  178     2 SN    0                              qcom,system-pool-refill-thread
+  179     2 S     0                              bp_camera
+  180     2 S     0                              bp_prefill_camera
+  190     2 S     0                              irq/30-bcl-lvl0
+  191     2 S     0                              qrtr_ns
+  193     2 S     0                              irq/33-bcl-lvl1
+  194     2 S     0                              irq/34-bcl-lvl2
+  195     2 S     0                              irq/35-bcl-lvl0
+  196     2 S     0                              irq/36-bcl-lvl1
+  197     2 S     0                              irq/37-bcl-lvl2
+  206     2 S     0                              gh-watchdog
+  207     2 S     0                              irq/39-qcom,qmp-tme
+  208     2 S     0                              mem_buf_trusted_vm_rcvr
+  209     2 S     0                              irq/41-c228000.tsens0
+  210     2 S     0                              irq/42-c228000.tsens0
+  211     2 S     0                              irq/43-c229000.tsens1
+  212     2 S     0                              irq/44-c229000.tsens1
+  213     2 S     0                              irq/45-c22a000.tsens2
+  214     2 S     0                              irq/46-c22a000.tsens2
+  225     2 S     0                              irq/47-dcvsh-irq-0
+  226     2 S     0                              irq/48-dcvsh-irq-2
+  235     2 S     0                              irq/49-dcvsh-irq-5
+  238     2 S     0                              irq/50-dcvsh-irq-7
+  245     2 S     0                              halt_drain_rqs
+  247     2 S     0                              cb_task
+  248     2 S     0                              core_ctl
+  249     2 S     0                              irq/83-arm-smmu-context-fault
+  250     2 S     0                              scsi_eh_0
+  251     2 I<    0                              scsi_tmf_0
+  252     2 I<    0                              qc_ufs_qos_swq
+  253     2 I<    0                              ufs_eh_wq_0
+  254     2 I<    0                              ufs_clk_gating_
+  255     2 S     0                              irq/84-arm-smmu-context-fault
+  256     2 S     0                              irq/85-arm-smmu-context-fault
+  262     2 S     0                              f2fs_ckpt-8:10
+  263     2 S     0                              f2fs_flush-8:10
+  264     2 S     0                              f2fs_discard-8:10
+  265     2 S     0                              f2fs_gc-8:10
+  266     2 I<    0                              kdmflush/254:0
+  267     2 I<    0                              kdmflush/254:1
+  268     2 I<    0                              kdmflush/254:2
+  269     2 I<    0                              kdmflush/254:3
+  270     2 I<    0                              kdmflush/254:4
+  271     2 I<    0                              kdmflush/254:5
+  272     2 I<    0                              kdmflush/254:6
+  273     2 I<    0                              kdmflush/254:7
+  274     2 I<    0                              kdmflush/254:8
+  275     2 I<    0                              kdmflush/254:9
+  276     2 I<    0                              kdmflush/254:10
+  277     2 I<    0                              kdmflush/254:11
+  278     2 I<    0                              kdmflush/254:12
+  279     2 I<    0                              kdmflush/254:13
+  280     2 I<    0                              kdmflush/254:14
+  281     2 I<    0                              kdmflush/254:15
+  282     2 I<    0                              kdmflush/254:16
+  283     2 I<    0                              kdmflush/254:17
+  284     2 I<    0                              kdmflush/254:18
+  285     2 I<    0                              kdmflush/254:19
+  286     2 I<    0                              kdmflush/254:20
+  287     2 I<    0                              kdmflush/254:21
+  288     2 I<    0                              kdmflush/254:22
+  290     2 I<    0                              kverityd1
+  297     2 S     0                              jbd2/sdf3-8
+  298     2 I<    0                              ext4-rsv-conver
+  299     2 I<    0                              kdmflush/254:23
+  300     2 I<    0                              kverityd2
+  301     2 I<    0                              kdmflush/254:24
+  302     2 I<    0                              kverityd3
+  303     2 I<    0                              kdmflush/254:25
+  304     2 I<    0                              kverityd4
+  305     2 I<    0                              kdmflush/254:26
+  306     2 I<    0                              kverityd5
+  307     2 I<    0                              kdmflush/254:27
+  308     2 I<    0                              kverityd6
+  309     2 I<    0                              kdmflush/254:28
+  310     2 I<    0                              kverityd7
+  311     2 I<    0                              kdmflush/254:29
+  312     2 I<    0                              kverityd8
+  313     2 I<    0                              kdmflush/254:30
+  314     2 I<    0                              kverityd9
+  315     2 I<    0                              kdmflush/254:31
+  316     2 I<    0                              kverityd10
+  317     2 I<    0                              kdmflush/254:32
+  318     2 I<    0                              kverityd11
+  319     2 I<    0                              kdmflush/254:33
+  320     2 I<    0                              kverityd12
+  321     2 I<    0                              kdmflush/254:34
+  322     2 I<    0                              kverityd13
+  323     2 I<    0                              kdmflush/254:35
+  324     2 I<    0                              kverityd14
+  325     2 I<    0                              kdmflush/254:36
+  326     2 I<    0                              kverityd15
+  327     2 I<    0                              kdmflush/254:37
+  328     2 I<    0                              kverityd16
+  329     2 I<    0                              kdmflush/254:38
+  330     2 I<    0                              kverityd17
+  332     1 S     0                              init
+  333     1 S     0                              ueventd
+  493     2 S<    0                              krfcommd
+  495     1 S     0                              prng_seeder
+  521     1 S     0                              audioadsprpcd
+  723     2 S     0                              irq/86-arm-smmu-context-fault
+  909     2 S     0                              irq/88-arm-smmu-context-fault
+  951     2 I<    0                              kworker/1:2H-kblockd
+  962     2 I<    0                              mpcie_wq
+  963     2 I<    0                              pmic_glink_rx
+  964     2 I<    0                              pdr_notifier_wq
+  965     2 I<    0                              mm_kevent
+  967     2 S     0                              smcinvoke_shmbridge_postprocess
+  968     2 S     0                              smcinvoke_object_postprocess
+  969     2 D     0                              smcinvoke_adci_thread
+  971     2 I<    0                              pmic_glink_rx
+  973     2 S     0                              irq/206-int_global_int
+  975     2 S     0                              track_upload_kthread
+  976     2 I<    0                              haptic_chg_trig
+  979     2 S     0                              irq/233-qcom,smp2p-adsp
+  980     2 I<    0                              cpucp_wq
+  981     2 I<    0                              qcrypto_seq_res
+  982     2 S     0                              irq/234-generic-irq
+  984     2 I<    0                              pdr_notifier_wq
+  985     2 I<    0                              pdr_notifier_wq
+  987     2 S     0                              irq/89-arm-smmu-context-fault
+  988     2 I<    0                              bwmon_wq
+  989     2 S     0                              irq/236-240b7400.qcom,bwmon-llcc
+  990     2 I<    0                              cfg80211
+  991     2 S     0                              irq/90-arm-smmu-context-fault
+  992     2 S     0                              irq/237-qcom,smp2p-cdsp
+  993     2 S     0                              irq/238-qcom,smp2p-modem
+ 1004     2 S     0                              irq/241-regulator-ocp
+ 1005     2 S     0                              irq/91-arm-smmu-context-fault
+ 1008     2 S     0                              irq/243-q6v5 wdog
+ 1009     2 S     0                              irq/244-24091000.qcom,bwmon-ddr
+ 1010     2 S     0                              irq/242-regulator-alarm
+ 1011     2 S     0                              irq/92-arm-smmu-context-fault
+ 1012     2 I<    0                              crash_report_wo
+ 1013     2 S     0                              irq/93-arm-smmu-context-fault
+ 1014     2 S     0                              irq/250-q6v5 wdog
+ 1015     2 I<    0                              pm_workq
+ 1016     2 S     0                              irq/94-arm-smmu-context-fault
+ 1017     2 S     0                              irq/257-q6v5 wdog
+ 1018     2 I<    0                              batch_workq
+ 1019     2 S     0                              khvcd
+ 1020     2 S     0                              irq/95-arm-smmu-context-fault
+ 1021     2 S     0                              irq/261-msm-vidc
+ 1023     2 S     0                              irq/96-arm-smmu-context-fault
+ 1024     2 S     0                              irq/97-arm-smmu-context-fault
+ 1026     2 S     0                              irq/98-arm-smmu-context-fault
+ 1027     2 S     0                              irq/99-arm-smmu-context-fault
+ 1030     2 S     0                              irq/100-arm-smmu-context-fault
+ 1031     2 S     0                              irq/263-pm8010m-temp-alarm
+ 1032     2 S     0                              spi0
+ 1033     2 S     0                              irq/101-arm-smmu-context-fault
+ 1034     2 S     0                              irq/102-arm-smmu-context-fault
+ 1035     2 S     0                              irq/103-arm-smmu-context-fault
+ 1037     2 S     0                              spi1
+ 1038     2 S     0                              irq/104-arm-smmu-context-fault
+ 1039     2 S     0                              irq/105-arm-smmu-context-fault
+ 1040     2 S     0                              irq/106-arm-smmu-context-fault
+ 1041     2 S     0                              irq/107-arm-smmu-context-fault
+ 1042     2 S     0                              irq/271-pmr735d-temp-alarm
+ 1043     2 S     0                              cdsprm-wq
+ 1044     2 I<    0                              cdsprm-wq-delay
+ 1046     2 S     0                              irq/108-arm-smmu-context-fault
+ 1047     2 S     0                              irq/109-arm-smmu-context-fault
+ 1048     2 S     0                              irq/110-arm-smmu-context-fault
+ 1049     2 I<    0                              memlat_wq
+ 1052     2 S     0                              adspsleepmon-worker
+ 1058     2 I<    0                              uaudio_svc
+ 1059     2 S     0                              irq/111-arm-smmu-context-fault
+ 1079     2 S     0                              kshrink_slabd
+ 1091     2 S     0                              irq/277-rf_cable_irq
+ 1092     2 I<    0                              ntf_wq
+ 1095     2 I<    0                              sipa_0
+ 1097     2 I<    0                              sipa_1
+ 1098     2 S     0                              irq/278-pmic_pwrkey
+ 1099     2 S     0                              g_ed
+ 1102     2 S     0                              irq/279-pmic_resin
+ 1103     2 S     0                              g_htb
+ 1104     2 S     0                              g_ct
+ 1111     2 S     0                              sensor_feedback_task
+ 1112     2 S     0                              ux_page_pool_fillthread
+ 1115     2 S     0                              g_cb
+ 1116     2 S     0                              g_sw
+ 1117     2 S     0                              pmicwd
+ 1212     2 S     0                              irq/112-arm-smmu-context-fault
+ 1213     2 S     0                              torture_task
+ 1214     2 S     0                              irq/113-arm-smmu-context-fault
+ 1215     2 I<    0                              shm_svc
+ 1216     2 I<    0                              trackpoint_wq
+ 1217     1 SN    0                              logd
+ 1218     1 SL    0                              lmkd
+ 1219     1 S<    0                              servicemanager
+ 1220     1 S     0                              hwservicemanage
+ 1221     1 S     0                              vndservicemanag
+ 1223     2 I<    0                              stability_threa
+ 1236     2 S     0                              tbatt_pwroff
+ 1239     2 S     0                              irq/26-arm-smmu-context-fault
+ 1242     2 S     0                              irq/27-arm-smmu-context-fault
+ 1244     2 I<    0                              pdr_notifier_wq
+ 1245     2 I<    0                              ngd_master
+ 1247     2 S     0                              irq/291-msm_cvp
+ 1248     2 I<    0                              msm_cvp_workerq
+ 1249     2 I<    0                              pm_workerq_iris
+ 1250     1 S     0                              android.hardwar
+ 1251     2 S     0                              irq/114-arm-smmu-context-fault
+ 1252     2 S     0                              irq/115-arm-smmu-context-fault
+ 1253     2 I<    0                              kgsl-workqueue
+ 1254     2 I<    0                              kgsl-lockless-w
+ 1255     2 S     0                              irq/116-arm-smmu-context-fault
+ 1256     1 S     0                              qseecomd
+ 1257     2 S     0                              cvp-dsp-thread
+ 1258     1 S     0                              Binder:vendor.q
+ 1259     2 S     0                              psimon
+ 1263     2 S     0                              irq/57-arm-smmu-context-fault
+ 1264     2 S     0                              irq/58-arm-smmu-context-fault
+ 1265     2 S     0                              irq/293-pm8550vs-d-temp-alarm
+ 1266     2 S     0                              irq/59-arm-smmu-context-fault
+ 1268     1 S     0                              Binder:vold
+ 1269     2 S     0                              irq/60-arm-smmu-context-fault
+ 1270     2 S     0                              ufcs
+ 1271     2 D     0                              ufcs_sm
+ 1272     2 S     0                              irq/295-voocphy_irq
+ 1274     2 S     0                              kgsl-events
+ 1275     2 S     0                              irq/294-pm8550vs-e-temp-alarm
+ 1276     2 S     0                              irq/299-voocphy_irq
+ 1277     2 S     0                              track_upload_kthread
+ 1278     2 I<    0                              oplus_chg_trigg
+ 1280     2 I<    0                              kgsl_devfreq_wq
+ 1281     2 S     0                              kgsl_devfreq_notifier
+ 1282     2 S     0                              irq/301-wcd-usbss-sdam
+ 1283     2 S     0                              irq/300-pm8550vs-g-temp-alarm
+ 1284     2 S     0                              Surge kthread
+ 1285     2 S     0                              jbd2/sda2-8
+ 1287     2 I<    0                              wcd_usbss_check
+ 1288     2 I<    0                              ext4-rsv-conver
+ 1289     2 S     0                              irq/302-fifo-empty
+ 1294     2 S     0                              kgsl_hwsched
+ 1295     2 S     0                              irq/303-pm8550-temp-alarm
+ 1296     2 I<    0                              kdmflush/254:76
+ 1297     2 S     0                              jbd2/sde46-8
+ 1298     2 I<    0                              ext4-rsv-conver
+ 1306     2 S     0                              irq/304-pm8550b-temp-alarm
+ 1313     2 S     0                              irq/305-pm8550b-temp-alarm-lite
+ 1314     2 S     0                              irq/306-flash_all_ramp_up
+ 1320     2 S     0                              irq/310-pwr_event_irq
+ 1321     2 S     0                              irq/311-dp_hs_phy_irq
+ 1322     2 S     0                              irq/312-dm_hs_phy_irq
+ 1323     2 S     0                              irq/313-ss_phy_irq
+ 1325     2 S     0                              irq/307-flash_all_ramp_down
+ 1326     2 S     0                              irq/309-pm8550ve-temp-alarm
+ 1336     2 I<    0                              k_ipa_usb
+ 1337     2 S     0                              irq/315-pm8550vs-c-temp-alarm
+ 1338     2 S     0                              irq/308-flash_fault
+ 1339     2 S     0                              irq/117-arm-smmu-context-fault
+ 1341     2 I<    0                              byte-cntr
+ 1342     2 S     0                              irq/118-arm-smmu-context-fault
+ 1343     2 I<    0                              ipa_power_mgmt
+ 1344     2 I<    0                              transport_power
+ 1345     2 I<    0                              page_recycle_st
+ 1346     2 I<    0                              ipa_pm_activate
+ 1347     2 S     0                              irq/119-arm-smmu-context-fault
+ 1348     2 I<    0                              rmnet_ctlwq
+ 1349     2 I<    0                              rmnet_llwq
+ 1350     2 S     0                              irq/120-arm-smmu-context-fault
+ 1352     2 S     0                              irq/121-arm-smmu-context-fault
+ 1353     2 S     0                              irq/122-arm-smmu-context-fault
+ 1355     2 S     0                              irq/123-arm-smmu-context-fault
+ 1359     2 S     0                              irq/321-bhi
+ 1373     2 S     0                              irq/87-arm-smmu-context-fault
+ 1374     2 S     0                              irq/124-arm-smmu-context-fault
+ 1375     2 I<    0                              dsi_post_cmd_tx
+ 1376     2 I<    0                              aod_display_on_
+ 1377     2 I<    0                              uiready_event_0
+ 1378     2 I<    0                              aod_off_set_0
+ 1379     2 I<    0                              oplus_pwm_disab
+ 1380     2 S     0                              irq/125-arm-smmu-context-fault
+ 1381     2 S     0                              irq/126-arm-smmu-context-fault
+ 1382     2 S     0                              irq/127-arm-smmu-context-fault
+ 1383     2 S     0                              irq/128-arm-smmu-context-fault
+ 1384     2 I<    0                              dsi_post_cmd_tx
+ 1386     2 S     0                              crtc_commit:199
+ 1387     2 S     0                              crtc_event:199
+ 1388     2 S     0                              crtc_commit:265
+ 1389     2 S     0                              crtc_event:265
+ 1390     2 S     0                              crtc_commit:274
+ 1391     2 S     0                              crtc_event:274
+ 1392     2 S     0                              crtc_commit:283
+ 1393     2 S     0                              crtc_event:283
+ 1394     2 S     0                              crtc_commit:292
+ 1395     2 S     0                              crtc_event:292
+ 1396     2 S     0                              crtc_commit:301
+ 1397     2 S     0                              crtc_event:301
+ 1398     2 S     0                              pp_event
+ 1399     2 S     0                              card0-crtc0
+ 1400     2 S     0                              card0-crtc1
+ 1401     2 S     0                              card0-crtc2
+ 1402     2 S     0                              card0-crtc3
+ 1403     2 S     0                              card0-crtc4
+ 1404     2 S     0                              card0-crtc5
+ 1405     1 S     0                              virt-service_rs
+ 1406     2 I<    0                              cam-cpas
+ 1407     2 I<    0                              qcom,cam_virtua
+ 1408     2 I<    0                              rt-cdm0_0
+ 1409     2 I<    0                              rt-cdm0_1
+ 1410     2 I<    0                              rt-cdm0_2
+ 1411     2 I<    0                              rt-cdm0_3
+ 1413     2 I<    0                              rt-cdm1_0
+ 1414     2 I<    0                              rt-cdm1_1
+ 1415     2 I<    0                              rt-cdm1_2
+ 1416     2 I<    0                              rt-cdm1_3
+ 1417     2 I<    0                              rt-cdm2_0
+ 1418     2 I<    0                              rt-cdm2_1
+ 1419     2 I<    0                              rt-cdm2_2
+ 1420     2 I<    0                              rt-cdm2_3
+ 1421     2 I<    0                              rt-cdm3_0
+ 1422     2 I<    0                              rt-cdm3_1
+ 1423     2 I<    0                              rt-cdm3_2
+ 1424     2 I<    0                              rt-cdm3_3
+ 1425     2 I<    0                              rt-cdm4_0
+ 1426     2 I<    0                              rt-cdm4_1
+ 1427     2 I<    0                              rt-cdm4_2
+ 1428     2 I<    0                              rt-cdm4_3
+ 1437     2 S     0                              irq/375-CCI0
+ 1438     2 I<    0                              cam_cci_wq
+ 1439     2 I<    0                              cam_cci_wq
+ 1440     2 S     0                              irq/376-CCI1
+ 1441     2 I<    0                              cam_cci_wq
+ 1442     2 I<    0                              cam_cci_wq
+ 1443     2 S     0                              irq/377-CCI2
+ 1444     2 I<    0                              cam_cci_wq
+ 1445     2 I<    0                              cam_cci_wq
+ 1446     2 S     0                              crm_workq-icp_command_queue
+ 1447     2 S     0                              crm_workq-icp_message_queue
+ 1448     2 S     0                              crm_workq-jpeg_message_queue
+ 1449     2 S     0                              crm_workq-cre_message_queue
+ 1451     2 I<    0                              cds_recovery_wo
+ 1452     2 S     0                              wlan_logging_thread
+ 1456     2 I<    0                              trikey_sp_resum
+ 1460     2 S     0                              irq/391-ak09970_0
+ 1466     2 S     0                              irq/283-synaptics_tcm_hbp
+ 1467     2 I<    0                              syna_reflash
+ 1468     2 I<    0                              sp_resume0
+ 1494     2 I<    0                              ipa_interrupt_w
+ 1495     2 I<    0                              ipawq36
+ 1496     2 I<    0                              iparepwq36
+ 1497     2 I<    0                              ipawq33
+ 1498     2 I<    0                              iparepwq33
+ 1499     2 I<    0                              ipafreepagewq33
+ 1500     2 I<    0                              ipawq32
+ 1501     2 I<    0                              iparepwq32
+ 1502     2 I<    0                              ipa_uc_holb_wq
+ 1503     2 I<    0                              ipa_usb_wq
+ 1504     2 I<    0                              clnt_req
+ 1511     1 S     0                              android.system.
+ 1512     1 SL    0                              Binder:keystore
+ 1513     1 S     0                              android.hardwar
+ 1514     1 S     0                              sscrpcd
+ 1515     1 S     0                              android.hardwar
+ 1541     2 S     0                              f2fs_flush-254:76
+ 1542     2 S     0                              f2fs_discard-254:76
+ 1543     2 S     0                              f2fs_gc-254:76
+ 1557     1 S     0                              tombstoned
+ 1573     2 I<    0                              ext4-rsv-conver
+ 1603     2 I<    0                              ext4-rsv-conver
+ 1604     2 I<    0                              ext4-rsv-conver
+ 1605     2 I<    0                              ext4-rsv-conver
+ 1606     2 I<    0                              ext4-rsv-conver
+ 1607     2 I<    0                              ext4-rsv-conver
+ 1608     2 I<    0                              ext4-rsv-conver
+ 1611     2 I<    0                              ext4-rsv-conver
+ 1617     2 I<    0                              ext4-rsv-conver
+ 1618     2 I<    0                              ext4-rsv-conver
+ 1619     2 I<    0                              ext4-rsv-conver
+ 1626     1 S     0                              aconfigd-system
+ 1670     1 S     0                              time_daemon
+ 1714     1 S     0                              Binder:netd
+ 1716     1 S     0                              Binder:statsd
+ 1717     1 S     0                              main
+ 1718     1 Z     0                              bspFwUpdate
+ 1719     2 I<    0                              at_usb0
+ 1720     2 I<    0                              at_usb1
+ 1721     2 I<    0                              at_usb2
+ 1722     2 I<    0                              qdss
+ 1723     2 I<    0                              qdss_mdm
+ 1724     2 I<    0                              qdss_sw
+ 1775     1 S     0                              main
+ 1776     1 S<    0                              main
+ 1806     1 S     0                              pd-mapper
+ 1818     1 S     0                              ssgtzd
+ 1819     1 S     0                              diag-router
+ 1822     2 S     0                              glink_cdsp
+ 1823     1 S     0                              allocator@1.0-s
+ 1824     1 S     0                              qccsyshal@1.2-s
+ 1826     1 S     0                              udio.service_64
+ 1827     1 S     0                              Binder:android.
+ 1828     1 S     0                              android.hardwar
+ 1829     1 S     0                              idl-service-qti
+ 1830     1 S     0                              android.hardwar
+ 1831     1 S     0                              android.hardwar
+ 1843     1 S     0                              android.hardwar
+ 1846     1 S     0                              android.hardwar
+ 1847     1 S     0                              android.hardwar
+ 1849     2 S     0                              glink_adsp
+ 1850     1 S     0                              android.hardwar
+ 1851     1 S     0                              re.wifi-service
+ 1857     1 S     0                              Binder:poweropt
+ 1858     1 S     0                              Binder:qconfigs
+ 1859     1 S     0                              qesdk-manager
+ 1860     1 SL    0                              ider-service_64
+ 1865     1 S     0                              capabilityconfi
+ 1866     1 S     0                              locator-service
+ 1867     1 S     0                              vendor.qti.hard
+ 1868     1 S<    0                              omposer-service
+ 1872     1 S     0                              dspservice
+ 1875     1 S     0                              vendor.qti.hard
+ 1877     1 S     0                              limits@1.2-serv
+ 1889     1 S     0                              rf2-hal-service
+ 1892     1 S     0                              vendor.qti.hard
+ 1897     1 S     0                              vendor.qti.hard
+ 1906     1 S     0                              r:media.hwcodec
+ 1908     1 S     0                              vendor.qti.medi
+ 1909     1 S     0                              ti.qspa-service
+ 1910     1 S     0                              vendor.qti.qspm
+ 1913     1 S     0                              android.hardwar
+ 1914     1 S     0                              android.hardwar
+ 1918     1 S     0                              android.hardwar
+ 1920     1 S     0                              android.hardwar
+ 1921     1 S     0                              vendor-oplus-ha
+ 1924     1 S     0                              Binder:vendor-o
+ 1926     1 S     0                              Binder:vendor-o
+ 1928     1 S     0                              vendor-oplus-ha
+ 1942     1 S     0                              vendor.oplus.ha
+ 1945     1 S     0                              vendor.oplus.ha
+ 1946     1 S     0                              vendor.oplus.ha
+ 1947     1 S     0                              feature-service
+ 1950     1 S     0                              vendor.oplus.ha
+ 1965     2 S     0                              gmu_f2h
+ 1988     1 S     0                              vendor.oplus.ha
+ 1989     1 S     0                              vendor.oplus.ha
+ 1990     1 S     0                              olc2-V3-service
+ 1995     1 SL    0                              UrccMainThread
+ 2018     1 S     0                              vendor.oplus.ha
+ 2025     1 S     0                              android.hardwar
+ 2026     1 S     0                              vendor.oplus.ha
+ 2030     1 S     0                              pm-service
+ 2035     1 S     0                              audioserver
+ 2036     1 S     0                              credstore
+ 2039     1 S     0                              Binder:gpuservi
+ 2044     1 S<    0                              surfaceflinger
+ 2052     2 S     0                              irq/392-glink-native-cdsp
+ 2072     2 S     0                              qrtr_rx
+ 2089     1 S     0                              qsap_sensors
+ 2097     1 S     0                              rmt_storage
+ 2101     1 S     0                              tftp_server
+ 2104     1 S     0                              sensors.qti
+ 2191     1 S     0                              Binder:vppservi
+ 2210     1 S     0                              qwesd
+ 2262     1 S     0                              adbd
+ 2264     1 S     0                              subsystem_ramdu
+ 2288     1 S     0                              pm-proxy
+ 2355     1 S<    0                              traced_probes
+ 2358     2 S     0                              glink_modem
+ 2359     1 S<    0                              traced
+ 2456     1 S     0                              Binder:tcmd
+ 2459     1 S     0                              per-service-qti
+ 2461     1 S     0                              dpmQmiMgr
+ 2469     1 S     0                              qmipriod
+ 2470     1 S     0                              shsusrd0
+ 2471     1 S     0                              der:vendor.dpmd
+ 2484     1 S     0                              Binder:subsys_d
+ 2486     1 S     0                              vendor-oplus-ha
+ 2502     1 S     0                              Binder:camerase
+ 2504     1 S     0                              Binder:incident
+ 2505     1 S     0                              Binder:installd
+ 2506     1 S     0                              mediaextractor
+ 2508     1 S     0                              mediametrics
+ 2518     1 S     0                              mediaserver64
+ 2520     1 SN    0                              storaged
+ 2522     1 S     0                              wificond
+ 2525     1 S     0                              atlasservice
+ 2537     1 S     0                              criticallog
+ 2552     1 S     0                              mmlistservice
+ 2569     1 S     0                              oplus_gaia
+ 2578     1 S     0                              perfservice
+ 2580     1 S     0                              wfdhdcphalservi
+ 2593     1 S     0                              Binder:cnd
+ 2603     1 S     0                              wifidisplayhals
+ 2604     1 S     0                              qsap_dcfd
+ 2609     1 S     0                              Binder:imsdaemo
+ 2614     1 S     0                              ipacm-diag
+ 2619     1 S     0                              Binder:ipacm
+ 2627     1 S     0                              Binder:nicmd
+ 2629     1 S     0                              port-bridge
+ 2641     1 S     0                              Binder:qms
+ 2642     1 S     0                              qsap_location
+ 2644     1 S     0                              qsap_qapeservic
+ 2693     1 S     0                              adsprpcd
+ 2694     1 S     0                              cdsprpcd
+ 2697     1 S     0                              wfdvndservice
+ 2698     1 S     0                              Binder:commcent
+ 2705     1 S     0                              vendor-oplus-ha
+ 2707     1 S     0                              vendor.oplus.ha
+ 2708     1 S     0                              r:media.swcodec
+ 2733     2 I     0                              kworker/3:1-events
+ 2738  1717 S     0                              ndroid.settings
+ 2760     2 I<    0                              kworker/X17:2-qmi_msg_handler
+ 2822     1 S     0                              vendor-oplus-ha
+ 2827     1 S     0                              cnss-daemon
+ 2873     1 S     0                              ssgqmigd
+ 2874     1 S     0                              mlid
+ 2898     1 S     0                              loc_launcher
+ 2933     2 I     0                              kworker/0:1-events
+ 2934     1 S     0                              Binder:ATFWD-da
+ 2985  2898 S     0                              xtra-daemon
+ 3007     1 S     0                              oplus_sensor_fb
+ 3049  2641 S     0                              qsap_qms_1
+ 3051  2641 S     0                              qsap_qms_2
+ 3061     1 S     0                              gatekeeperd
+ 3071     1 S     0                              update_engine
+ 3114     1 S     0                              qsguard
+ 3127     1 S     0                              bsp_kevent
+ 3144     1 S     0                              feature_enabler
+ 3158     1 S     0                              Binder:qcc-vend
+ 3159     1 S     0                              Binder:qvrservi
+ 3168     1 S     0                              sxrservice
+ 3182     1 S     0                              e.soter-service
+ 3187     1 S     0                              touchDaemon
+ 3191     1 S     0                              vendor.oplus.ha
+ 3192     2 S     0                              irq/393-glink-native-adsp
+ 3195     1 S     0                              vendor.oplus.ha
+ 3204     2 S     0                              qrtr_rx
+ 3205     1 S     0                              vendor.oplus.ha
+ 3206     1 S     0                              vendor.oplus.ha
+ 3208     1 S     0                              vendor.oplus.ha
+ 3210     1 S     0                              vendor.oplus.ha
+ 3211     1 S     0                              vendor.oplus.ha
+ 3215     2 I<    0                              pdr_notifier_wq
+ 3238  1717 S<L   0                              system_server
+ 3245     2 S     0                              irq/129-arm-smmu-context-fault
+ 3246     2 I<    0                              kworker/2:3H-kblockd
+ 3280     2 D     0                              usbtemp_kthread
+ 3288     2 S     0                              irq/394-swr_master_irq
+ 3289     2 S     0                              irq/395-swr_master_irq
+ 3300     1 S     0                              qti
+ 3308     2 S     0                              irq/407-swr_wake_irq
+ 3313     1 S     0                              adpl
+ 3314     1 S     0                              drmserver64
+ 3345     1 S     0                              main
+ 3352     1 S     0                              main
+ 3365     1 S     0                              Binder:subsys_d
+ 3439     2 S     0                              irq/408-glink-native-modem
+ 3473     2 S     0                              qrtr_rx
+ 3749     2 I<    0                              soc:qcom,pmic_g
+ 3753     2 S     0                              irq/130-arm-smmu-context-fault
+ 3760     2 I<    0                              kworker/3:2H-kblockd
+ 3783     2 I<    0                              kworker/5:4H-fsverity_read_queue
+ 3784     2 I<    0                              kworker/4:3H-cb_qos_wq
+ 3940     2 I<    0                              ipawq34
+ 3960     2 I<    0                              iparepwq34
+ 3970     2 I<    0                              ipawq104
+ 3972     2 I<    0                              iparepwq104
+ 4012     2 I<    0                              ipawq120
+ 4013     2 I<    0                              iparepwq120
+ 4014     2 I<    0                              ipawq95
+ 4015     2 I<    0                              iparepwq95
+ 4016     2 I<    0                              ipafreepagewq95
+ 4017     2 I<    0                              ipawq35
+ 4018     2 I<    0                              iparepwq35
+ 4019     2 I<    0                              ipawq105
+ 4021     2 I<    0                              iparepwq105
+ 4022     2 I<    0                              ipafreepagewq10
+ 4025     2 I<    0                              ipawq121
+ 4026     2 I<    0                              iparepwq121
+ 4027     2 I<    0                              ipafreepagewq12
+ 4049     2 I<    0                              wda_wq
+ 4109     2 S<    0                              irq/314-dwc3
+ 4155     1 S     0                              android.hardwar
+ 4169     1 S     0                              Binder:ims-data
+ 4170     1 S     0                              Binder:ims_rtp_
+ 4213     2 S     0                              qrtr_rx
+ 4217     2 S<    0                              scheduler_thread
+ 4219     2 S<    0                              dp_refill_thread
+ 4220     2 S<    0                              dp_rx_thread_0
+ 4221     2 S<    0                              dp_rx_thread_1
+ 4222     2 S<    0                              dp_rx_thread_2
+ 4223     2 S<    0                              dp_rx_thread_3
+ 4224     2 S<    0                              dp_rx_thread_4
+ 4249     2 I     0                              kworker/6:2-events
+ 4498  1717 S     0                              ings:background
+ 4574     2 I     0                              kworker/u16:0-bwmon_wq
+ 4645     1 S     0                              wpa_supplicant
+ 4767  1717 S<    0                              ndroid.launcher
+ 4778  1717 S     0                              exsystemservice
+ 4816  1717 S     0                              ork.network.drs
+ 4871  1717 S     0                              allpaperService
+ 5014  1717 S     0                              webview_zygote
+ 5021  1717 S     0                              m.oplus.gesture
+ 5055  1717 S     0                              m.oplus.battery
+ 5084  1717 S     0                              alcomm.location
+ 5100  1717 S<    0                              ndroid.systemui
+ 5136  1717 S     0                              rkstack.process
+ 5186  1717 S     0                              m.android.phone
+ 5227  1717 S     0                              qtidataservices
+ 5261  1717 S     0                              com.qti.phone
+ 5278  1717 S     0                              com.oplus.nas
+ 5289     1 S     0                              Binder:iopgp
+ 5303  1717 S     0                              com.oplus.nhs
+ 5342  1717 S     0                              .codeaurora.ims
+ 5362  1717 S     0                              com.android.se
+ 5396  1717 S     0                              rameworks.utils
+ 5437  1717 S     0                              .dataservices
+ 5485  1717 S     0                              om.oplus.athena
+ 5538  1717 S     0                              om.oplus.subsys
+ 5580  1717 S     0                              lus.appplatform
+ 5583  1717 S     0                              com.android.mms
+ 5618  1717 S     0                              com.oplus.blur
+ 5687     2 I<    0                              kworker/X19:2-kverityd2
+ 5688  1717 S     0                              id.ext.services
+ 5804  1717 S     0                              .statistics.rom
+ 5811  1714 S     0                              iptables-restor
+ 5946  1717 S     0                              ndroid.incallui
+ 6194  1717 S     0                              tms:cloudclient
+ 6359     2 S     0                              f2fs_ckpt-254:76
+ 6397  1717 S     0                              com.heytap.mcs
+ 6450     1 S     0                              Binder:horae
+ 6455     1 S     0                              Binder:midasd
+ 6458     1 S     0                              B_p_0_c_7
+ 6475     1 S     0                              opluscvtmanager
+ 6476     1 S     0                              Binder:ostats_p
+ 6477     1 S     0                              Binder:ostats_t
+ 6478     1 SN    0                              Binder:ostatsd
+ 6479     1 S     0                              qspmsvc
+ 6487     1 S     0                              qlm-service
+ 6496     1 S<    0                              thermal-engine-
+ 6504  1717 S     0                              os.sceneservice
+ 6804  6475 S     0                              oplus_sched
+ 6829     2 I<    0                              kdmflush/254:77
+ 6883  1717 S     0                              us.pantanal.ums
+ 6940  1717 S     0                              m.heytap.openid
+ 6976  1717 S     0                              com.oplus.olc
+ 7018  1717 S     0                              com.android.nfc
+ 7051  6475 S     0                              oplus_sched_ren
+ 7072  1717 S     0                              sist.multimedia
+ 7103  1717 S<    0                              assistantscreen
+ 7160  1717 S     0                              rs.media.module
+ 7187  1717 S     0                              id.gms.unstable
+ 7342  1717 S     0                              gle.android.gms
+ 7442  1717 SL    0                              lus.deepthinker
+ 7557  1717 S     0                              .oplus.location
+ 7677  1717 S     0                              eytap.accessory
+ 7797  1717 S     0                              pos.ads:service
+ 7857  1717 S<L   0                              method.sogouoem
+ 7917  1717 S     0                              d.process.acore
+ 8119  1717 S     0                              debar:edgepanel
+ 8427  1717 S     0                              com.oplus.cosa
+ 8540  1717 S     0                              com.oplus.metis
+ 8754  1717 S     0                              smartsidebar:ui
+ 9278  1717 S     0                              com.oplus.midas
+ 9358  1717 S     0                              om.oplus.aiunit
+ 9565     1 S     0                              vendor.oplus.ha
+ 9986     2 I     0                              kworker/4:0-mm_percpu_wq
+10111     2 I     0                              kworker/0:5-events
+10260     1 S     0                              hans
+11344     2 I     0                              kworker/5:0-events
+12260     2 I     0                              kworker/5:3-pm
+12866  1717 S     0                              om.oplus.camera
+13443  1717 S     0                              l.ums:uiSetting
+13446     2 I     0                              kworker/u16:5-wmi_rx_diag_event_work_
+13528  1717 S     0                              om.oplus.matrix
+13743  1717 S     0                              ubex.clash.meta
+13849  1717 S     0                              os.phonemanager
+14049  1717 S     0                              ytap.themestore
+14079  1717 SL    0                              s.securityguard
+14714  1717 S     0                              weather.service
+15312     2 I<    0                              dsi_err_workq
+15571  1717 S     0                              .DeviceAsWebcam
+15598  1717 S     0                              d.process.media
+15694  1717 S     0                              m.heytap.market
+16123  1717 S     0                              meta:background
+16127  1717 S     0                              loros.gallery3d
+16222     2 I     0                              kworker/2:3-mm_percpu_wq
+16319     2 I<    0                              kworker/u18:2-hal_register_write_wq
+16814  1717 S     0                              ng:quick_launch
+17223     2 I     0                              kworker/3:0-mm_percpu_wq
+17476  1717 S     0                              ap.speechassist
+17491  1717 S     0                              viders.calendar
+18138  1717 S     0                              us.powermonitor
+19084     2 I<    0                              kworker/u18:4-hal_register_write_wq
+19609     2 I     0                              kworker/7:1-events
+19846  1717 S     0                              webview_service
+19858  1717 S     0                              .oplus.uxdesign
+20524  1717 S     0                              .oplus.thirdkit
+20749  1717 S     0                              oplus.matrix:ui
+20845     2 I     0                              kworker/0:2-events
+20891  2262 Ss    unix_stream_read_generic       abb
+20922  1717 S     0                              externalstorage
+20939  1717 S     0                              ndroid.keychain
+20975  1717 S     0                              plus.safecenter
+21256  1717 S     0                              com.opos.ads
+21338  1717 S     0                              om.opos.ads:ees
+21562  1717 S     0                              m.oplus.account
+21579  1717 S     0                              oros.regservice
+21615     2 I     0                              kworker/1:6-events
+21619     2 I     0                              kworker/1:8-events
+21623     2 I     0                              kworker/1:9-events
+21651  1717 S     0                              android.vending
+21691  1717 S     0                              ding:background
+21745  1717 S     0                              ms:sysintegrity
+21784     2 I<    0                              kworker/u18:0-hal_register_write_wq
+21821  1717 S     0                              android.rkpdapp
+21943  1717 S     0                              .oplus.aiwriter
+22127  1717 S     0                              ackageinstaller
+22230     2 I     0                              kworker/4:1
+22268  1717 S     0                              om.heytap.cloud
+22307  1717 S     0                              ros.findmyphone
+22344  1717 S     0                              com.qti.qcc
+22450  1717 S     0                              oplus.appdetail
+22613  1717 S     0                              onemanager:scan
+22682  1717 S     0                              com.ted.number
+22698  1717 S     0                              lityservice:ocs
+22774  1717 S     0                              p.htms:kit_hlog
+22865     1 S     0                              dumpstate
+22894  1717 S     0                              .htms:cloudctrl
+23199  1717 S     0                              ms:cloudctrl_v3
+23753     2 I     0                              kworker/u16:4-adb
+23809  1717 S     0                              t.local.service
+23864  1717 S     0                              ilityengine:tts
+24147     2 I     0                              kworker/6:0-events
+24170  1717 S     0                              ficationmanager
+24202  1717 S     0                              ordirectservice
+24255  1717 S     0                              s.matrix:search
+24265  1717 S     0                              plus.themestore
+24489  1717 S     0                              uritypermission
+24572  1717 S     0                              receiver.module
+24648  1717 S     0                              loros.smartlock
+25812  1717 S     0                              tanal.ums:track
+25981  1717 S     0                              loros.securepay
+26429     2 I<    0                              kworker/1:0H-cb_qos_wq
+26591     2 I     0                              kworker/2:2
+26826  1717 S     0                              .adservices.api
+27299  1717 S<    0                              usap64
+27317     2 I     0                              kworker/7:2-mm_percpu_wq
+27506  1717 S     0                              _control_report
+27647     2 I<    0                              kworker/u18:3-hal_register_write_wq
+28052  1717 S     0                              ecenter:stealth
+28069     2 I<    0                              kworker/X19:3-kverityd2
+28096     2 I     0                              kworker/1:0-events
+28453     2 I     0                              kworker/0:3-events
+28497     2 I<    0                              kworker/X17:1-qmi_msg_handler
+28742     2 I     0                              kworker/u16:1-adb
+30178  1717 S     0                              tics.rom:worker
+30482     2 I     0                              kworker/6:1-events
+30483     2 I     0                              kworker/6:3-events
+30484     2 I     0                              kworker/6:4-events
+30737  1717 S<    0                              usap64
+30902  1717 S     0                              oplus.romupdate
+30993  1717 S     0                              ssioncontroller
+31075     2 I<    0                              kworker/5:0H-kblockd
+31167     1 S     0                              vendor.oplus.ha
+31224     2 I     0                              kworker/1:1
+31225     2 I     0                              kworker/1:2-events
+31243  2262 Ss    futex_wait                     main
+31261  1717 S     0                              slie.teachtrack
+31326     2 I     0                              kworker/0:0-events
+31446     2 I     0                              kworker/0:4-events
+31539     2 I     0                              kworker/5:1-events
+31963  1714 S     0                              ip6tables-resto
+32104  2262 Rs    0                              ps
+32108     2 I     0                              kworker/u16:2-adb
