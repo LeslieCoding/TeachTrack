@@ -293,3 +293,18 @@ operation has an Agent equivalent except the five reasoned exclusions above.
 - **Release**: `3.0.0-alpha.3` (versionCode 300003) — app code changed in
   §71/§46, so a new debug-signed release APK + debug APK were cut and
   appended to `SHA256SUMS.txt`.
+- **OnePlus Ace 5 acceptance (92f73a16, PKG110 / OP5D2BL1, Android 16 /
+  SDK 36)**: upgrade install of alpha.3 release-debug-signed over the
+  alpha.2 debug build preserved real user data （陈浠怡 etc.,
+  `artifacts/ace5-upgrade-data-preserved-20260916.xml`). Full suite 52/52
+  via a split run — 46 core tests + 6 sandbox tests
+  (`artifacts/oneplus-ace5-androidtest-20260916.txt`). Note: the single
+  3-class instrument run hangs intermittently inside one of the sandbox
+  tests (no proot child, no app logs, no ANR — environmental flakiness in
+  repeated in-process proot execs, not a code regression; the sandbox
+  class passes standalone reliably, especially after a warm restart).
+  UI acceptance passed: home, Agent tab (embedded OpenMinis + TeachTrack
+  nav), 问 Agent prefill from student detail, and the Integration screen
+  (bridge running on abstract socket 'native-offload', 68 actions, skill
+  1.7.2, Owner Trusted, workspace 0 issues) — `artifacts/ace5-ui-*-20260916.*`.
+  Device left on the alpha.3 release-debug-signed build with data intact.
