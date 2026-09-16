@@ -121,6 +121,44 @@ class LocalCopilotActionRegistry(
 
     override suspend fun preview(command: CopilotCommand) = CopilotResult(true, "将执行 ${command.action}，请确认后写入本地数据")
 
+    /**
+     * Spec §55 undo. Only token kinds issued by this registry are reversible,
+     * and only through existing repository operations (status revert / soft
+     * archive) — no hard-delete path is added for undo. See [CopilotUndoTokens].
+     */
+    override suspend fun undo(token: String): CopilotResult {
+        val json = CopilotUndoTokens.decode(token) ?: return CopilotResult(false, "撤销令牌无效或已过期")
+        return when (json.optString("kind")) {
+            CopilotUndoTokens.KIND_TASK_STATUS -> {
+                val items = json.optJSONArray("items")
+                    ?: return CopilotResult(false, "撤销令牌无效或已过期")
+                var reverted = 0
+                var failed = 0
+                for (i in 0 until items.length()) {
+                    val item = items.optJSONObject(i)
+                    if (item == null) { failed++; continue }
+                    val id = item.optString("id")
+                    val prev = item.optString("prev")
+                    if (id.isBlank() || prev.isBlank()) { failed++; continue }
+                    runCatching { repository.updateTaskStatus(id, prev) }
+                        .onSuccess { reverted++ }
+                        .onFailure { failed++ }
+                }
+                if (failed == 0) CopilotResult(true, "已撤销：$reverted 项待办状态已恢复")
+                else CopilotResult(false, "部分撤销失败：恢复 $reverted 项，失败 $failed 项")
+            }
+            CopilotUndoTokens.KIND_STUDENT_ARCHIVE -> {
+                val id = json.optString("id")
+                if (id.isBlank()) return CopilotResult(false, "撤销令牌无效或已过期")
+                runCatching { repository.archiveStudent(id) }.fold(
+                    onSuccess = { CopilotResult(true, "已撤销：新建学生已归档") },
+                    onFailure = { CopilotResult(false, "撤销失败：${it.message ?: "请重试"}") },
+                )
+            }
+            else -> CopilotResult(false, "该操作不支持撤销")
+        }
+    }
+
     override suspend fun execute(command: CopilotCommand): CopilotResult {
         val p = command.parameters
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -199,7 +237,7 @@ class LocalCopilotActionRegistry(
                 if (name.isBlank()) return CopilotResult(false, "缺少学生姓名")
                 if (repository.searchStudents(name).any { it.name.equals(name, true) }) return CopilotResult(false, "学生已存在：$name")
                 val id = repository.saveStudent(name, v("grade"), v("school"), v("subject"), v("notes"))
-                return CopilotResult(true, "已添加学生：$name", effect = CopilotEffect.OpenStudent(id))
+                return CopilotResult(true, "已添加学生：$name", undoToken = CopilotUndoTokens.studentArchive(id), effect = CopilotEffect.OpenStudent(id))
             }
             "student.update" -> {
                 val id = studentId() ?: return missing(); val old = repository.studentOnce(id) ?: return CopilotResult(false, "未找到学生")
@@ -269,8 +307,13 @@ class LocalCopilotActionRegistry(
                     ?: return CopilotResult(false, "无法识别的待办状态：$statusInput，请使用 已完成/待处理")
                 val resolvedId = resolveOpenTaskId(v("taskId"), v("title", v("rawText")).trim()).orEmpty()
                 if (resolvedId.isBlank()) return CopilotResult(false, "未能定位到唯一待办，请提供更具体的标题，或先在待办页选择后重试")
+                val previousStatus = repository.allTasksOnce().firstOrNull { it.id == resolvedId }?.status
                 repository.updateTaskStatus(resolvedId, status)
-                return CopilotResult(true, "已将待办状态更新为：$status", effect = CopilotEffect.OpenTab(2))
+                return CopilotResult(
+                    true, "已将待办状态更新为：$status",
+                    undoToken = previousStatus?.takeIf { it != status }?.let { CopilotUndoTokens.taskStatus(mapOf(resolvedId to it)) },
+                    effect = CopilotEffect.OpenTab(2),
+                )
             }
             "knowledge.create" -> {
                 val name = v("knowledgeName", v("name")); if (name.isBlank()) return CopilotResult(false, "缺少知识点名称")
@@ -622,6 +665,7 @@ class LocalCopilotActionRegistry(
                 val array = runCatching { org.json.JSONArray(raw) }.getOrNull()
                     ?: return CopilotResult(false, "items 必须是 JSON 数组")
                 val outcomes = org.json.JSONArray(); var created = 0; var failed = 0
+                val previousStatuses = mutableMapOf<String, String>()
                 for (i in 0 until array.length().coerceAtMost(50)) {
                     val item = array.optJSONObject(i)
                     val ip = item?.let { jsonItemParams(it) }.orEmpty()
@@ -630,6 +674,9 @@ class LocalCopilotActionRegistry(
                         item == null -> CopilotResult(false, "条目不是 JSON 对象")
                         resolvedId == null -> CopilotResult(false, "未能定位到唯一待办")
                         else -> {
+                            repository.allTasksOnce().firstOrNull { it.id == resolvedId }?.status
+                                ?.takeIf { it != "已完成" }
+                                ?.let { previousStatuses[resolvedId] = it }
                             repository.updateTaskStatus(resolvedId, "已完成")
                             CopilotResult(true, "已将待办状态更新为：已完成")
                         }
@@ -637,7 +684,11 @@ class LocalCopilotActionRegistry(
                     if (result.success) created++ else failed++
                     outcomes.put(org.json.JSONObject().put("index", i).put("ok", result.success).put("message", result.message))
                 }
-                return CopilotResult(true, "已批量完成 $created 项待办${if (failed > 0) "，失败 $failed 项" else ""}", effect = CopilotEffect.OpenTab(2), data = batchData(outcomes, created, failed))
+                return CopilotResult(
+                    true, "已批量完成 $created 项待办${if (failed > 0) "，失败 $failed 项" else ""}",
+                    undoToken = previousStatuses.takeIf { it.isNotEmpty() }?.let { CopilotUndoTokens.taskStatus(it) },
+                    effect = CopilotEffect.OpenTab(2), data = batchData(outcomes, created, failed),
+                )
             }
             "navigation.open", "ui.open.tab" -> { val d = v("destination", "首页").lowercase(); val index = when { d.contains("student") || d.contains("学生") -> 1; d.contains("plan") || d.contains("计划") || d.contains("课程") -> 2; d.contains("analytic") || d.contains("统计") || d.contains("分析") -> 3; d.contains("setting") || d.contains("设置") || d.contains("数据") -> 4; d.contains("agent") -> 5; else -> 0 }; return CopilotResult(true, "已打开模块：$d", effect = CopilotEffect.OpenTab(index), data = mapOf("tab" to index.toString())) }
         }
