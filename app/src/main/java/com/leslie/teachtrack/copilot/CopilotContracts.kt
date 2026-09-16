@@ -22,7 +22,11 @@ val READ_ONLY_ACTIONS = setOf(
     "student.search", "student.data.organize.preview", "knowledge.weakness.query", "score.query", "course.timeline",
     "dashboard.query", "analytics.query", "navigation.open", "attachment.list", "knowledge.query",
     "student.overview.query", "parent_contact.query", "template.list", "template.render", "tag.query", "attachment.query",
-    "backup.list", "workspace.status.query", "workspace.check", "workspace.sync.scan", "workspace.conflict.list", "workspace.conflict.resolve"
+    "backup.list", "workspace.status.query", "workspace.check", "workspace.sync.scan", "workspace.conflict.list", "workspace.conflict.resolve",
+    // P2 coverage-audit additions — all pure reads or UI navigation:
+    "course.query", "exam.query", "score.trend", "homework.query", "communication.query", "problem.query",
+    "task.query", "lesson_plan.query", "timeline.query", "search.global", "tag.student.query",
+    "ui.open.tab", "ui.open.student"
 )
 
 interface CopilotProvider { suspend fun interpret(input: String, context: Map<String, String>): CopilotCandidate }

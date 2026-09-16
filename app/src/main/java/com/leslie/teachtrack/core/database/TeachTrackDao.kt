@@ -124,6 +124,7 @@ interface TeachTrackDao {
     @Query("SELECT COUNT(*) FROM students WHERE status = 'ACTIVE'") fun observeActiveCount(): Flow<Int>
 
     @Query("SELECT * FROM parent_contacts WHERE studentId = :studentId") suspend fun parentContactsOnce(studentId: String): List<ParentContactEntity>
+    @Query("SELECT * FROM communications WHERE studentId = :studentId ORDER BY date DESC") suspend fun communicationsOnce(studentId: String): List<CommunicationEntity>
     @Query("SELECT * FROM attachments WHERE studentId = :studentId ORDER BY createdAt DESC") suspend fun attachmentsOnce(studentId: String): List<AttachmentEntity>
     @Query("SELECT * FROM homework WHERE studentId = :studentId ORDER BY assignedDate DESC") suspend fun homeworkOnce(studentId: String): List<HomeworkEntity>
     @Query("SELECT * FROM problem_records WHERE studentId = :studentId ORDER BY date DESC") suspend fun problemRecordsOnce(studentId: String): List<ProblemRecordEntity>

@@ -210,7 +210,7 @@ class TeachTrackViewModel(private val repo: TeachTrackRepository, context: andro
     val askAgentRequests = remember { MutableStateFlow(0) }
     LaunchedEffect(copilotEffect) {
         when (val effect = copilotEffect) {
-            is CopilotEffect.OpenTab -> { selected = null; openCourse = false; openScore = false; tab = effect.index.coerceIn(0, 4) }
+            is CopilotEffect.OpenTab -> { selected = null; openCourse = false; openScore = false; tab = effect.index.coerceIn(0, 5) }
             is CopilotEffect.OpenStudent -> { selected = effect.studentId; openCourse = effect.startCourse; openScore = effect.startScore }
             null -> Unit
         }

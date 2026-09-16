@@ -47,16 +47,17 @@ class LocalCopilotActionRegistry(
     override val allowedActions = setOf(
         "student.create", "student.update", "student.search", "student.archive",
         "student.overview.query", "student.data.organize.preview", "student.followup.tasks.create", "knowledge.weakness.query",
-        "course.create", "course.resume", "course.timeline", "exam.create", "score.create", "score.query",
-        "communication.create", "homework.create", "lesson_plan.create", "task.create", "task.status.update",
-        "knowledge.create", "knowledge.update", "knowledge.query", "problem.create", "problem.status.update",
-        "parent_contact.create", "parent_contact.query",
+        "course.create", "course.resume", "course.timeline", "course.query", "exam.create", "exam.query", "score.create", "score.query", "score.trend",
+        "communication.create", "communication.query", "homework.create", "homework.query", "lesson_plan.create", "lesson_plan.query",
+        "task.create", "task.status.update", "task.query", "batch.tasks.create",
+        "knowledge.create", "knowledge.update", "knowledge.query", "problem.create", "problem.status.update", "problem.query",
+        "parent_contact.create", "parent_contact.query", "timeline.query", "search.global",
         "template.create", "template.list", "template.update", "template.delete", "template.render",
-        "tag.create", "tag.assign", "tag.query", "attachment.list", "attachment.query", "attachment.delete",
+        "tag.create", "tag.assign", "tag.query", "tag.student.query", "attachment.list", "attachment.query", "attachment.delete",
         "backup.export", "backup.list", "backup.restore", "csv.export.scores",
         "workspace.status.query", "workspace.export", "workspace.check", "workspace.sync.scan",
         "workspace.conflict.list", "workspace.conflict.resolve",
-        "dashboard.query", "analytics.query", "navigation.open"
+        "dashboard.query", "analytics.query", "navigation.open", "ui.open.tab", "ui.open.student"
     )
 
     override suspend fun preview(command: CopilotCommand) = CopilotResult(true, "将执行 ${command.action}，请确认后写入本地数据")
@@ -370,7 +371,136 @@ class LocalCopilotActionRegistry(
                 ConflictResolutionStore(manager).recordResolution(storage, file, choice)
                 return CopilotResult(true, "冲突处理选择已记录：$choice")
             }
-            "navigation.open" -> { val d = v("destination", "首页").lowercase(); val index = when { d.contains("student") || d.contains("学生") -> 1; d.contains("plan") || d.contains("计划") || d.contains("课程") -> 2; d.contains("analytic") || d.contains("统计") || d.contains("分析") -> 3; d.contains("setting") || d.contains("设置") || d.contains("数据") -> 4; else -> 0 }; return CopilotResult(true, "已打开模块：$d", effect = CopilotEffect.OpenTab(index), data = mapOf("tab" to index.toString())) }
+            // ── Read/query gap-closers (P2 coverage audit) ────────────────
+            // Every branch below reads through the SAME repository accessors
+            // the Compose UI screens use; no parallel query logic lives here
+            // beyond list shaping (filter/take/join) for the text envelope.
+            "course.query" -> {
+                val id = studentId()
+                if (id != null) {
+                    val rows = repository.coursesOnce(id)
+                    return CopilotResult(true, if (rows.isEmpty()) "该学生暂无课程记录" else "最近课程：${rows.take(10).joinToString("；") { "${it.date} ${it.title.ifBlank { it.subject }}" }}", effect = CopilotEffect.OpenStudent(id), data = mapOf("count" to rows.size.toString()))
+                }
+                val names = repository.searchStudents("").associate { it.id to it.name }
+                val rows = repository.allCoursesOnce().sortedWith(compareByDescending<CourseSessionEntity> { it.date }.thenByDescending { it.startTime }).take(10)
+                return CopilotResult(true, if (rows.isEmpty()) "暂无课程记录" else "最近课程：${rows.joinToString("；") { "${it.date} ${names[it.studentId] ?: "学生"} ${it.title.ifBlank { it.subject }}" }}", data = mapOf("count" to rows.size.toString()))
+            }
+            "exam.query" -> {
+                val rows = repository.allExamsOnce().sortedByDescending { it.date }.take(15)
+                return CopilotResult(true, if (rows.isEmpty()) "暂无考试记录" else "最近考试：${rows.joinToString("；") { "${it.date} ${it.name}${if (it.subject.isNotBlank()) "（${it.subject}）" else ""}" }}", data = mapOf("count" to rows.size.toString(), "examIds" to rows.joinToString(",") { it.id }))
+            }
+            "score.trend" -> {
+                val id = studentId() ?: return missing()
+                val rows = repository.scoresOnce(id)
+                if (rows.isEmpty()) return CopilotResult(true, "该学生暂无成绩记录", effect = CopilotEffect.OpenStudent(id), data = mapOf("count" to "0"))
+                // scoresOnce is newest-first; chronological order reads better in a trend line.
+                val chronological = rows.take(10).reversed()
+                val trendLine = chronological.joinToString(" → ") { "${(it.scoreRate * 100).toInt()}%" }
+                val recentAvg = chronological.takeLast(3).map { it.scoreRate }.average()
+                val previousAvg = chronological.dropLast(3).takeLast(3).map { it.scoreRate }.average()
+                val direction = when {
+                    chronological.size < 4 -> "样本不足"
+                    recentAvg > previousAvg + 0.02 -> "上升"
+                    recentAvg < previousAvg - 0.02 -> "下降"
+                    else -> "平稳"
+                }
+                return CopilotResult(true, "最近 ${chronological.size} 次得分率：$trendLine；趋势：$direction", effect = CopilotEffect.OpenStudent(id), data = mapOf("count" to rows.size.toString(), "direction" to direction, "recentAvgRate" to "%.3f".format(recentAvg)))
+            }
+            "homework.query" -> {
+                val id = studentId()
+                val rows = if (id != null) repository.homeworkOnce(id) else repository.allHomeworkOnce()
+                val onlyPending = v("status").isBlank() || v("status") in setOf("未完成", "待处理", "pending")
+                val filtered = if (onlyPending) rows.filter { it.status !in setOf("已完成", "完成", "DONE", "已检查") } else rows
+                return CopilotResult(true, if (filtered.isEmpty()) "没有匹配的作业记录" else "作业：${filtered.take(10).joinToString("；") { "${it.name}（${it.status}${it.dueDate?.let { d -> "，截止 $d" } ?: ""}）" }}", effect = id?.let { CopilotEffect.OpenStudent(it) }, data = mapOf("count" to filtered.size.toString()))
+            }
+            "communication.query" -> {
+                val id = studentId() ?: return missing()
+                val rows = repository.communicationsOnce(id)
+                return CopilotResult(true, if (rows.isEmpty()) "该学生暂无家校沟通记录" else "最近沟通：${rows.take(8).joinToString("；") { "${it.date} ${it.summary.take(40)}" }}", effect = CopilotEffect.OpenStudent(id), data = mapOf("count" to rows.size.toString()))
+            }
+            "problem.query" -> {
+                val id = studentId()
+                val rows = if (id != null) repository.problemRecordsOnce(id) else repository.copilotOrganizationData().problems
+                val onlyOpen = v("status").isBlank()
+                val filtered = if (onlyOpen) rows.filter { it.status !in setOf("已改善", "已解决") } else rows.filter { it.status == v("status") }
+                return CopilotResult(true, if (filtered.isEmpty()) "没有匹配的问题记录" else "问题记录：${filtered.take(10).joinToString("；") { "${it.title}（${it.status}）" }}", effect = id?.let { CopilotEffect.OpenStudent(it) }, data = mapOf("count" to filtered.size.toString(), "problemIds" to filtered.take(20).joinToString(",") { it.id }))
+            }
+            "task.query" -> {
+                val id = studentId()
+                val onlyPending = v("status").isBlank() || v("status") in setOf("待处理", "未完成", "pending")
+                val rows = repository.allTasksOnce()
+                    .filter { id == null || it.studentId == id }
+                    .filter { !onlyPending || it.status !in setOf("已完成", "完成", "DONE") }
+                return CopilotResult(true, if (rows.isEmpty()) "没有匹配的待办" else "待办：${rows.take(10).joinToString("；") { "${it.title}（${it.status}${it.dueDate?.let { d -> "，截止 $d" } ?: ""}）" }}", effect = CopilotEffect.OpenTab(2), data = mapOf("count" to rows.size.toString(), "taskIds" to rows.take(20).joinToString(",") { it.id }))
+            }
+            "lesson_plan.query" -> {
+                val id = studentId()
+                val rows = repository.allLessonPlansOnce().filter { id == null || it.studentId == id }.take(10)
+                return CopilotResult(true, if (rows.isEmpty()) "暂无下一节课计划" else "下一节课计划：${rows.joinToString("；") { "${it.plannedDate} ${it.focus.ifBlank { it.chapter }.take(40)}" }}", effect = id?.let { CopilotEffect.OpenStudent(it) } ?: CopilotEffect.OpenTab(2), data = mapOf("count" to rows.size.toString()))
+            }
+            "timeline.query" -> {
+                // Mirrors StudentTimeline in MainActivity.kt: same five event
+                // sources, same sort, so the Agent reads what the UI shows.
+                val id = studentId() ?: return missing()
+                data class Event(val date: String, val type: String, val detail: String)
+                val events = (repository.coursesOnce(id).map { Event(it.date, "课程", it.title.ifBlank { it.subject }.ifBlank { "课程记录" }) } +
+                    repository.scoresOnce(id).map { Event("", "成绩", "得分 ${it.score}/${it.fullScore} · 得分率 ${(it.scoreRate * 100).toInt()}%") } +
+                    repository.homeworkOnce(id).map { Event(it.assignedDate, "作业", "${it.name} · ${it.status}") } +
+                    repository.communicationsOnce(id).map { Event(it.date, "沟通", it.summary.ifBlank { "家校沟通记录" }) } +
+                    repository.problemRecordsOnce(id).map { Event(it.date, "问题", it.title.ifBlank { it.description }) }).sortedByDescending { it.date }
+                return CopilotResult(true, if (events.isEmpty()) "该学生暂无历史事件" else "时间线：${events.take(15).joinToString("；") { "${it.date.ifBlank { "未标日期" }} ${it.type} ${it.detail.take(40)}" }}", effect = CopilotEffect.OpenStudent(id), data = mapOf("count" to events.size.toString()))
+            }
+            "search.global" -> {
+                val query = v("query", v("rawText")).trim()
+                if (query.isBlank()) return CopilotResult(false, "缺少搜索关键词")
+                val students = repository.searchStudents(query)
+                val knowledge = repository.allKnowledge().filter { it.name.contains(query, true) }
+                val templates = repository.allTemplatesOnce().filter { it.name.contains(query, true) }
+                val tags = repository.allTags().filter { it.name.contains(query, true) }
+                val parts = buildList {
+                    if (students.isNotEmpty()) add("学生 ${students.size} 名：${students.take(5).joinToString("、") { it.name }}")
+                    if (knowledge.isNotEmpty()) add("知识点 ${knowledge.size} 个：${knowledge.take(5).joinToString("、") { it.name }}")
+                    if (templates.isNotEmpty()) add("模板 ${templates.size} 个：${templates.take(5).joinToString("、") { it.name }}")
+                    if (tags.isNotEmpty()) add("标签 ${tags.size} 个：${tags.take(5).joinToString("、") { it.name }}")
+                }
+                val effect = students.singleOrNull()?.let { CopilotEffect.OpenStudent(it.id) }
+                return CopilotResult(true, if (parts.isEmpty()) "没有找到与“$query”相关的内容" else parts.joinToString("；"), effect = effect, data = mapOf("students" to students.size.toString(), "knowledge" to knowledge.size.toString(), "templates" to templates.size.toString(), "tags" to tags.size.toString(), "studentIds" to students.take(20).joinToString(",") { it.id }))
+            }
+            "tag.student.query" -> {
+                val id = studentId() ?: return missing()
+                val names = repository.allTags().associate { it.id to it.name }
+                val tags = repository.studentTagsOnce(id).mapNotNull { names[it.tagId] }
+                return CopilotResult(true, if (tags.isEmpty()) "该学生暂无标签" else "该学生标签：${tags.joinToString("、")}", effect = CopilotEffect.OpenStudent(id), data = mapOf("count" to tags.size.toString()))
+            }
+            "ui.open.student" -> {
+                val id = studentId() ?: return missing()
+                val student = repository.studentOnce(id) ?: return CopilotResult(false, "未找到学生")
+                return CopilotResult(true, "已打开学生工作台：${student.displayName.ifBlank { student.name }}", effect = CopilotEffect.OpenStudent(id), data = mapOf("studentId" to id))
+            }
+            "batch.tasks.create" -> {
+                val raw = v("items")
+                if (raw.isBlank()) return CopilotResult(false, "缺少 items 参数（JSON 数组，例如 [{\"title\":\"…\",\"studentName\":\"…\"}]）")
+                val array = runCatching { org.json.JSONArray(raw) }.getOrNull()
+                    ?: return CopilotResult(false, "items 必须是 JSON 数组")
+                var created = 0; var failed = 0
+                val taskIds = mutableListOf<String>()
+                for (i in 0 until array.length().coerceAtMost(50)) {
+                    val item = array.optJSONObject(i)
+                    val title = item?.optString("title")?.trim().orEmpty()
+                    if (item == null || title.isBlank()) { failed++; continue }
+                    val itemStudentId = item.optString("studentName").takeIf { it.isNotBlank() }?.let { query ->
+                        when (val result = entityResolver.resolve(query)) {
+                            is EntityResolution.Resolved -> result.student.id
+                            else -> null
+                        }
+                    }
+                    val taskId = UUID.randomUUID().toString()
+                    repository.saveTask(TaskEntity(taskId, title, itemStudentId, dueDate = item.optString("dueDate").takeIf { it.isNotBlank() }, priority = item.optString("priority", "普通"), notes = item.optString("notes")))
+                    taskIds += taskId; created++
+                }
+                return CopilotResult(true, "已批量创建 $created 项待办${if (failed > 0) "，跳过 $failed 项无效条目" else ""}", effect = CopilotEffect.OpenTab(2), data = mapOf("created" to created.toString(), "failed" to failed.toString(), "taskIds" to taskIds.joinToString(",")))
+            }
+            "navigation.open", "ui.open.tab" -> { val d = v("destination", "首页").lowercase(); val index = when { d.contains("student") || d.contains("学生") -> 1; d.contains("plan") || d.contains("计划") || d.contains("课程") -> 2; d.contains("analytic") || d.contains("统计") || d.contains("分析") -> 3; d.contains("setting") || d.contains("设置") || d.contains("数据") -> 4; d.contains("agent") -> 5; else -> 0 }; return CopilotResult(true, "已打开模块：$d", effect = CopilotEffect.OpenTab(index), data = mapOf("tab" to index.toString())) }
         }
         return CopilotResult(false, "暂不支持动作：${command.action}")
     }
