@@ -261,3 +261,35 @@ operation has an Agent equivalent except the five reasoned exclusions above.
   `sha256sum -c`. The release APK was install-smoke-tested on the OnePlus
   (installs, launches to MainActivity), then the debug build was restored
   for future instrumented runs.
+
+## P5 hardening batch 3 (spec §7/§46/§66/§71 + final sweep)
+
+- **§71 error recovery**: student-resolution failures are now stable and
+  machine-readable everywhere. `CopilotResult.errorCode` carries
+  `AMBIGUOUS_STUDENT` (with `data.candidates`) / `STUDENT_NOT_FOUND`; the
+  offload bridge maps them into `error.code` (with `error.data` for
+  candidates) instead of flattening everything to `EXECUTION_FAILED`, and
+  batch actions repeat the SAME codes per item in `data.items[].code`
+  (`batch.scores/courses/tags` share one `resolveItemStudent` helper).
+  3 new device tests (ambiguous single, not-found single, batch per-item
+  codes) — full suite 52/52 (`artifacts/oneplus-androidtest-full-20260927.txt`).
+- **§46 privacy guidance**: new "Privacy" section in the bundled skill
+  (query minimally, no whole-table dumps, no parent-contact/sensitive
+  fields unless asked, summarize instead of echoing raw JSON). Skill
+  bumped to **1.7.2** (one bump covering §46 + §71 error-code docs).
+- **§7 tablet (OPD2101, 2d64f765, 1600x2560@360)**: no code change needed.
+  `ChatSplitScaffold` decides two-pane from `currentWindowAdaptiveInfo`
+  (width ≥ 840dp + height ≥ 480dp), which measures the full app window —
+  so the embedded AgentHost already renders the session-list + chat split
+  in landscape (`artifacts/tablet-agent-20260927.png`), and the student
+  workspace adapts cleanly (`artifacts/tablet-workspace-20260927.png`).
+  Minor observation, not fixed: workspace cards cap at ~half width on the
+  very wide screen — cosmetic, left for a future tablet-polish pass.
+- **§66 data organization**: already Agent-reachable —
+  `student.data.organize.preview` exposes `StudentDataOrganizer.analyze`
+  read-only (findings over students/courses/homework/tasks/problems/
+  knowledge), and `student.followup.tasks.create` is its explicit-write
+  counterpart. No new action; no auto-delete, per spec.
+- **Release**: `3.0.0-alpha.3` (versionCode 300003) — app code changed in
+  §71/§46, so a new debug-signed release APK + debug APK were cut and
+  appended to `SHA256SUMS.txt`.

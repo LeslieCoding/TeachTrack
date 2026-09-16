@@ -4,7 +4,7 @@ TeachTrack is a local-first Android workspace for a teacher managing long-term s
 
 ## Current version
 
-`TeachTrack 3.0 · TeachTrack Copilot` — Android `3.0.0-alpha.2`.
+`TeachTrack 3.0 · TeachTrack Copilot` — Android `3.0.0-alpha.3`.
 
 The 1.x local-first MVP remains usable without an account, cloud service, network, or AI. Version 2 added an optional natural-language command layer: typed or voice input is interpreted by a configurable provider and converted into validated local actions. Version 3 adds the Portable Workspace foundation and completes Copilot's Action Registry coverage across every implemented module (see `AI_SPEC/31_V2_REQUIREMENTS.md` `V2-REQ-040`).
 
@@ -31,7 +31,8 @@ The model cannot access Room or execute arbitrary code. It can only produce a ve
 
 ## 3.0 delivery status
 
-- Current Android version: `3.0.0-alpha.2`.
+- Current Android version: `3.0.0-alpha.3`.
 - Current Debug and debug-signed Release build artifacts are in `artifacts/deliverables/`; checksums are in `SHA256SUMS.txt`.
-- Latest OnePlus database instrumentation result: `OK (27 tests)`. The current ColorOS installer policy prevented a fresh Compose/full-suite rerun; see `docs/testing-round-5.md`.
+- The embedded Agent tab (OpenMinis) drives TeachTrack through the `teachtrack` sandbox CLI → Native Offload bridge → 68-action Copilot Action Registry (see `TEACHTRACK_AGENT_COVERAGE_REPORT.md`). Access mode (Owner Trusted / standard), integration status page, and audit + undo live in Settings → TeachTrack Integration.
+- Latest OnePlus instrumentation result: `OK (52 tests)` (database + agent actions + literal PRoot sandbox e2e, `artifacts/oneplus-androidtest-full-20260927.txt`); tablet (OPD2101) rendering verified via uiautomator/screencap artifacts.
 - Real provider OAuth approval and Release signing require external credentials/material.
