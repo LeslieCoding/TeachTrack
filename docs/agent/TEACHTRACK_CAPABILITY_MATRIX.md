@@ -1,5 +1,15 @@
 # TeachTrack Agent Capability Matrix
 
+## P2 coverage-audit update (2026-09-27)
+
+14 actions added (`course.query`, `exam.query`, `score.trend`,
+`homework.query`, `communication.query`, `problem.query`, `task.query`,
+`lesson_plan.query`, `timeline.query`, `search.global`, `tag.student.query`,
+`ui.open.tab`, `ui.open.student`, `batch.tasks.create`) — see
+`TEACHTRACK_AGENT_COVERAGE_REPORT.md` (repo root) for the full per-module
+UI-vs-Agent diff and `TEACHTRACK_CAPABILITIES.json` for the machine-readable
+mirror (sync-guarded by `CapabilitiesJsonSyncTest`).
+
 ## Reliability update (2026-09-14)
 
 - Student/entity resolution includes recorded `displayName`, so a partial
@@ -35,19 +45,30 @@ Status legend:
 | `course.create` | Student Workspace → 记录课程 | AVAILABLE_TO_AGENT | |
 | `course.resume` | Student Workspace → course history | AVAILABLE_TO_AGENT | |
 | `course.timeline` | Student Workspace → timeline | AVAILABLE_TO_AGENT | |
+| `course.query` | Dashboard/Planning course lists | AVAILABLE_TO_AGENT | P2: per-student or global recent courses |
 | `exam.create` | Student Workspace → 录入成绩 flow | AVAILABLE_TO_AGENT | |
+| `exam.query` | Dashboard 最近考试 | AVAILABLE_TO_AGENT | P2: latest 15 exams with ids |
 | `score.create` | Student Workspace → 录入成绩 | AVAILABLE_TO_AGENT | validates `score <= fullScore` |
 | `score.query` | Student Workspace → scores | AVAILABLE_TO_AGENT | |
+| `score.trend` | Student Workspace → ScoreTrendCard | AVAILABLE_TO_AGENT | P2: last-10 score-rate line + direction |
 | `communication.create` | Student Workspace → 家校沟通 | AVAILABLE_TO_AGENT | |
+| `communication.query` | Student Workspace → 家校沟通 summary | AVAILABLE_TO_AGENT | P2 |
 | `homework.create` | Student Workspace → 作业 | AVAILABLE_TO_AGENT | |
+| `homework.query` | Student Workspace → 作业 summary | AVAILABLE_TO_AGENT | P2: pending by default, `status` for all |
 | `lesson_plan.create` | Student Workspace → 计划 | AVAILABLE_TO_AGENT | |
+| `lesson_plan.query` | Planning → 日历 | AVAILABLE_TO_AGENT | P2 |
 | `task.create` | Student Workspace → tasks | AVAILABLE_TO_AGENT | fixed: now returns `data.taskId` (previously had no way to reference the new task) |
 | `task.status.update` | Student Workspace → tasks | AVAILABLE_TO_AGENT | needs `taskId` (preferred) or a `title` substring match |
+| `task.query` | Planning → 待办 | AVAILABLE_TO_AGENT | P2: pending by default, returns taskIds |
+| `batch.tasks.create` | Planning → 待办 | AVAILABLE_TO_AGENT | P2: JSON-array bulk create, max 50, per-item failure isolation |
 | `knowledge.create` | Student Workspace → knowledge tree | AVAILABLE_TO_AGENT | rejects duplicate names |
 | `knowledge.update` | Student Workspace → knowledge tree | AVAILABLE_TO_AGENT | fixed: `knowledgePointId` lookup and `notes` param were both broken (see DECISIONS.md/BACKLOG.md) |
 | `knowledge.query` | Student Workspace → knowledge tree | AVAILABLE_TO_AGENT | fixed: with a student it now returns real progress data instead of a no-op navigation message |
 | `problem.create` | Student Workspace → 错题 | AVAILABLE_TO_AGENT | fixed: now returns `data.problemId` (previously had no way to reference the new record) |
 | `problem.status.update` | Student Workspace → 错题 | AVAILABLE_TO_AGENT | needs `problemId` — no fallback, errors immediately if missing |
+| `problem.query` | Student Workspace → ProblemSummaryCard | AVAILABLE_TO_AGENT | P2: open problems by default, `status` filter, returns problemIds |
+| `timeline.query` | Student Workspace → StudentTimeline | AVAILABLE_TO_AGENT | P2: same five event sources + sort as the UI card |
+| `search.global` | — | AGENT_ONLY | P2: one query across students/knowledge/templates/tags; the UI only has per-screen search bars |
 | `parent_contact.create` | Student Workspace → 家长联系方式 | AVAILABLE_TO_AGENT | |
 | `parent_contact.query` | Student Workspace → 家长联系方式 | AVAILABLE_TO_AGENT | |
 | `template.create` | Settings → Templates | AVAILABLE_TO_AGENT | |
@@ -58,6 +79,7 @@ Status legend:
 | `tag.create` | Student Workspace → tags | AVAILABLE_TO_AGENT | |
 | `tag.assign` | Student Workspace → tags | AVAILABLE_TO_AGENT | creates the tag first if it doesn't exist |
 | `tag.query` | Student Workspace → tags | AVAILABLE_TO_AGENT | |
+| `tag.student.query` | Student Workspace → tags | AVAILABLE_TO_AGENT | P2: tags assigned to one student |
 | `attachment.list` | Student Workspace → attachments | AVAILABLE_TO_AGENT | |
 | `attachment.query` | Student Workspace → attachments | AVAILABLE_TO_AGENT | |
 | `attachment.delete` | Student Workspace → attachments | AVAILABLE_TO_AGENT | soft delete (`deletedAt`) |
@@ -73,7 +95,9 @@ Status legend:
 | `workspace.conflict.resolve` | Settings → Workspace | AVAILABLE_TO_AGENT | |
 | `dashboard.query` | Dashboard (首页) | AVAILABLE_TO_AGENT | |
 | `analytics.query` | 统计 tab | AVAILABLE_TO_AGENT | |
-| `navigation.open` | (drives the UI itself) | AVAILABLE_TO_AGENT | switches TeachTrack's own tab/student, see `CopilotEffect` |
+| `navigation.open` | (drives the UI itself) | AVAILABLE_TO_AGENT | switches TeachTrack's own tab/student, see `CopilotEffect`; P2: "agent" now maps to tab 5 |
+| `ui.open.tab` | (drives the UI itself) | AVAILABLE_TO_AGENT | P2: alias of `navigation.open` in the spec's `ui.open.*` namespace |
+| `ui.open.student` | Student Workspace | AVAILABLE_TO_AGENT | P2: opens a student's workspace via `CopilotEffect.OpenStudent` |
 
 ## Explicitly out of Agent scope (reasoned exclusion, not a gap)
 
@@ -82,20 +106,26 @@ Status legend:
 | Provider/OAuth self-configuration (switch provider, change endpoint/model, start OAuth, clear API key) | NOT_APPLICABLE | Permanent security boundary — the model must never reconfigure its own outbound credentials (`INV-V2-004`, `STATE/BACKLOG.md`) |
 | `workspace.create` / `workspace.open` / `.ttbackup` create+restore | NOT_APPLICABLE | Android SAF requires a one-time human directory-grant gesture; Agent navigates + instructs instead |
 | Hard delete (true physical removal) of course/score/homework/exam/communication | NOT_APPLICABLE | Standing "archive before delete" project principle |
+| Attachment add (SAF file pick) | NOT_APPLICABLE | Attachment records store a content URI from the SAF picker; the Agent cannot mint one — same SAF-grant class as workspace create/open |
+| Homework status edit | NOT_APPLICABLE | The UI itself has no write path for homework status (read-only display); nothing to mirror |
+| Historical-seed import (Settings → Seed V1.0) | NOT_APPLICABLE | One-off migration tool behind an SAF file pick, not a recurring business operation |
 
 ## Coverage summary
 
-- 49 actions in `LocalCopilotActionRegistry.allowedActions`, all reachable
+- 64 actions in `LocalCopilotActionRegistry.allowedActions` (49 pre-P2 + 14
+  added in the P2 coverage audit + `ui.open.tab` alias), all reachable
   from the Agent via `TeachTrackOffloadHandler` → `CopilotService.execute()`
   → the same registry the in-app Copilot chat window uses (LAEP MASTER TASK
   sections 12-13: one business logic per feature, no duplicate
   implementation for the Agent path).
-- 47 map to a real UI screen; 2 (`student.data.organize.preview`,
-  `csv.export.scores`) are Agent-reachable capabilities the DAO/Repository
-  layer already had before this UI existed, with no dedicated UI screen of
-  their own to point at.
+- 61 map to a real UI screen; 3 (`student.data.organize.preview`,
+  `csv.export.scores`, `search.global`) are Agent-reachable capabilities the
+  DAO/Repository layer already had, with no dedicated UI screen of their own.
 - 0 actions are silently unsupported (`UNSUPPORTED`) — every action in the
   registry is either `AVAILABLE_TO_AGENT` or `AGENT_ONLY`.
+- The machine-readable mirror is `TEACHTRACK_CAPABILITIES.json` (repo root);
+  `app/src/test/.../CapabilitiesJsonSyncTest.kt` fails the build if the two
+  drift apart (spec §69).
 
 ## Verified (see `LAEP/STATE/BACKLOG.md` for the full evidence trail)
 
