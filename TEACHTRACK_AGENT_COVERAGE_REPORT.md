@@ -353,8 +353,23 @@ operation has an Agent equivalent except the five reasoned exclusions above.
   no-op when the process had not started yet; the process could be frozen
   during attach — re-confirmed 2026-09-17 red-handed via
   `ApplicationThreadDeferred` in `dumpsys activity processes` with total
-  log silence). A full single-invocation real-execution re-proof of all 52
-  tests with the fixed runner is still pending (the OEM freezer is
-  aggressive when the device is idle and can freeze the headless
-  instrumented process mid-suite even after healing attempts).
+  log silence).
+- **Re-proof done (2026-09-17): genuine single-invocation 52/52.**
+  `artifacts/oneplus-androidtest-full-20260917.txt` has been overwritten
+  with a REAL-execution run of the fixed `scripts/run-device-suite.sh`
+  (screen kept on via `svc power stayon true`, keyguard dismissed, app
+  foregrounded before start): all 3 classes, 52 test-start/52 test-pass
+  status pairs, `OK (52 tests)`, total `Time: 16.083` (vs. the phantom
+  runs' per-test `0.004`s), **0 stall heals needed**. One environment
+  caveat from the re-proof: instrumented tests cannot run against the
+  minified release APK — the first attempt crashed instantly with
+  `NoClassDefFoundError: kotlin.jvm.internal.Intrinsics` because R8
+  shrinking strips classes the test APK links against. The successful run
+  used `adb install -r` of the debug app + androidTest APKs over the
+  alpha.3 release-debug-signed install (same debug key, user data
+  preserved; alpha.3 was restored afterwards). Earlier real-execution
+  evidence also stands: `artifacts/oneplus-ace5-androidtest-20260916.txt`
+  (52/52 split run), `artifacts/oneplus-androidtest-20260927.txt`
+  (`Time: 8.68`), `artifacts/oneplus-sandbox-e2e-20260927.txt`
+  (`Time: 2.059`/`3.261`).
 

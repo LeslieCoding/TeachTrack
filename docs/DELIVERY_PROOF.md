@@ -5,14 +5,13 @@ Date: 2026-09-17. Baseline: HEAD after the mock-agent-loop proof commits
 versionCode 300003).
 
 **Honesty note (2026-09-17):** earlier "6 consecutive 52/52 full-suite"
-claims based on `artifacts/oneplus-androidtest-full-20260917.txt` were
-**invalid**: the runner script passed `-e log true` to `am instrument`,
-which is androidx.test *discovery/log-only* mode — per-test pass events are
-emitted with near-zero durations (`Time: 0.004`–`0.068`) **without
-executing the test bodies**. That artifact is not execution proof. Genuine
-real-execution artifacts are named explicitly in each row below (real
-durations, e.g. `Time: 8.68`). See the correction section in
-`TEACHTRACK_AGENT_COVERAGE_REPORT.md`.
+claims were based on a phantom: the runner script passed `-e log true` to
+`am instrument`, which is androidx.test *discovery/log-only* mode —
+per-test pass events are emitted with near-zero durations
+(`Time: 0.004`–`0.068`) **without executing the test bodies**. That
+artifact has since been **overwritten with a genuine real-execution run**
+(see the environment caveats at the bottom and the correction + re-proof
+sections in `TEACHTRACK_AGENT_COVERAGE_REPORT.md`).
 
 This file maps every §89 delivery-proof item and every §58–§66 acceptance
 section of the LAEP MASTER TASK to its concrete, re-checkable evidence:
@@ -42,7 +41,7 @@ which no agent run may configure (see the instructions at the bottom).
 | 13 | Agent 能执行批量任务 | ✅ | `batch.scores/courses/tags/tasks.complete` device-tested (`p4Batch*`, `p2BatchTasksCreateFromJsonItems`), per-item ok/error isolation asserted |
 | 14 | Agent 能导航 | ✅ | `navigation.open` / `ui.open.tab` / `ui.open.student` via `CopilotEffect.OpenStudent`, device-tested (`p2NavigationActionsResolveEffects`); 「问 Agent」hand-off with prefilled student context: `artifacts/ace5-ui-ask-agent-20260916.{png,xml}`, `artifacts/ask-agent-ui-20260927.xml` |
 | 15 | 重启 App 后数据仍然存在 | ✅ | `artifacts/lifecycle-20260927.txt` (rotation + force-stop cold-restart probes pass); upgrade-install data preservation `artifacts/ace5-upgrade-data-preserved-20260916.xml`; Room-migration tests in `TeachTrackDatabaseInstrumentedTest` (30 tests) |
-| 16 | OpenMinis 原生 Agent 能力没有被破坏 | ✅ | Native smoke (busybox/Alpine/rootfs) + bundled-skill install (1.7.2) in `SandboxEndToEndInstrumentedTest`; full 3-class 52-test suite green in real execution via split run — `artifacts/oneplus-ace5-androidtest-20260916.txt` (46 core + 6 sandbox, real durations). The intermittent full-suite hang was root-caused to the ColorOS cached-app freezer (OS-level, not app damage; re-confirmed 2026-09-17 via `ApplicationThreadDeferred` captures) and harness-fixed in `scripts/run-device-suite.sh` (sticky unfreeze re-issued after process start; the `-e log true` discovery-mode flag removed — the earlier "6 consecutive 52/52" artifact `oneplus-androidtest-full-20260917.txt` was log-only mode and is not execution proof). A single-invocation real-execution re-proof of all 52 tests with the fixed runner remains pending freezer cooperation — coverage report correction section, `artifacts/hang-diag/live-run2/` |
+| 16 | OpenMinis 原生 Agent 能力没有被破坏 | ✅ | Native smoke (busybox/Alpine/rootfs) + bundled-skill install (1.7.2) in `SandboxEndToEndInstrumentedTest`; **genuine single-invocation real-execution full-suite run: `artifacts/oneplus-androidtest-full-20260917.txt` — 3 classes, 52 starts/52 passes, `OK (52 tests)`, `Time: 16.083`, 0 stall heals** via the fixed `scripts/run-device-suite.sh` (debug build; instrumented tests cannot link against the R8-minified release APK — `NoClassDefFoundError` on attempt 1, debug APKs installed over alpha.3 with data preserved). The intermittent full-suite hang was root-caused to the ColorOS cached-app freezer (OS-level, not app damage; re-confirmed 2026-09-17 via `ApplicationThreadDeferred` captures) and harness-fixed (sticky unfreeze re-issued after process start; `-e log true` discovery-mode flag removed). Earlier real-execution evidence also stands: `oneplus-ace5-androidtest-20260916.txt`, `oneplus-androidtest-20260927.txt` — coverage report correction + re-proof sections, `artifacts/hang-diag/live-run2/` |
 
 ## §58–§66 Acceptance sections
 
@@ -87,15 +86,14 @@ the key is the only missing ingredient.
   in rare full-suite runs — root-caused (`artifacts/hang-diag/live-run2/`,
   re-confirmed 2026-09-17 via `ApplicationThreadDeferred` captures),
   fixed in the harness (`scripts/run-device-suite.sh`: sticky unfreeze
-  re-issued after process start). **Note:** the earlier "6×52/52 proof"
-  (`artifacts/oneplus-androidtest-full-20260917.txt`) was produced while
-  the runner passed `-e log true` (androidx.test discovery/log-only mode —
-  test bodies not executed) and is **not** valid execution proof; genuine
-  real-execution full-suite evidence is
-  `artifacts/oneplus-ace5-androidtest-20260916.txt` (52/52 split run) and
-  `artifacts/oneplus-androidtest-20260927.txt`. A single-invocation
-  real-execution re-proof with the fixed runner is still pending (the
-  freezer aggressively targets the headless instrumented process when the
-  device is idle).
+  re-issued after process start, `-e log true` removed).
+  **Re-proof 2026-09-17: `artifacts/oneplus-androidtest-full-20260917.txt`
+  now holds a genuine single-invocation real-execution run — 3 classes,
+  52/52, `OK (52 tests)`, `Time: 16.083`, 0 stall heals** (screen on,
+  keyguard dismissed, app foregrounded; run against the debug build —
+  instrumented tests cannot run against the R8-minified release APK, which
+  crashes instantly with `NoClassDefFoundError: kotlin.jvm.internal.Intrinsics`).
+  Earlier real-execution evidence: `oneplus-ace5-androidtest-20260916.txt`
+  (52/52 split run), `oneplus-androidtest-20260927.txt`.
 - **Tablet (OPD2101) student-workspace card width** — fixed (`07cd675`),
   before/after `artifacts/tablet-workspace-{before,after}-20260916.{png,xml}`.
