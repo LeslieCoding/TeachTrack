@@ -298,13 +298,42 @@ operation has an Agent equivalent except the five reasoned exclusions above.
   alpha.2 debug build preserved real user data （陈浠怡 etc.,
   `artifacts/ace5-upgrade-data-preserved-20260916.xml`). Full suite 52/52
   via a split run — 46 core tests + 6 sandbox tests
-  (`artifacts/oneplus-ace5-androidtest-20260916.txt`). Note: the single
-  3-class instrument run hangs intermittently inside one of the sandbox
-  tests (no proot child, no app logs, no ANR — environmental flakiness in
-  repeated in-process proot execs, not a code regression; the sandbox
-  class passes standalone reliably, especially after a warm restart).
+  (`artifacts/oneplus-ace5-androidtest-20260916.txt`).
   UI acceptance passed: home, Agent tab (embedded OpenMinis + TeachTrack
   nav), 问 Agent prefill from student detail, and the Integration screen
   (bridge running on abstract socket 'native-offload', 68 actions, skill
   1.7.2, Owner Trusted, workspace 0 issues) — `artifacts/ace5-ui-*-20260916.*`.
   Device left on the alpha.3 release-debug-signed build with data intact.
+- **Full-suite intermittent hang — root cause found (fixed in the harness,
+  not the app)**. The single 3-class instrument run used to hang
+  intermittently inside one of the sandbox tests. Captured during a live
+  hang (`artifacts/hang-diag/live-run2/`): the app process was fully
+  silent — no proot child anywhere on the system, no `native-offload`
+  worker thread, a clean fd table (no leak), no app logs for minutes, and
+  SIGQUIT (`kill -3`) produced no trace because a suspended process cannot
+  run its dump handler. Every thread state was indistinguishable from the
+  ROM's frozen-app baseline. This rules out every in-app hypothesis
+  (fd/thread/pty leaks in `ShellExecutor`/`pty_bridge.c`, offload-socket
+  state, singleton ordering, pipe-buffer deadlock — the reader drains
+  continuously and EOF had no holders left): the **whole process was
+  frozen by the system's cached-app freezer** (stock
+  `CachedAppOptimizer`/`am freeze` on ColorOS — the same logcat shows
+  `Async freezing`/`Freeze process` of other cached apps, and Oplus's
+  `osense.compress` was actively shrinking our backgrounded app every
+  20 s). It only bites when the suite is started while the app process is
+  **cached** (e.g. backgrounded after UI acceptance flows); a process
+  started fresh by `am instrument` is virtually never a freezer
+  candidate, which is why the sandbox class alone and warm-restarted runs
+  always passed. Production paths were never affected: agent streams and
+  chat presence already hold the process at adj=200 via
+  `AgentForegroundService`/`SessionActivityTracker`, so real shell
+  executions run freeze-immune by design — the instrumented test run was
+  the only unprotected path, hence a harness fix rather than app changes.
+  Fix: `scripts/run-device-suite.sh` now (1) marks the app
+  `am unfreeze --sticky` for the process lifetime, (2) keeps MainActivity
+  foreground during the run, and (3) watches for stalls and heals them
+  with `am unfreeze` while capturing `dumpsys activity processes`
+  (`isFrozen`/`isPendingFreeze`) for forensics. Proof:
+  `artifacts/oneplus-androidtest-full-20260917.txt` — consecutive
+  single-invocation full-suite runs, 52/52 each.
+
