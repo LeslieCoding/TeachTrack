@@ -229,3 +229,35 @@ operation has an Agent equivalent except the five reasoned exclusions above.
   `AgentNewActionsInstrumentedTest` gains 4 tests (undo task status / batch
   completion / student archive, standard-mode gate) — 43/43 OK on OnePlus
   PKG110 (`artifacts/oneplus-androidtest-20260927-p5.txt`).
+
+## P5 hardening batch 2 (spec §52/§57/§48/§58 + release refresh)
+
+- **§58 literal sandbox e2e**: `SandboxEndToEndInstrumentedTest` runs inside
+  the app's own process and drives the CLI through the REAL path —
+  `ShellExecutor` → proot exec of the `/usr/local/bin/teachtrack` stub →
+  native_offload extension → abstract socket → `NativeOffloadServer` →
+  `TeachTrackOffloadHandler` → registry. Asserts: `--help` documents
+  capabilities/rpc, `capabilities` returns strict JSON with all 68 actions,
+  and a student seeded into the real Room DB is found by
+  `student.search` over the socket (soft-archived afterwards). 6/6 green
+  (`artifacts/oneplus-sandbox-e2e-20260927.txt`). No fallback to
+  direct-dispatch was needed — the full PRoot path works in instrumentation.
+- **§52 lifecycle**: (c) register/start idempotency is a test in the same
+  class (re-register + re-start, handler set unchanged, bridge still
+  answers); (a)+(b) are covered by `scripts/verify-agent-lifecycle.sh`,
+  which force-stops + cold-starts the app and rotates the display, re-running
+  the capabilities probe after each — both OK
+  (`artifacts/lifecycle-20260927.txt`).
+- **§57/§48 native-ability smoke (no LLM key)**: same e2e class —
+  `uname -a`, `busybox`, `/etc/alpine-release` execute inside the sandbox,
+  and `/var/minis/skills/teachtrack/SKILL.md` (bind-mounted from
+  `filesDir/minis-global/skills`) reads back with `version: 1.7.1`.
+- **Release deliverable**: `3.0.0-alpha.2` (versionCode 300002). Release
+  build keeps the established debug-signing approach
+  (`signingConfig = signingConfigs.getByName("debug")` in the release type).
+  `artifacts/deliverables/TeachTrack-3.0.0-alpha.2-release-debug-signed.apk`
+  (SHA-256 `061E2DD0…B721F5`) and `…-alpha.2-debug.apk`
+  (`5441D78C…B2FEAC17`); both appended to `SHA256SUMS.txt` and verified with
+  `sha256sum -c`. The release APK was install-smoke-tested on the OnePlus
+  (installs, launches to MainActivity), then the debug build was restored
+  for future instrumented runs.
