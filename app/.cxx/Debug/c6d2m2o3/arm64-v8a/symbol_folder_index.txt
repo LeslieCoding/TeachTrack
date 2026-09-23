@@ -1,1 +1,0 @@
-/tmp/tt-build/app/intermediates/cxx/Debug/c6d2m2o3/obj/arm64-v8a

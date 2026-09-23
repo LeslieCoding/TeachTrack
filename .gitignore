@@ -3,6 +3,7 @@
 .kotlin/
 **/build/
 build/
+**/.cxx/
 
 # Machine-local Android SDK configuration
 local.properties
