@@ -1,0 +1,14 @@
+# ninja log v5
+5	74	1789377631369164600	CMakeFiles/pty_bridge.dir/pty_bridge.c.o	2c6d4bfaa9dc34bb
+6	110	1789377631384914900	CMakeFiles/minis_crash_handler.dir/crash_handler.cpp.o	6f84b2b9858843a4
+107	148	1789377631448109700	/mnt/d/SoftWare/TeachTrack/app/build/intermediates/cxx/RelWithDebInfo/6373c4v5/obj/arm64-v8a/libpty_bridge.so	76204fdf0e694672
+118	155	1789377631448109700	/mnt/d/SoftWare/TeachTrack/app/build/intermediates/cxx/RelWithDebInfo/6373c4v5/obj/arm64-v8a/libminis_crash_handler.so	92874b6d0c790b53
+6	2259	1789377633538123400	CMakeFiles/jieba_jni.dir/jieba_jni.cpp.o	4b6635e56701d076
+2444	2501	1789377633791357300	/mnt/d/SoftWare/TeachTrack/app/build/intermediates/cxx/RelWithDebInfo/6373c4v5/obj/arm64-v8a/libjieba_jni.so	582a20651a572aad
+0	9	0	clean	c384eb996bb8c1e6
+37	135	1789378154836485800	CMakeFiles/pty_bridge.dir/pty_bridge.c.o	2c6d4bfaa9dc34bb
+38	140	1789378154836485800	CMakeFiles/minis_crash_handler.dir/crash_handler.cpp.o	6f84b2b9858843a4
+137	199	1789378154904774100	/mnt/d/SoftWare/TeachTrack/app/build/intermediates/cxx/RelWithDebInfo/6373c4v5/obj/arm64-v8a/libpty_bridge.so	76204fdf0e694672
+141	200	1789378154904774100	/mnt/d/SoftWare/TeachTrack/app/build/intermediates/cxx/RelWithDebInfo/6373c4v5/obj/arm64-v8a/libminis_crash_handler.so	92874b6d0c790b53
+38	2158	1789378157026110300	CMakeFiles/jieba_jni.dir/jieba_jni.cpp.o	4b6635e56701d076
+2160	2206	1789378157105584900	/mnt/d/SoftWare/TeachTrack/app/build/intermediates/cxx/RelWithDebInfo/6373c4v5/obj/arm64-v8a/libjieba_jni.so	582a20651a572aad
