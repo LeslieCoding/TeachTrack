@@ -1,0 +1,12 @@
+// Optional Gradle init script for hosts that keep the normal app/build output
+// open (for example, a Windows process while Gradle runs in WSL). Invoke with:
+// -Dteachtrack.isolatedBuildDir=/absolute/output/path --init-script scripts/isolated-build.init.gradle
+// It is intentionally opt-in and never changes the project's default buildDir.
+def isolatedRoot = System.getProperty("teachtrack.isolatedBuildDir") ?: System.getenv("TEACHTRACK_ISOLATED_BUILD_DIR")
+if (isolatedRoot != null && !isolatedRoot.trim().isEmpty()) {
+    gradle.beforeProject { project ->
+        if (project.path == ":app") {
+            project.buildDir = new File(isolatedRoot, "app")
+        }
+    }
+}

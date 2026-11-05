@@ -1,0 +1,66 @@
+# TEMPLATES/ACCEPTANCE_MANIFEST_TEMPLATE — 项目本地实例存在
+# /LAEP/ACCEPTANCE_MANIFEST.yaml。机器可读，供 AGENTS/10_ACCEPTANCE_AGENT.md
+# 和 WORKFLOWS/ACCEPT_PROJECT.md 直接读取执行，避免每次验收都要靠人/模型
+# 重新猜测"应该怎么验收"。字段含义见 QUALITY/03_ACCEPTANCE_PROTOCOL.md。
+
+project:
+  name: ""
+  acceptance_profile: ""      # CLI_APP | DESKTOP_GUI | ANDROID_APP | WEB_APP
+                               # | BACKEND_SERVICE | LIBRARY | OPERATING_SYSTEM
+                               # | EMBEDDED_SYSTEM（见 QUALITY/03 的 Acceptance
+                               # Profile 表）
+  version: ""
+
+delivery:
+  artifact: ""                 # 预期的最终交付物路径/类型；空 = 不预期独立产物
+  install_method: ""           # 直接运行 | 安装包 | APK | 部署 URL ...
+
+user_entrypoints:
+  - id: ""
+    type: ""                   # launcher_script | shortcut | installed_app | url | cli_command
+    path: ""
+    command: ""
+    working_directory: ""
+    required_environment: []
+
+startup:
+  expected_process: ""
+  expected_window: ""           # GUI 项目填窗口标题/特征；非 GUI 留空
+  minimum_alive_seconds: 20
+  startup_timeout_seconds: 60
+
+ui:
+  required: false                # 非 GUI 项目 = false，其余字段可留空
+  expected_title: ""
+  expected_minimum_size: ""
+  expected_initial_screen: ""
+  visual_verification_required: true
+
+critical_capabilities:
+  - id: ""
+    description: ""
+    required: true                # true = 静默降级即 Final FAIL（见 QUALITY/03）
+
+core_journeys:
+  - id: ""
+    name: ""
+    steps: []
+    expected_result: ""
+    critical: true                 # true = 必须在 A6 层验证通过
+
+verification:
+  static: NOT_RUN                  # PASS|FAIL|PARTIAL|NOT_RUN|NOT_VERIFIED|BLOCKED|NOT_APPLICABLE
+  build: NOT_RUN
+  internal_runtime: NOT_RUN
+  user_entry: NOT_RUN
+  visible_ui: NOT_APPLICABLE
+  interaction: NOT_APPLICABLE
+  core_journey: NOT_RUN
+  regression: NOT_RUN
+  delivery_artifact: NOT_APPLICABLE
+
+evidence:
+  required:
+    - command_output
+    - runtime_log
+    - screenshot_if_available

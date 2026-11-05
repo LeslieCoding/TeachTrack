@@ -1,0 +1,54 @@
+{
+  "buildFiles": [
+    "/mnt/d/SoftWare/TeachTrack/app/src/main/cpp/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/root/android-sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/mnt/d/SoftWare/TeachTrack/app/.cxx/Debug/c6d2m2o3/arm64-v8a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/root/android-sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/mnt/d/SoftWare/TeachTrack/app/.cxx/Debug/c6d2m2o3/arm64-v8a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "jieba_jni::@6890427a1f51a3e7e1df": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "jieba_jni",
+      "output": "/tmp/tt-build/app/intermediates/cxx/Debug/c6d2m2o3/obj/arm64-v8a/libjieba_jni.so",
+      "runtimeFiles": []
+    },
+    "minis_crash_handler::@6890427a1f51a3e7e1df": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "minis_crash_handler",
+      "output": "/tmp/tt-build/app/intermediates/cxx/Debug/c6d2m2o3/obj/arm64-v8a/libminis_crash_handler.so",
+      "runtimeFiles": []
+    },
+    "pty_bridge::@6890427a1f51a3e7e1df": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "pty_bridge",
+      "output": "/tmp/tt-build/app/intermediates/cxx/Debug/c6d2m2o3/obj/arm64-v8a/libpty_bridge.so",
+      "runtimeFiles": []
+    }
+  },
+  "toolchains": {
+    "toolchain": {
+      "cCompilerExecutable": "/root/android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang.lld",
+      "cppCompilerExecutable": "/root/android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++.lld"
+    }
+  },
+  "cFileExtensions": [
+    "c"
+  ],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}

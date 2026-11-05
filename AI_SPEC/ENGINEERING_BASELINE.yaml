@@ -1,0 +1,29 @@
+version: "4.1.0"
+project: "TeachTrack"
+task_id: "TASK-TEACHTRACK-001"
+baseline:
+  platform: "Android"
+  language: "Kotlin"
+  ui: "Jetpack Compose + Material 3"
+  persistence: "Room/SQLite, schema v3, explicit migrations"
+  architecture: "MVVM + Repository + Flow"
+  min_sdk: 24
+  target_sdk: 35
+  version_name: "2.0.0-alpha.1"
+  version_code: 200001
+  device_target: "OPPO Pad / 2d64f765"
+  local_first: true
+  destructive_migration: false
+verified:
+  gradle_unit_tests: "PASS"
+  debug_build: "PASS"
+  release_build: "PASS_UNSIGNED"
+  android_instrumentation_on_oppo: "PASS_3_TESTS"
+  laep_audit: "PASS"
+risks:
+  - id: "R3-CLOUD"
+    status: "OPEN"
+    mitigation: "Provider is optional; no credential stored; local action allow-list remains authoritative."
+  - id: "R2-SIGNING"
+    status: "OPEN_EXTERNAL"
+    mitigation: "Deliver unsigned release and document required signing material."

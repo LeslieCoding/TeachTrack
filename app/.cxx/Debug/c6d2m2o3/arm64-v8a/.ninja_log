@@ -1,0 +1,7 @@
+# ninja log v5
+44	275	1789562023229861700	CMakeFiles/pty_bridge.dir/pty_bridge.c.o	308eaaac140f4492
+60	398	1789562023231938600	CMakeFiles/minis_crash_handler.dir/crash_handler.cpp.o	406209502d36454e
+393	519	1789562023339299886	/tmp/tt-build/app/intermediates/cxx/Debug/c6d2m2o3/obj/arm64-v8a/libpty_bridge.so	8badd0c37408b533
+431	546	1789562023373574281	/tmp/tt-build/app/intermediates/cxx/Debug/c6d2m2o3/obj/arm64-v8a/libminis_crash_handler.so	5f371b4b0522f03d
+62	4196	1789562027265360400	CMakeFiles/jieba_jni.dir/jieba_jni.cpp.o	678b801a91b59f37
+4505	4597	1789562027415276691	/tmp/tt-build/app/intermediates/cxx/Debug/c6d2m2o3/obj/arm64-v8a/libjieba_jni.so	5a628f016675da62

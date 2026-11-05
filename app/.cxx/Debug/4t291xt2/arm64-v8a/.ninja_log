@@ -1,0 +1,7 @@
+# ninja log v5
+8	67	1789379635787973700	CMakeFiles/pty_bridge.dir/pty_bridge.c.o	308eaaac140f4492
+9	108	1789379635799066300	CMakeFiles/minis_crash_handler.dir/crash_handler.cpp.o	406209502d36454e
+105	152	1789379635881229300	/mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libpty_bridge.so	652764a42619f950
+116	163	1789379635890788500	/mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libminis_crash_handler.so	42a15c5ae63559a2
+10	2115	1789379637823192500	CMakeFiles/jieba_jni.dir/jieba_jni.cpp.o	678b801a91b59f37
+2364	2457	1789379638199039500	/mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libjieba_jni.so	68482e593594fbe5
