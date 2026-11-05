@@ -80,7 +80,7 @@ rule CUSTOM_COMMAND
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = /root/android-sdk/cmake/3.22.1/bin/cmake --regenerate-during-build -S/mnt/d/SoftWare/TeachTrack/app/src/main/cpp -B/mnt/d/SoftWare/TeachTrack/app/.cxx/Debug/1o47s171/arm64-v8a
+  command = /root/android-sdk/cmake/3.22.1/bin/cmake --regenerate-during-build -S/mnt/d/SoftWare/TeachTrack/app/src/main/cpp -B/mnt/d/SoftWare/TeachTrack/app/.cxx/Debug/c6d2m2o3/arm64-v8a
   description = Re-running CMake...
   generator = 1
 
