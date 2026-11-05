@@ -39,7 +39,7 @@ include CMakeFiles/rules.ninja
 #############################################
 # Logical path to working directory; prefix for absolute paths.
 
-cmake_ninja_workdir = /mnt/d/SoftWare/TeachTrack/app/.cxx/Debug/1o47s171/arm64-v8a/
+cmake_ninja_workdir = /mnt/d/SoftWare/TeachTrack/app/.cxx/Debug/4t291xt2/arm64-v8a/
 # =============================================================================
 # Object build statements for SHARED_LIBRARY target pty_bridge
 
@@ -56,7 +56,7 @@ build CMakeFiles/pty_bridge.dir/pty_bridge.c.o: C_COMPILER__pty_bridge_Debug /mn
   OBJECT_DIR = CMakeFiles/pty_bridge.dir
   OBJECT_FILE_DIR = CMakeFiles/pty_bridge.dir
   TARGET_COMPILE_PDB = CMakeFiles/pty_bridge.dir/
-  TARGET_PDB = /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libpty_bridge.pdb
+  TARGET_PDB = /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libpty_bridge.pdb
 
 
 # =============================================================================
@@ -64,9 +64,9 @@ build CMakeFiles/pty_bridge.dir/pty_bridge.c.o: C_COMPILER__pty_bridge_Debug /mn
 
 
 #############################################
-# Link the shared library /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libpty_bridge.so
+# Link the shared library /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libpty_bridge.so
 
-build /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libpty_bridge.so: C_SHARED_LIBRARY_LINKER__pty_bridge_Debug CMakeFiles/pty_bridge.dir/pty_bridge.c.o | /root/android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/26/liblog.so
+build /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libpty_bridge.so: C_SHARED_LIBRARY_LINKER__pty_bridge_Debug CMakeFiles/pty_bridge.dir/pty_bridge.c.o | /root/android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/26/liblog.so
   LANGUAGE_COMPILE_FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info
   LINK_FLAGS = -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments
   LINK_LIBRARIES = /root/android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/26/liblog.so  -latomic -lm
@@ -76,8 +76,8 @@ build /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediate
   SONAME = libpty_bridge.so
   SONAME_FLAG = -Wl,-soname,
   TARGET_COMPILE_PDB = CMakeFiles/pty_bridge.dir/
-  TARGET_FILE = /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libpty_bridge.so
-  TARGET_PDB = /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libpty_bridge.pdb
+  TARGET_FILE = /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libpty_bridge.so
+  TARGET_PDB = /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libpty_bridge.pdb
 
 # =============================================================================
 # Object build statements for SHARED_LIBRARY target minis_crash_handler
@@ -95,7 +95,7 @@ build CMakeFiles/minis_crash_handler.dir/crash_handler.cpp.o: CXX_COMPILER__mini
   OBJECT_DIR = CMakeFiles/minis_crash_handler.dir
   OBJECT_FILE_DIR = CMakeFiles/minis_crash_handler.dir
   TARGET_COMPILE_PDB = CMakeFiles/minis_crash_handler.dir/
-  TARGET_PDB = /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libminis_crash_handler.pdb
+  TARGET_PDB = /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libminis_crash_handler.pdb
 
 
 # =============================================================================
@@ -103,9 +103,9 @@ build CMakeFiles/minis_crash_handler.dir/crash_handler.cpp.o: CXX_COMPILER__mini
 
 
 #############################################
-# Link the shared library /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libminis_crash_handler.so
+# Link the shared library /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libminis_crash_handler.so
 
-build /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libminis_crash_handler.so: CXX_SHARED_LIBRARY_LINKER__minis_crash_handler_Debug CMakeFiles/minis_crash_handler.dir/crash_handler.cpp.o | /root/android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/26/liblog.so
+build /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libminis_crash_handler.so: CXX_SHARED_LIBRARY_LINKER__minis_crash_handler_Debug CMakeFiles/minis_crash_handler.dir/crash_handler.cpp.o | /root/android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/26/liblog.so
   LANGUAGE_COMPILE_FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++17 -fno-limit-debug-info
   LINK_FLAGS = -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments
   LINK_LIBRARIES = /root/android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/26/liblog.so  -latomic -lm
@@ -115,8 +115,8 @@ build /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediate
   SONAME = libminis_crash_handler.so
   SONAME_FLAG = -Wl,-soname,
   TARGET_COMPILE_PDB = CMakeFiles/minis_crash_handler.dir/
-  TARGET_FILE = /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libminis_crash_handler.so
-  TARGET_PDB = /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libminis_crash_handler.pdb
+  TARGET_FILE = /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libminis_crash_handler.so
+  TARGET_PDB = /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libminis_crash_handler.pdb
 
 # =============================================================================
 # Object build statements for SHARED_LIBRARY target jieba_jni
@@ -135,7 +135,7 @@ build CMakeFiles/jieba_jni.dir/jieba_jni.cpp.o: CXX_COMPILER__jieba_jni_Debug /m
   OBJECT_DIR = CMakeFiles/jieba_jni.dir
   OBJECT_FILE_DIR = CMakeFiles/jieba_jni.dir
   TARGET_COMPILE_PDB = CMakeFiles/jieba_jni.dir/
-  TARGET_PDB = /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libjieba_jni.pdb
+  TARGET_PDB = /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libjieba_jni.pdb
 
 
 # =============================================================================
@@ -143,9 +143,9 @@ build CMakeFiles/jieba_jni.dir/jieba_jni.cpp.o: CXX_COMPILER__jieba_jni_Debug /m
 
 
 #############################################
-# Link the shared library /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libjieba_jni.so
+# Link the shared library /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libjieba_jni.so
 
-build /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libjieba_jni.so: CXX_SHARED_LIBRARY_LINKER__jieba_jni_Debug CMakeFiles/jieba_jni.dir/jieba_jni.cpp.o | /root/android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/26/liblog.so
+build /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libjieba_jni.so: CXX_SHARED_LIBRARY_LINKER__jieba_jni_Debug CMakeFiles/jieba_jni.dir/jieba_jni.cpp.o | /root/android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/26/liblog.so
   LANGUAGE_COMPILE_FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++17 -fno-limit-debug-info
   LINK_FLAGS = -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments
   LINK_LIBRARIES = /root/android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/26/liblog.so  -latomic -lm
@@ -155,15 +155,15 @@ build /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediate
   SONAME = libjieba_jni.so
   SONAME_FLAG = -Wl,-soname,
   TARGET_COMPILE_PDB = CMakeFiles/jieba_jni.dir/
-  TARGET_FILE = /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libjieba_jni.so
-  TARGET_PDB = /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libjieba_jni.pdb
+  TARGET_FILE = /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libjieba_jni.so
+  TARGET_PDB = /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libjieba_jni.pdb
 
 
 #############################################
 # Utility command for edit_cache
 
 build CMakeFiles/edit_cache.util: CUSTOM_COMMAND
-  COMMAND = cd /mnt/d/SoftWare/TeachTrack/app/.cxx/Debug/1o47s171/arm64-v8a && /root/android-sdk/cmake/3.22.1/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+  COMMAND = cd /mnt/d/SoftWare/TeachTrack/app/.cxx/Debug/4t291xt2/arm64-v8a && /root/android-sdk/cmake/3.22.1/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
   DESC = No interactive CMake dialog available...
   restat = 1
 
@@ -174,7 +174,7 @@ build edit_cache: phony CMakeFiles/edit_cache.util
 # Utility command for rebuild_cache
 
 build CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
-  COMMAND = cd /mnt/d/SoftWare/TeachTrack/app/.cxx/Debug/1o47s171/arm64-v8a && /root/android-sdk/cmake/3.22.1/bin/cmake --regenerate-during-build -S/mnt/d/SoftWare/TeachTrack/app/src/main/cpp -B/mnt/d/SoftWare/TeachTrack/app/.cxx/Debug/1o47s171/arm64-v8a
+  COMMAND = cd /mnt/d/SoftWare/TeachTrack/app/.cxx/Debug/4t291xt2/arm64-v8a && /root/android-sdk/cmake/3.22.1/bin/cmake --regenerate-during-build -S/mnt/d/SoftWare/TeachTrack/app/src/main/cpp -B/mnt/d/SoftWare/TeachTrack/app/.cxx/Debug/4t291xt2/arm64-v8a
   DESC = Running CMake to regenerate build system...
   pool = console
   restat = 1
@@ -184,17 +184,17 @@ build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 # =============================================================================
 # Target aliases.
 
-build jieba_jni: phony /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libjieba_jni.so
+build jieba_jni: phony /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libjieba_jni.so
 
-build libjieba_jni.so: phony /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libjieba_jni.so
+build libjieba_jni.so: phony /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libjieba_jni.so
 
-build libminis_crash_handler.so: phony /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libminis_crash_handler.so
+build libminis_crash_handler.so: phony /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libminis_crash_handler.so
 
-build libpty_bridge.so: phony /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libpty_bridge.so
+build libpty_bridge.so: phony /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libpty_bridge.so
 
-build minis_crash_handler: phony /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libminis_crash_handler.so
+build minis_crash_handler: phony /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libminis_crash_handler.so
 
-build pty_bridge: phony /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libpty_bridge.so
+build pty_bridge: phony /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libpty_bridge.so
 
 # =============================================================================
 # Folder targets.
@@ -202,9 +202,9 @@ build pty_bridge: phony /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v
 # =============================================================================
 
 #############################################
-# Folder: /mnt/d/SoftWare/TeachTrack/app/.cxx/Debug/1o47s171/arm64-v8a
+# Folder: /mnt/d/SoftWare/TeachTrack/app/.cxx/Debug/4t291xt2/arm64-v8a
 
-build all: phony /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libpty_bridge.so /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libminis_crash_handler.so /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest-v2/app/intermediates/cxx/Debug/1o47s171/obj/arm64-v8a/libjieba_jni.so
+build all: phony /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libpty_bridge.so /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libminis_crash_handler.so /mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a/libjieba_jni.so
 
 # =============================================================================
 # Built-in targets
