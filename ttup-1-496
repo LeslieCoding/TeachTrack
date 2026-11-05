@@ -19,8 +19,8 @@
 -DCMAKE_TOOLCHAIN_FILE=$NDK/build/cmake/android.toolchain.cmake
 -DCMAKE_MAKE_PROGRAM=$NINJA
 -DCMAKE_CXX_FLAGS=-std=c++17
--DCMAKE_LIBRARY_OUTPUT_DIRECTORY=$PROJECT/app/build/intermediates/cxx/Debug/$HASH/obj/$ABI
--DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$PROJECT/app/build/intermediates/cxx/Debug/$HASH/obj/$ABI
+-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/tmp/tt-build/app/intermediates/cxx/Debug/$HASH/obj/$ABI
+-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/tmp/tt-build/app/intermediates/cxx/Debug/$HASH/obj/$ABI
 -DCMAKE_BUILD_TYPE=Debug
 -B$PROJECT/app/.cxx/Debug/$HASH/$ABI
 -GNinja
