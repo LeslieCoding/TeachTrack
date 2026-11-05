@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "/mnt/d/SoftWare/TeachTrack/app/build/intermediates/cxx/RelWithDebInfo/6373c4v5/obj/arm64-v8a/libminis_crash_handler.so"
+			"path" : "/mnt/d/SoftWare/TeachTrack/app/build/intermediates/cxx/Debug/1n5gn25q/obj/arm64-v8a/libminis_crash_handler.so"
 		}
 	],
 	"backtrace" : 1,
@@ -42,7 +42,7 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "-g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++17 -O2 -g -DNDEBUG -fPIC"
+					"fragment" : "-g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++17 -fno-limit-debug-info  -fPIC"
 				}
 			],
 			"defines" : 
@@ -68,7 +68,7 @@
 		"commandFragments" : 
 		[
 			{
-				"fragment" : "-Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Wl,--gc-sections",
+				"fragment" : "-Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments",
 				"role" : "flags"
 			},
 			{
