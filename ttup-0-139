@@ -163,7 +163,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/mnt/d/SoftWare/TeachTrack/app/.cxx/Debug/4t291xt2/arm64-v8a"
+			"value" : "/mnt/d/SoftWare/TeachTrack/app/.cxx/Debug/1n5gn25q/arm64-v8a"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -719,7 +719,7 @@
 				}
 			],
 			"type" : "UNINITIALIZED",
-			"value" : "/mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a"
+			"value" : "/mnt/d/SoftWare/TeachTrack/app/build/intermediates/cxx/Debug/1n5gn25q/obj/arm64-v8a"
 		},
 		{
 			"name" : "CMAKE_LINKER",
@@ -991,7 +991,7 @@
 				}
 			],
 			"type" : "UNINITIALIZED",
-			"value" : "/mnt/d/SoftWare/TeachTrack/.build-isolated-androidtest/app/intermediates/cxx/Debug/4t291xt2/obj/arm64-v8a"
+			"value" : "/mnt/d/SoftWare/TeachTrack/app/build/intermediates/cxx/Debug/1n5gn25q/obj/arm64-v8a"
 		},
 		{
 			"name" : "CMAKE_SHARED_LINKER_FLAGS",
@@ -1287,7 +1287,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/mnt/d/SoftWare/TeachTrack/app/.cxx/Debug/4t291xt2/arm64-v8a"
+			"value" : "/mnt/d/SoftWare/TeachTrack/app/.cxx/Debug/1n5gn25q/arm64-v8a"
 		},
 		{
 			"name" : "minis_native_IS_TOP_LEVEL",
