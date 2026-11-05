@@ -1,0 +1,18 @@
+# TEMPLATES/EVIDENCE_REGISTRY_TEMPLATE — 项目本地实例存在
+# /LAEP/STATE/EVIDENCE_REGISTRY.yaml（S3+ 建议启用，S1/S2 可用内联记录
+# 代替，不强制单独维护）。把 CORE/04 的 Evidence Protocol 落成可追踪、
+# 可判断新鲜度的记录，配合 QUALITY/03 的 Evidence Expiration 一节使用。
+
+evidence:
+  - id: ""
+    task_id: ""                  # 对应 TEMPLATES/TASK_PACKET_TEMPLATE.md 的 task.id
+    requirement_id: ""            # 对应 Traceability（CORE/05），若适用
+    commit: ""                    # 产生这条证据时的 commit/diff 指纹
+    environment: ""
+    command: ""
+    result: ""                    # PASS | FAIL | PARTIAL
+    level: ""                     # OBSERVED | MEASURED | INFERRED | ASSUMED | NOT_VERIFIED
+    acceptance_level: ""          # 对应 QUALITY/03 的 A0-A9，若适用
+    timestamp: ""
+    artifact_ref: ""              # 日志/截图/测试报告路径，若有
+    freshness: FRESH               # FRESH | STALE — 相关文件在此之后被修改则应改为 STALE
