@@ -1,0 +1,13 @@
+{
+  "createdAt": "2026-11-05T20:53:04+08:00",
+  "database": "teachtrack",
+  "encryption": "AES-256-CBC/PBKDF2",
+  "dumpFile": "teachtrack.dump.enc",
+  "dumpSha256": "655a6a5404d5381814f069c4619cfcfa6d81af80e66ca05a13a8261571ff7d21",
+  "sourceHost": "local-development",
+  "counts": {
+    "students": 30,
+    "courseSessions": 31,
+    "questions": 1
+  }
+}
