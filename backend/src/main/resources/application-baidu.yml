@@ -1,0 +1,11 @@
+spring:
+  config:
+    import: optional:file:./.env[.properties]
+
+teachtrack:
+  storage:
+    provider: baidu-pan
+    baidu:
+      bypy: ${TEACHTRACK_BYPY:bypy}
+      remote-root: ${TEACHTRACK_BAIDU_ROOT:teachtrack}
+      timeout-seconds: ${TEACHTRACK_BAIDU_TIMEOUT:120}

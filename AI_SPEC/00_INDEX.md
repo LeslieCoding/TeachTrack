@@ -4,6 +4,18 @@
 
 - `1.x MVP`: Local-first teacher workspace; prompts `docs/prompts/00-09`.
 - `2.0.0-alpha.1`: TeachTrack Copilot planning and implementation specification; prompts `docs/prompts/10-16`.
+- `3.0.0-alpha.3`: Portable Workspace + OpenMinis Agent integration (current shipped line).
+- `4.0.0` (planned): Cloud question bank, exam analysis, AI precision practice, cross-device sync, MCP.
+
+## Version 4.0 documents (M01 audit baseline)
+
+- `docs/ai-practice/CURRENT_ARCHITECTURE.md`: as-is architecture audit with file-level evidence.
+- `docs/ai-practice/GAP_ANALYSIS.md`: requirement-by-requirement gap matrix, conflicts and risks.
+- `docs/ai-practice/TEACHTRACK_AI_PRACTICE_ARCHITECTURE.md`: target architecture and ADRs.
+- `docs/ai-practice/TEACHTRACK_DATABASE_SCHEMA.md`: PostgreSQL schema and Room→PG mapping.
+- `docs/ai-practice/TEACHTRACK_MIGRATION_PLAN.md`: migration, idempotency, rollback, reconciliation.
+- `docs/ai-practice/MIGRATION_PLAN.md`: M01 entry pointing to the canonical migration plan.
+- `docs/ai-practice/TEACHTRACK_IMPLEMENTATION_ROADMAP.md`: M01–M07 delivery plan and gates.
 
 ## Version 2.0 documents
 

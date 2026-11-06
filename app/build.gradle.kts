@@ -138,6 +138,7 @@ dependencies {
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     ksp("androidx.room:room-compiler:2.6.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
 
     // ===== OpenMinis Agent Runtime dependencies (vendored; see OPENMINIS_UPSTREAM.md) =====
     implementation("com.github.helloooideeeeea:RealTimeCutVADLibraryForAndroid:1.0.5@aar")

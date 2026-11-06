@@ -1,0 +1,12 @@
+build/
+.gradle/
+data/
+.env
+*.log
+
+backups/
+
+cloud-backup-repo/
+.cloud-backup-key
+
+.cloud-token

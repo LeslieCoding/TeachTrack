@@ -5,9 +5,11 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.leslie.teachtrack.core.model.*
 
-@Database(entities = [StudentEntity::class, CourseSessionEntity::class, KnowledgePointEntity::class, StudentKnowledgeProgressEntity::class, StudentKnowledgeEventEntity::class, ExamEntity::class, StudentScoreEntity::class, HomeworkEntity::class, CommunicationEntity::class, LessonPlanEntity::class, TaskEntity::class, ParentContactEntity::class, ScoreItemEntity::class, ProblemRecordEntity::class, TemplateEntity::class, TagEntity::class, StudentTagEntity::class, AttachmentEntity::class, HistoricalLearningRecordEntity::class, StudentProgressEntity::class, UnresolvedHistoricalRecordEntity::class], version = 7, exportSchema = true)
+@Database(entities = [StudentEntity::class, CourseSessionEntity::class, KnowledgePointEntity::class, StudentKnowledgeProgressEntity::class, StudentKnowledgeEventEntity::class, ExamEntity::class, StudentScoreEntity::class, HomeworkEntity::class, CommunicationEntity::class, LessonPlanEntity::class, TaskEntity::class, ParentContactEntity::class, ScoreItemEntity::class, ProblemRecordEntity::class, TemplateEntity::class, TagEntity::class, StudentTagEntity::class, AttachmentEntity::class, HistoricalLearningRecordEntity::class, StudentProgressEntity::class, UnresolvedHistoricalRecordEntity::class, SyncOutboxEntity::class, SyncStateEntity::class, SyncConflictEntity::class], version = 8, exportSchema = true)
 @TypeConverters(Converters::class)
-abstract class TeachTrackDatabase : RoomDatabase() { abstract fun dao(): TeachTrackDao }
+abstract class TeachTrackDatabase : RoomDatabase() { abstract fun dao(): TeachTrackDao
+    abstract fun syncDao(): SyncDao
+}
 
 val MIGRATION_1_2 = object : androidx.room.migration.Migration(1, 2) {
     override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
@@ -79,6 +81,17 @@ val MIGRATION_6_7 = object : androidx.room.migration.Migration(6, 7) {
         db.execSQL("ALTER TABLE attachments ADD COLUMN updatedAt INTEGER NOT NULL DEFAULT 0")
         db.execSQL("ALTER TABLE attachments ADD COLUMN revision INTEGER NOT NULL DEFAULT 1")
         db.execSQL("ALTER TABLE attachments ADD COLUMN deletedAt INTEGER")
+    }
+}
+
+val MIGRATION_7_8 = object : androidx.room.migration.Migration(7, 8) {
+    override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS `sync_outbox` (`operationId` TEXT NOT NULL, `entityType` TEXT NOT NULL, `entityId` TEXT NOT NULL, `operation` TEXT NOT NULL, `baseVersion` INTEGER NOT NULL, `payload` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `retryCount` INTEGER NOT NULL, `lastError` TEXT, PRIMARY KEY(`operationId`))")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_sync_outbox_entityType_entityId` ON `sync_outbox` (`entityType`, `entityId`)")
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_sync_outbox_operationId` ON `sync_outbox` (`operationId`)")
+        db.execSQL("CREATE TABLE IF NOT EXISTS `sync_state` (`entityType` TEXT NOT NULL, `entityId` TEXT NOT NULL, `serverVersion` INTEGER NOT NULL, `lastSyncedAt` INTEGER NOT NULL, `dirty` INTEGER NOT NULL, PRIMARY KEY(`entityType`, `entityId`))")
+        db.execSQL("CREATE TABLE IF NOT EXISTS `sync_conflicts` (`id` TEXT NOT NULL, `entityType` TEXT NOT NULL, `entityId` TEXT NOT NULL, `baseVersion` INTEGER NOT NULL, `currentVersion` INTEGER NOT NULL, `remotePayload` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `resolved` INTEGER NOT NULL, `resolution` TEXT, PRIMARY KEY(`id`))")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_sync_conflicts_entityType_entityId` ON `sync_conflicts` (`entityType`, `entityId`)")
     }
 }
 

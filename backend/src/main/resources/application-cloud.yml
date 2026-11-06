@@ -1,0 +1,38 @@
+spring:
+  config:
+    import: optional:file:./.env[.properties]
+  datasource:
+    url: ${TEACHTRACK_DB_URL}
+    username: ${TEACHTRACK_DB_USER}
+    password: ${TEACHTRACK_DB_PASSWORD}
+    hikari:
+      maximum-pool-size: ${TEACHTRACK_DB_POOL_SIZE:10}
+      connection-timeout: 10000
+      validation-timeout: 5000
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    validate-on-migrate: true
+
+server:
+  forward-headers-strategy: framework
+
+management:
+  endpoint:
+    health:
+      show-details: never
+
+teachtrack:
+  storage:
+    provider: ${TEACHTRACK_STORAGE_PROVIDER:s3}
+  auth:
+    bootstrap-token: ${TEACHTRACK_BOOTSTRAP_TOKEN:}
+  migration:
+    allowed-root: ${TEACHTRACK_MIGRATION_ROOT:./}
+  export:
+    cjk-font: ${TEACHTRACK_CJK_FONT:}
+
+logging:
+  level:
+    root: INFO
+    com.leslie.teachtrack: INFO

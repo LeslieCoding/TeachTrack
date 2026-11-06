@@ -1,0 +1,24 @@
+{
+  "name": "teachtrack-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-04",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+  "workers_dev": true,
+  "routes": [
+    {
+      "pattern": "teachtrack.leslieholmes.ccwu.cc/*",
+      "zone_name": "leslieholmes.ccwu.cc"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "teachtrack",
+      "database_id": "ae11c832-523c-4ac0-9bcb-427fbc705ff3",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

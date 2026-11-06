@@ -35,7 +35,7 @@ data class CopilotOrganizationData(
     val progress: List<StudentKnowledgeProgressEntity>
 )
 
-class TeachTrackRepository(private val dao: TeachTrackDao, private val sync: WorkspaceSyncCoordinator? = null, private val database: TeachTrackDatabase? = null) {
+class TeachTrackRepository(private val dao: TeachTrackDao, private val sync: WorkspaceSyncCoordinator? = null, private val database: TeachTrackDatabase? = null, private val cloud: CloudSyncCoordinator? = null) {
     fun daoForSeed(): TeachTrackDao = dao
     fun previewBackupJson(json: String): BackupPreview {
         val root = JSONObject(json)
@@ -135,9 +135,9 @@ class TeachTrackRepository(private val dao: TeachTrackDao, private val sync: Wor
     fun attachments(studentId: String) = dao.observeAttachments(studentId)
     fun knowledge() = dao.observeKnowledge()
     val templates: Flow<List<TemplateEntity>> = dao.observeTemplates()
-    suspend fun saveStudent(name: String, grade: String, school: String, subject: String, notes: String = ""): String { val id = UUID.randomUUID().toString(); dao.upsertStudent(StudentEntity(id, name = name, grade = grade, school = school, subject = subject, notes = notes)); sync?.record("Student", id, "CREATE", JSONObject().put("name", name).put("grade", grade).put("school", school).put("subject", subject)); return id }
-    suspend fun updateStudent(student: StudentEntity) { val updated = student.copy(updatedAt = System.currentTimeMillis()); dao.upsertStudent(updated); sync?.record("Student", updated.id, "UPDATE", JSONObject().put("name", updated.name).put("updatedAt", updated.updatedAt)) }
-    suspend fun archiveStudent(id: String) { dao.observeStudentOnce(id)?.let { dao.upsertStudent(it.copy(status = StudentStatus.ARCHIVED, updatedAt = System.currentTimeMillis())); sync?.record("Student", id, "DELETE", JSONObject().put("deletedAt", System.currentTimeMillis())) } }
+    suspend fun saveStudent(name: String, grade: String, school: String, subject: String, notes: String = ""): String { val id = UUID.randomUUID().toString(); val student = StudentEntity(id, name = name, grade = grade, school = school, subject = subject, notes = notes); dao.upsertStudent(student); cloud?.enqueueStudent(student); sync?.record("Student", id, "CREATE", JSONObject().put("name", name).put("grade", grade).put("school", school).put("subject", subject)); return id }
+    suspend fun updateStudent(student: StudentEntity) { val updated = student.copy(updatedAt = System.currentTimeMillis()); dao.upsertStudent(updated); cloud?.enqueueStudent(updated); sync?.record("Student", updated.id, "UPDATE", JSONObject().put("name", updated.name).put("updatedAt", updated.updatedAt)) }
+    suspend fun archiveStudent(id: String) { dao.observeStudentOnce(id)?.let { val archived = it.copy(status = StudentStatus.ARCHIVED, updatedAt = System.currentTimeMillis()); dao.upsertStudent(archived); cloud?.enqueueStudent(archived); sync?.record("Student", id, "DELETE", JSONObject().put("deletedAt", System.currentTimeMillis())) } }
     suspend fun searchStudents(query: String) = dao.searchStudents(query)
     suspend fun allTags() = dao.allTags()
     suspend fun allAttachments() = dao.allAttachments()
@@ -151,7 +151,7 @@ class TeachTrackRepository(private val dao: TeachTrackDao, private val sync: Wor
     suspend fun scoreCountOnce() = dao.scoreCountOnce()
     suspend fun examCountOnce() = dao.examCountOnce()
     suspend fun examByName(name: String) = dao.examByName(name)
-    suspend fun saveCourse(course: CourseSessionEntity) { database?.withTransaction { saveCourseRows(course) } ?: saveCourseRows(course); sync?.record("CourseSession", course.id, "CREATE", JSONObject().put("studentId", course.studentId).put("date", course.date).put("title", course.title)) }
+    suspend fun saveCourse(course: CourseSessionEntity) { database?.withTransaction { saveCourseRows(course) } ?: saveCourseRows(course); cloud?.enqueueCourse(course); sync?.record("CourseSession", course.id, "CREATE", JSONObject().put("studentId", course.studentId).put("date", course.date).put("title", course.title)) }
     private suspend fun saveCourseRows(course: CourseSessionEntity) { dao.upsertCourse(course); if (course.nextLessonPlan.isNotBlank()) dao.upsertLessonPlan(LessonPlanEntity(UUID.randomUUID().toString(), course.studentId, course.date, chapter = course.subject, focus = course.nextLessonPlan, notes = "由课程记录自动生成")); if (course.problems.isNotBlank()) dao.upsertProblemRecord(ProblemRecordEntity(UUID.randomUUID().toString(), course.studentId, courseId = course.id, title = course.problems.take(80), description = course.problems, date = course.date)) }
     suspend fun saveScore(exam: ExamEntity, score: StudentScoreEntity, item: ScoreItemEntity? = null) { database?.withTransaction { saveScoreRows(exam, score, item) } ?: saveScoreRows(exam, score, item); sync?.record("StudentScore", score.id, "CREATE", JSONObject().put("studentId", score.studentId).put("examId", score.examId).put("score", score.score).put("fullScore", score.fullScore)) }
     private suspend fun saveScoreRows(exam: ExamEntity, score: StudentScoreEntity, item: ScoreItemEntity?) { dao.upsertExam(exam); dao.upsertScore(score); if (item != null) dao.upsertScoreItem(item) }
