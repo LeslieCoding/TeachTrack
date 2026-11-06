@@ -143,23 +143,24 @@ A. 应用内 Copilot
    语音/文字 → FakeCopilotProvider 或云端 Provider
    → CopilotCommand（teachtrack.command.v1）
    → CopilotCommandValidator（白名单 + 参数长度）
-   → 确认门 → LocalCopilotActionRegistry（68 动作）
+   → 确认门 → LocalCopilotActionRegistry（69 动作）
    → Repository/Room → CopilotAuditStore
 
 B. Agent（OpenMinis）
    PRoot 沙箱内 shell → `teachtrack rpc --json ...`
    → TeachTrackOffloadHandler（路径包含校验、访问模式）
-   → CopilotService → 同一个 Action Registry → Room
+   → CopilotService → 同一个 Action Registry
+   → 数据动作写 Repository/Room；UI 动作写共享界面状态
 ```
 
-两条通路共用同一个 Action Registry，这是现有架构最重要的复用点。
+两条通路共用同一个 Action Registry，这是现有架构最重要的复用点。`exam.analysis.text.fill` 只填题库 → 试卷分析的共享文本并打开页面，不触发试卷导入、分析或审核入库。
 
 ### 5.2 已实现的安全边界
 
 | 边界 | 实现 |
 |---|---|
 | 模型不能直接访问 Room | 模型只能返回命令 JSON；执行只发生在 `LocalCopilotActionRegistry` |
-| 动作白名单 | `allowedActions` 68 项；未知动作直接拒绝 |
+| 动作白名单 | `allowedActions` 69 项；未知动作直接拒绝 |
 | 写入确认 | `confirmationRequired` + `preview/execute` 两段式 |
 | 敏感数据 | 家长联系方式等写入需要确认 |
 | 审计 | `CopilotAuditStore`：动作、时间、状态、undoToken、sessionId；**只存元数据，不存原始参数**；最多 100 条 |
@@ -183,7 +184,7 @@ B. Agent（OpenMinis）
 
 - OpenMinis 作为 vendored 运行时嵌入，提供 PRoot/Alpine 沙箱、MCP、Provider、语音、备份等能力（约 420 个文件）。
 - TeachTrack 只注册了一个 Native Offload handler：`teachtrack`。
-- Agent 能看到的动作集 = `capabilities` 返回的 68 项。
+- Agent 能看到的动作集 = `capabilities` 返回的 69 项。
 - **该桥只在本机进程内可用**，不是给 ChatGPT/Kimi/Claude 的外部 MCP 服务。
 
 ---

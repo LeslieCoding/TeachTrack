@@ -211,6 +211,15 @@ class TeachTrackViewModel(private val repo: TeachTrackRepository, context: andro
     val context = activityContext.applicationContext
     val vm: TeachTrackViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = object : ViewModelProvider.Factory { override fun <T : ViewModel> create(modelClass: Class<T>): T = TeachTrackViewModel(repo, context) as T })
     var tab by remember { mutableStateOf(0) }; var selected by remember { mutableStateOf<String?>(null) }; var openAdd by remember { mutableStateOf(false) }; var openCourse by remember { mutableStateOf(false) }; var openScore by remember { mutableStateOf(false) }
+    val agentExamRequest by com.leslie.teachtrack.agent.QuestionBankAgentBridge.openExamAnalysisRequests.collectAsStateWithLifecycle()
+    LaunchedEffect(agentExamRequest) {
+        if (agentExamRequest > 0) {
+            selected = null
+            openCourse = false
+            openScore = false
+            tab = 6
+        }
+    }
     // Spec §84/85 "Ask Agent": each bump tells the embedded AgentHost to open
     // a fresh chat; ChatScreen picks up the draft from DeepLinkCoordinator.
     val askAgentRequests = remember { MutableStateFlow(0) }

@@ -9,6 +9,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONArray
 import org.json.JSONObject
 
 data class CloudQuestion(
@@ -20,15 +21,63 @@ data class CloudQuestion(
     val stem: String,
     val reviewStatus: String,
     val sourceType: String,
-    val version: Int
+    val version: Int,
+    val textbookVersion: String = "",
+    val sourceName: String = ""
 )
+
+data class CloudKnowledgeLink(val knowledgePointId: String, val importance: String)
 
 data class CloudQuestionDetail(
     val question: CloudQuestion,
     val options: List<Pair<String, String>>,
     val standardAnswer: String,
-    val analysis: String
+    val analysis: String,
+    val scoringPoints: String = "",
+    val solutionSteps: String = "",
+    val knowledge: List<CloudKnowledgeLink> = emptyList(),
+    val abilityTags: List<String> = emptyList()
 )
+
+data class CloudKnowledgePoint(
+    val id: String,
+    val name: String,
+    val grade: String,
+    val chapter: String,
+    val section: String
+)
+
+data class CloudQuestionInput(
+    val subjectId: String,
+    val grade: String,
+    val textbookVersion: String,
+    val questionType: String,
+    val difficulty: Int,
+    val stem: String,
+    val sourceType: String,
+    val sourceName: String,
+    val reviewStatus: String,
+    val options: List<Pair<String, String>>,
+    val standardAnswer: String,
+    val analysis: String,
+    val scoringPoints: String = "",
+    val solutionSteps: String = "",
+    val knowledgePointIds: List<String> = emptyList(),
+    val abilityTags: List<String> = emptyList(),
+    val baseVersion: Int? = null
+)
+
+data class CloudDuplicateCheck(
+    val exact: CloudQuestion?,
+    val near: CloudQuestion?,
+    val similar: List<CloudQuestion>
+)
+
+class QuestionApiException(
+    val status: Int,
+    val code: String,
+    message: String
+) : IOException(message)
 
 class QuestionApi(
     private val baseUrl: String,
@@ -40,89 +89,208 @@ class QuestionApi(
 ) {
     suspend fun search(query: String, limit: Int = 50): List<CloudQuestion> = withContext(Dispatchers.IO) {
         val encoded = URLEncoder.encode(query, "UTF-8")
-        val request = Request.Builder()
-            .url("${baseUrl.trimEnd('/')}/api/v1/questions?limit=$limit&q=$encoded")
-            .header("Authorization", "Bearer $token")
-            .build()
-        client.newCall(request).execute().use { response ->
-            val body = response.body?.string().orEmpty()
-            if (!response.isSuccessful) throw IOException(errorMessage(body, response.code))
-            val root = JSONObject(body)
-            val items = root.optJSONArray("items") ?: return@use emptyList()
+        val root = getJson("/api/v1/questions?limit=$limit&q=$encoded")
+        val items = root.optJSONArray("items") ?: return@withContext emptyList()
+        buildList {
+            for (i in 0 until items.length()) add(parseQuestion(items.getJSONObject(i)))
+        }
+    }
+
+    suspend fun detail(id: String): CloudQuestionDetail = withContext(Dispatchers.IO) {
+        parseDetail(getJson("/api/v1/questions/${URLEncoder.encode(id, "UTF-8")}"))
+    }
+
+    suspend fun subjects(): List<CloudSubject> = withContext(Dispatchers.IO) {
+        val array = getJsonArray("/api/v1/subjects")
+        buildList {
+            for (i in 0 until array.length()) {
+                val item = array.getJSONObject(i)
+                add(CloudSubject(item.getString("id"), item.optString("name")))
+            }
+        }
+    }
+
+    suspend fun knowledgePoints(subjectId: String, query: String = ""): List<CloudKnowledgePoint> =
+        withContext(Dispatchers.IO) {
+            val subject = URLEncoder.encode(subjectId, "UTF-8")
+            val search = URLEncoder.encode(query, "UTF-8")
+            val array = getJsonArray("/api/v1/knowledge-points?subjectId=$subject&limit=500&q=$search")
             buildList {
-                for (i in 0 until items.length()) {
-                    val item = items.getJSONObject(i)
+                for (i in 0 until array.length()) {
+                    val item = array.getJSONObject(i)
                     add(
-                        CloudQuestion(
+                        CloudKnowledgePoint(
                             id = item.getString("id"),
-                            subjectId = item.optString("subjectId"),
+                            name = item.optString("name"),
                             grade = item.optString("grade"),
-                            questionType = item.optString("questionType"),
-                            difficulty = item.optInt("difficulty", 3),
-                            stem = item.optString("stem"),
-                            reviewStatus = item.optString("reviewStatus"),
-                            sourceType = item.optString("sourceType"),
-                            version = item.optInt("version", 1)
+                            chapter = item.optString("chapter"),
+                            section = item.optString("section")
                         )
                     )
                 }
             }
         }
+
+    suspend fun duplicates(stem: String): CloudDuplicateCheck = withContext(Dispatchers.IO) {
+        val root = getJson("/api/v1/questions/duplicates?stem=${URLEncoder.encode(stem, "UTF-8")}")
+        CloudDuplicateCheck(
+            exact = root.optJSONObject("exact")?.let(::parseQuestion),
+            near = root.optJSONObject("near")?.let(::parseQuestion),
+            similar = root.optJSONArray("similar")?.let { array ->
+                buildList {
+                    for (i in 0 until array.length()) add(parseQuestion(array.getJSONObject(i)))
+                }
+            }.orEmpty()
+        )
     }
 
-    suspend fun detail(id: String): CloudQuestionDetail = withContext(Dispatchers.IO) {
+    suspend fun create(input: CloudQuestionInput): CloudQuestionDetail = withContext(Dispatchers.IO) {
         val request = Request.Builder()
-            .url("${baseUrl.trimEnd('/')}/api/v1/questions/$id")
+            .url(url("/api/v1/questions"))
             .header("Authorization", "Bearer $token")
+            .post(questionJson(input).toString().toRequestBody(JSON))
             .build()
-        client.newCall(request).execute().use { response ->
-            val body = response.body?.string().orEmpty()
-            if (!response.isSuccessful) throw IOException(errorMessage(body, response.code))
-            val root = JSONObject(body)
-            val q = root.getJSONObject("question")
-            val options = mutableListOf<Pair<String, String>>()
-            root.optJSONArray("options")?.let { array ->
-                for (i in 0 until array.length()) {
-                    val option = array.getJSONObject(i)
-                    options += option.optString("optionKey") to option.optString("content")
-                }
-            }
-            val answer = root.optJSONObject("answer")
-            CloudQuestionDetail(
-                question = CloudQuestion(
-                    id = q.getString("id"),
-                    subjectId = q.optString("subjectId"),
-                    grade = q.optString("grade"),
-                    questionType = q.optString("questionType"),
-                    difficulty = q.optInt("difficulty", 3),
-                    stem = q.optString("stem"),
-                    reviewStatus = q.optString("reviewStatus"),
-                    sourceType = q.optString("sourceType"),
-                    version = q.optInt("version", 1)
-                ),
-                options = options,
-                standardAnswer = answer?.optString("standardAnswer").orEmpty(),
-                analysis = answer?.optString("analysis").orEmpty()
-            )
-        }
+        parseDetail(executeJson(request))
+    }
+
+    suspend fun update(id: String, input: CloudQuestionInput): CloudQuestionDetail = withContext(Dispatchers.IO) {
+        val request = Request.Builder()
+            .url(url("/api/v1/questions/${URLEncoder.encode(id, "UTF-8")}"))
+            .header("Authorization", "Bearer $token")
+            .patch(questionJson(input).toString().toRequestBody(JSON))
+            .build()
+        parseDetail(executeJson(request))
     }
 
     suspend fun review(id: String, status: String): Unit = withContext(Dispatchers.IO) {
-        val body = JSONObject().put("status", status).toString()
-            .toRequestBody("application/json".toMediaType())
+        val body = JSONObject().put("status", status).toString().toRequestBody(JSON)
         val request = Request.Builder()
-            .url("${baseUrl.trimEnd('/')}/api/v1/questions/$id/review")
+            .url(url("/api/v1/questions/${URLEncoder.encode(id, "UTF-8")}/review"))
             .header("Authorization", "Bearer $token")
             .post(body)
             .build()
         client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                throw IOException(errorMessage(response.body?.string().orEmpty(), response.code))
-            }
+            if (!response.isSuccessful) throw responseError(response.body?.string().orEmpty(), response.code)
         }
     }
 
-    private fun errorMessage(body: String, code: Int): String = runCatching {
-        JSONObject(body).getJSONObject("error").optString("message")
-    }.getOrNull()?.takeIf { it.isNotBlank() } ?: "HTTP $code"
+    private fun questionJson(input: CloudQuestionInput): JSONObject {
+        val options = JSONArray()
+        input.options.forEachIndexed { index, (key, content) ->
+            options.put(JSONObject().put("key", key).put("content", content).put("sortOrder", index))
+        }
+        val knowledge = JSONArray()
+        input.knowledgePointIds.forEachIndexed { index, id ->
+            knowledge.put(
+                JSONObject()
+                    .put("knowledgePointId", id)
+                    .put("importance", if (index == 0) "PRIMARY" else "RELATED")
+            )
+        }
+        return JSONObject()
+            .put("subjectId", input.subjectId)
+            .put("grade", input.grade)
+            .put("textbookVersion", input.textbookVersion)
+            .put("questionType", input.questionType)
+            .put("difficulty", input.difficulty)
+            .put("stem", input.stem)
+            .put("sourceType", input.sourceType)
+            .put("sourceName", input.sourceName)
+            .put("copyrightStatus", "PERSONAL_USE")
+            .put("usageScope", "PRIVATE_TEACHING")
+            .put("reviewStatus", input.reviewStatus)
+            .put("options", options)
+            .put("answer", JSONObject()
+                .put("standardAnswer", input.standardAnswer)
+                .put("analysis", input.analysis)
+                .put("scoringPoints", input.scoringPoints)
+                .put("solutionSteps", input.solutionSteps))
+            .put("knowledge", knowledge)
+            .put("abilityTags", JSONArray(input.abilityTags))
+            .put("baseVersion", input.baseVersion ?: JSONObject.NULL)
+    }
+
+    private fun parseDetail(root: JSONObject): CloudQuestionDetail {
+        val answer = root.optJSONObject("answer")
+        val options = mutableListOf<Pair<String, String>>()
+        root.optJSONArray("options")?.let { array ->
+            for (i in 0 until array.length()) {
+                val option = array.getJSONObject(i)
+                options += option.optString("optionKey") to option.optString("content")
+            }
+        }
+        val knowledge = mutableListOf<CloudKnowledgeLink>()
+        root.optJSONArray("knowledge")?.let { array ->
+            for (i in 0 until array.length()) {
+                val item = array.getJSONObject(i)
+                knowledge += CloudKnowledgeLink(
+                    knowledgePointId = item.optString("knowledgePointId"),
+                    importance = item.optString("importance", "PRIMARY")
+                )
+            }
+        }
+        val abilityTags = mutableListOf<String>()
+        root.optJSONArray("abilityTags")?.let { array ->
+            for (i in 0 until array.length()) abilityTags += array.optString(i)
+        }
+        return CloudQuestionDetail(
+            question = parseQuestion(root.getJSONObject("question")),
+            options = options,
+            standardAnswer = answer?.optString("standardAnswer").orEmpty(),
+            analysis = answer?.optString("analysis").orEmpty(),
+            scoringPoints = answer?.optString("scoringPoints").orEmpty(),
+            solutionSteps = answer?.optString("solutionSteps").orEmpty(),
+            knowledge = knowledge,
+            abilityTags = abilityTags
+        )
+    }
+
+    private fun parseQuestion(item: JSONObject) = CloudQuestion(
+        id = item.getString("id"),
+        subjectId = item.optString("subjectId"),
+        grade = item.optString("grade"),
+        questionType = item.optString("questionType"),
+        difficulty = item.optInt("difficulty", 3),
+        stem = item.optString("stem"),
+        reviewStatus = item.optString("reviewStatus"),
+        sourceType = item.optString("sourceType"),
+        version = item.optInt("version", 1),
+        textbookVersion = item.optString("textbookVersion"),
+        sourceName = item.optString("sourceName")
+    )
+
+    private fun getJson(path: String): JSONObject {
+        val request = Request.Builder().url(url(path)).header("Authorization", "Bearer $token").get().build()
+        return executeJson(request)
+    }
+
+    private fun getJsonArray(path: String): JSONArray {
+        val request = Request.Builder().url(url(path)).header("Authorization", "Bearer $token").get().build()
+        client.newCall(request).execute().use { response ->
+            val body = response.body?.string().orEmpty()
+            if (!response.isSuccessful) throw responseError(body, response.code)
+            return JSONArray(body)
+        }
+    }
+
+    private fun executeJson(request: Request): JSONObject {
+        client.newCall(request).execute().use { response ->
+            val body = response.body?.string().orEmpty()
+            if (!response.isSuccessful) throw responseError(body, response.code)
+            return JSONObject(body)
+        }
+    }
+
+    private fun url(path: String) = "${baseUrl.trimEnd('/')}$path"
+
+    private fun responseError(body: String, status: Int): QuestionApiException {
+        val error = runCatching { JSONObject(body).optJSONObject("error") }.getOrNull()
+        val code = error?.optString("code").orEmpty().ifBlank { "HTTP_$status" }
+        val message = error?.optString("message").orEmpty().ifBlank { "HTTP $status" }
+        return QuestionApiException(status, code, message)
+    }
+
+    private companion object {
+        val JSON = "application/json".toMediaType()
+    }
 }

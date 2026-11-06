@@ -61,6 +61,17 @@ describe("question bank on D1", () => {
     expect((await duplicate.json() as any).error.code).toBe("DUPLICATE_QUESTION");
   });
 
+  it("returns exact and normalized duplicates before editing or importing", async () => {
+    const exact = await api(`/api/v1/questions/duplicates?stem=${encodeURIComponent("液体内部向各个方向的压强有什么关系？")}`);
+    expect(exact.status).toBe(200);
+    expect((await exact.json() as any).exact.id).toBe(questionId);
+
+    const normalized = await api(`/api/v1/questions/duplicates?stem=${encodeURIComponent("液体内部向各个方向的压强有什么关系")}`);
+    const result = await normalized.json() as any;
+    expect(result.exact).toBeNull();
+    expect(result.near.id).toBe(questionId);
+  });
+
   it("enforces optimistic versions and keeps history", async () => {
     const updated = await api(`/api/v1/questions/${questionId}`, {
       method: "PATCH",
@@ -76,6 +87,27 @@ describe("question bank on D1", () => {
     const versions = await testEnv.DB.prepare("select count(*) as n from question_versions where question_id = ?")
       .bind(questionId).first<{ n: number }>();
     expect(versions?.n).toBe(2);
+  });
+
+  it("imports fifty questions without creating duplicates on retry", async () => {
+    const stems = Array.from({ length: 50 }, (_, index) => `批量导入验收第 ${index + 1} 题`);
+    for (const stem of stems) {
+      const response = await api("/api/v1/questions", {
+        method: "POST",
+        body: JSON.stringify({ subjectId, questionType: "OTHER", difficulty: 3, stem, sourceType: "TEACHER_IMPORTED" }),
+      });
+      expect(response.status).toBe(201);
+    }
+    for (const stem of stems) {
+      const duplicate = await api("/api/v1/questions", {
+        method: "POST",
+        body: JSON.stringify({ subjectId, questionType: "OTHER", difficulty: 3, stem, sourceType: "TEACHER_IMPORTED" }),
+      });
+      expect(duplicate.status).toBe(409);
+      expect((await duplicate.json() as any).error.code).toBe("DUPLICATE_QUESTION");
+    }
+    const page = await (await api(`/api/v1/questions?q=${encodeURIComponent("批量导入验收")}&limit=100`)).json() as any;
+    expect(page.total).toBe(50);
   });
 
   it("never auto-approves AI questions and soft-deletes", async () => {

@@ -9,9 +9,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Cloud
-import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,7 +25,7 @@ import com.leslie.teachtrack.remote.CloudQuestionDetail
 import com.leslie.teachtrack.remote.QuestionApi
 import kotlinx.coroutines.launch
 
-private val QbGreen = Color(0xFF176B57)
+internal val QbGreen = Color(0xFF176B57)
 private val QbMint = Color(0xFFDDF5EA)
 private val QbInk = Color(0xFF15312A)
 private val QbBackground = Color(0xFFF4F9F6)
@@ -43,8 +41,17 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
     var items by remember { mutableStateOf<List<CloudQuestion>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var notice by remember { mutableStateOf<String?>(null) }
     var detail by remember { mutableStateOf<CloudQuestionDetail?>(null) }
+    var editorOpen by remember { mutableStateOf(false) }
+    var editorDetail by remember { mutableStateOf<CloudQuestionDetail?>(null) }
+    var importOpen by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val agentExamRequest by com.leslie.teachtrack.agent.QuestionBankAgentBridge.openExamAnalysisRequests.collectAsState()
+
+    LaunchedEffect(agentExamRequest) {
+        if (agentExamRequest > 0) hubTab = 1
+    }
 
     fun api(): QuestionApi = QuestionApi(baseUrl, token)
 
@@ -70,11 +77,16 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
                 Icon(Icons.Rounded.Cloud, null, tint = QbGreen)
             }
             Spacer(Modifier.width(10.dp))
-            Column {
+            Column(Modifier.weight(1f)) {
                 Text("云端工作台", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = QbInk)
-                Text(if (token.isBlank()) "尚未连接云端" else baseUrl, fontSize = 12.sp, color = Color.Gray)
+                Text(if (token.isBlank()) "尚未连接云端" else baseUrl, fontSize = 12.sp, color = Color.Gray, maxLines = 1)
             }
-            Spacer(Modifier.weight(1f))
+            IconButton(onClick = { importOpen = true }, enabled = token.isNotBlank()) {
+                Icon(Icons.Rounded.Upload, "批量导入", tint = QbGreen)
+            }
+            IconButton(onClick = { editorDetail = null; editorOpen = true }, enabled = token.isNotBlank()) {
+                Icon(Icons.Rounded.Add, "录入题目", tint = QbGreen)
+            }
             IconButton(onClick = { load() }, enabled = token.isNotBlank() && !loading) {
                 Icon(Icons.Rounded.Refresh, "刷新", tint = QbGreen)
             }
@@ -137,12 +149,15 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
             Text(it, color = MaterialTheme.colorScheme.error, fontSize = 13.sp,
                 modifier = Modifier.padding(vertical = 8.dp))
         }
+        notice?.let {
+            Text(it, color = QbGreen, fontSize = 13.sp, modifier = Modifier.padding(vertical = 4.dp))
+        }
 
         Spacer(Modifier.height(8.dp))
         if (!loading && items.isEmpty() && error == null) {
             EmptyQuestionState()
         } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(items, key = { it.id }) { question ->
                     QuestionCard(question) {
                         scope.launch {
@@ -160,12 +175,40 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
         QuestionDetailDialog(
             detail = current,
             onDismiss = { detail = null },
+            onEdit = {
+                editorDetail = current
+                detail = null
+                editorOpen = true
+            },
             onReview = { status ->
                 scope.launch {
                     runCatching { api().review(current.question.id, status) }
                         .onSuccess { detail = null; load() }
                         .onFailure { error = it.message }
                 }
+            }
+        )
+    }
+    if (editorOpen) {
+        QuestionEditorDialog(
+            api = api(),
+            initial = editorDetail,
+            onDismiss = { editorOpen = false },
+            onSaved = {
+                editorOpen = false
+                notice = if (editorDetail == null) "题目已保存" else "题目修改已保存"
+                load()
+            },
+            onRefreshed = { editorDetail = it }
+        )
+    }
+    if (importOpen) {
+        QuestionImportDialog(
+            api = api(),
+            onDismiss = { importOpen = false },
+            onImported = { count ->
+                notice = "批量导入新增 $count 道题"
+                load()
             }
         )
     }
@@ -216,7 +259,7 @@ private fun EmptyQuestionState() {
         Icon(Icons.Rounded.Search, null, tint = Color.LightGray, modifier = Modifier.size(48.dp))
         Spacer(Modifier.height(8.dp))
         Text("题库还没有题目", color = Color.Gray)
-        Text("可通过后端 API 或迁移导入题目", fontSize = 12.sp, color = Color.LightGray)
+        Text("点击右上角 + 录题，或使用上传图标批量导入", fontSize = 12.sp, color = Color.LightGray)
     }
 }
 
@@ -247,6 +290,7 @@ private fun QuestionCard(question: CloudQuestion, onClick: () -> Unit) {
 private fun QuestionDetailDialog(
     detail: CloudQuestionDetail,
     onDismiss: () -> Unit,
+    onEdit: () -> Unit,
     onReview: (String) -> Unit
 ) {
     AlertDialog(
@@ -275,6 +319,7 @@ private fun QuestionDetailDialog(
         },
         dismissButton = {
             Row {
+                TextButton(onClick = onEdit) { Text("编辑") }
                 TextButton(onClick = { onReview("REJECTED") }) { Text("拒绝") }
                 TextButton(onClick = onDismiss) { Text("关闭") }
             }

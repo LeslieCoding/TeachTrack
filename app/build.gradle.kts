@@ -21,7 +21,7 @@ fun customizationValue(key: String): String =
 
 android { namespace = "com.leslie.teachtrack"; compileSdk = 36
     defaultConfig {
-        applicationId = "com.leslie.teachtrack"
+        applicationId = providers.gradleProperty("teachTrackApplicationId").getOrElse("com.leslie.teachtrack")
         // minSdk raised 24 -> 26: floor required by the vendored OpenMinis
         // Agent Runtime (PRoot/Alpine sandbox). See LAEP/STATE/DECISIONS.md DEC-004.
         minSdk = 26
@@ -158,6 +158,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
     testImplementation("org.json:json:20231013")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
     androidTestImplementation(platform("androidx.compose:compose-bom:2025.09.00"))
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test:runner:1.6.2")

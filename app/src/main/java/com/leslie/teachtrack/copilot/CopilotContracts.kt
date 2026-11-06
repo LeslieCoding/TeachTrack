@@ -35,7 +35,7 @@ val READ_ONLY_ACTIONS = setOf(
     // P2 coverage-audit additions — all pure reads or UI navigation:
     "course.query", "exam.query", "score.trend", "homework.query", "communication.query", "problem.query",
     "task.query", "lesson_plan.query", "timeline.query", "search.global", "tag.student.query",
-    "ui.open.tab", "ui.open.student"
+    "ui.open.tab", "ui.open.student", "exam.analysis.text.fill"
 )
 
 interface CopilotProvider { suspend fun interpret(input: String, context: Map<String, String>): CopilotCandidate }
@@ -184,7 +184,9 @@ class CopilotCommandValidator(private val allowedActions: Set<String>) {
     fun validate(command: CopilotCommand): String? = when {
         command.action !in allowedActions -> "不允许的动作：${command.action}"
         command.parameters.keys.any { it.length > 64 } -> "参数名无效"
-        command.parameters.values.any { it.length > 4000 } -> "参数内容过长"
+        command.parameters.values.any {
+            it.length > if (command.action == "exam.analysis.text.fill") 200_000 else 4000
+        } -> "参数内容过长"
         else -> null
     }
 }

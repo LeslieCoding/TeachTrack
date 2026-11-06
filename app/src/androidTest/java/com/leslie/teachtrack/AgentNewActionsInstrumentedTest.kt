@@ -37,8 +37,8 @@ import org.junit.runner.RunWith
 
 /**
  * On-device acceptance coverage (spec §56-65) for the P2/P4 capability
- * additions: the 14 P2 query/navigation/batch actions and the 4 P4 batch
- * actions. Every action is driven through the SAME CopilotService →
+ * additions and the question-bank UI bridge. Every data action is driven
+ * through the SAME CopilotService →
  * LocalCopilotActionRegistry path the offload handler uses, against an
  * in-memory Room database seeded exactly like
  * [TeachTrackDatabaseInstrumentedTest].
@@ -372,6 +372,30 @@ class AgentNewActionsInstrumentedTest {
         val undo = service.undo(result.undoToken!!)
         assertTrue(undo.message, undo.success)
         assertEquals(com.leslie.teachtrack.core.model.StudentStatus.ARCHIVED, dao.observeStudentOnce(studentId)?.status)
+    }
+
+    @Test fun examAnalysisTextFillRunsThroughOffloadInStandardMode() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        TeachTrackIntegrationSettings.setAccessMode(context, TeachTrackIntegrationSettings.MODE_STANDARD)
+        val requests = com.leslie.teachtrack.agent.QuestionBankAgentBridge.openExamAnalysisRequests.value
+        try {
+            val handler = TeachTrackOffloadHandler(context, context.cacheDir)
+            val result = handler.handle(
+                NativeOffloadRequest(
+                    0,
+                    listOf("teachtrack", "rpc", "--json", """{"action":"exam.analysis.text.fill","params":{"text":"1. 液体压强题 2分","mode":"replace"}}"""),
+                    emptyMap(),
+                    "/",
+                )
+            )
+            assertEquals(result.output, 0, result.exitCode)
+            assertEquals("exam.analysis.text.fill", JSONObject(result.output).getString("operation"))
+            assertEquals("1. 液体压强题 2分", com.leslie.teachtrack.agent.QuestionBankAgentBridge.examAnalysisText.value)
+            assertEquals(requests + 1, com.leslie.teachtrack.agent.QuestionBankAgentBridge.openExamAnalysisRequests.value)
+        } finally {
+            com.leslie.teachtrack.agent.QuestionBankAgentBridge.updateExamAnalysisText("")
+            TeachTrackIntegrationSettings.setAccessMode(context, TeachTrackIntegrationSettings.MODE_OWNER_TRUSTED)
+        }
     }
 
     /** Spec §43/§45: standard access mode refuses bridge writes; read-only actions still run. */

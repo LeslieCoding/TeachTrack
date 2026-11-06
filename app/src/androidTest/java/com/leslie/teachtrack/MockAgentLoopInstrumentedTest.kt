@@ -76,12 +76,13 @@ class MockAgentLoopInstrumentedTest {
         while (!providerRepo.configLoaded.value && waited < 15_000) { delay(100); waited += 100 }
         assertTrue("provider config must finish loading", providerRepo.configLoaded.value)
 
-        // Ground truth: a real student in the device DB (release device holds
-        // real user data; any non-empty roster proves the data path).
+        // Use an existing student, or seed a temporary one in a clean test installation.
         val ttRepo = TeachTrackAppContext.repository(context)
-        val students = ttRepo.searchStudents("")
-        assertTrue("device DB must hold at least one student for this proof", students.isNotEmpty())
-        val knownName = students.first().name
+        val student = ttRepo.searchStudents("").firstOrNull()
+        val knownName = student?.name ?: "Mock Agent 验收学生"
+        val temporaryStudentId = if (student == null) {
+            ttRepo.saveStudent(knownName, "", "", "科学", "Mock Agent isolated acceptance")
+        } else null
 
         val mock = MockLlmServer()
         val port = mock.start()
@@ -171,6 +172,7 @@ class MockAgentLoopInstrumentedTest {
             File(context.filesDir, "mock-e2e-marker-$runStamp.txt").appendText("finished ${System.currentTimeMillis()}\n")
             runCatching { providerRepo.removeInstance(instanceId) }
             createdSessionId?.let { sid -> runCatching { app.chatRepository.deleteSession(sid) } }
+            temporaryStudentId?.let { id -> runCatching { ttRepo.archiveStudent(id) } }
             mock.stop()
         }
     }

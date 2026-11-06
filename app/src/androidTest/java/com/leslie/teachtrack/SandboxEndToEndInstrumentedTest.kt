@@ -68,7 +68,7 @@ class SandboxEndToEndInstrumentedTest {
         val json = JSONObject(line)
         assertTrue(json.getBoolean("ok"))
         val actions = json.getJSONObject("result").getJSONArray("actions")
-        assertEquals(68, actions.length())
+        assertEquals(69, actions.length())
         val names = (0 until actions.length()).map { actions.getString(it) }
         assertTrue("score.create" in names)
         assertTrue("workspace.check" in names)
@@ -109,13 +109,13 @@ class SandboxEndToEndInstrumentedTest {
         assertEquals(rootfs.output, 0, rootfs.exitCode)
     }
 
-    /** §57/§48: the bundled teachtrack skill 1.7.1 is installed into the rootfs-visible skills dir. */
+    /** §57/§48: the bundled teachtrack skill is installed into the rootfs-visible skills dir. */
     @Test fun bundledTeachtrackSkillInstalled() {
         val result = sh("head -5 /var/minis/skills/teachtrack/SKILL.md")
         assertEquals(result.output, 0, result.exitCode)
         assertTrue(result.output, result.output.contains("name: teachtrack"))
         val version = sh("grep '^version:' /var/minis/skills/teachtrack/SKILL.md")
-        assertTrue(version.output, version.output.contains("version: 1.7.2"))
+        assertTrue(version.output, version.output.contains("version: 1.7.3"))
     }
 
     /** §52(c): re-registering the handler and re-starting the server are idempotent no-ops. */

@@ -1,5 +1,12 @@
 # TeachTrack Agent Capability Matrix
 
+## Question-bank UI bridge update (2026-11-06)
+
+`exam.analysis.text.fill` lets the Agent replace or append text in 题库 → 试卷分析
+and open that panel. It only changes shared UI state: importing, analysis and
+teacher approval remain explicit user actions. Bundled teachtrack skill v1.7.3
+documents the action and its 200000-character OCR payload path.
+
 ## P4 batch + skill-sync update (2026-09-27)
 
 4 batch actions added (`batch.scores.create`, `batch.courses.create`,
@@ -127,14 +134,13 @@ Status legend:
 
 ## Coverage summary
 
-- 68 actions in `LocalCopilotActionRegistry.allowedActions` (49 pre-P2 + 14
-  added in the P2 coverage audit + `ui.open.tab` alias + 4 P4 batch actions),
-  all reachable
-  from the Agent via `TeachTrackOffloadHandler` → `CopilotService.execute()`
-  → the same registry the in-app Copilot chat window uses (LAEP MASTER TASK
-  sections 12-13: one business logic per feature, no duplicate
-  implementation for the Agent path).
-- 65 map to a real UI screen; 3 (`student.data.organize.preview`,
+- 69 actions in `LocalCopilotActionRegistry.allowedActions` (49 pre-P2 + 14
+  added in the P2 coverage audit + `ui.open.tab` alias + 4 P4 batch actions
+  + `exam.analysis.text.fill`), all reachable from the Agent via
+  `TeachTrackOffloadHandler` → `CopilotService.execute()` → the same registry
+  the in-app Copilot chat window uses (LAEP MASTER TASK sections 12-13: one
+  business logic per feature, no duplicate implementation for the Agent path).
+- 66 map to a real UI screen; 3 (`student.data.organize.preview`,
   `csv.export.scores`, `search.global`) are Agent-reachable capabilities the
   DAO/Repository layer already had, with no dedicated UI screen of their own.
 - 0 actions are silently unsupported (`UNSUPPORTED`) — every action in the

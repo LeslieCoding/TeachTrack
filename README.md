@@ -33,6 +33,6 @@ The model cannot access Room or execute arbitrary code. It can only produce a ve
 
 - Current Android version: `3.0.0-alpha.3`.
 - Current Debug and debug-signed Release build artifacts are in `artifacts/deliverables/`; checksums are in `SHA256SUMS.txt`.
-- The embedded Agent tab (OpenMinis) drives TeachTrack through the `teachtrack` sandbox CLI → Native Offload bridge → 68-action Copilot Action Registry (see `TEACHTRACK_AGENT_COVERAGE_REPORT.md`). Access mode (Owner Trusted / standard), integration status page, and audit + undo live in Settings → TeachTrack Integration.
+- The embedded Agent tab (OpenMinis) drives TeachTrack through the `teachtrack` sandbox CLI → Native Offload bridge → 69-action Copilot Action Registry (see `docs/agent/TEACHTRACK_CAPABILITY_MATRIX.md`). Access mode (Owner Trusted / standard), integration status page, and audit + undo live in Settings → TeachTrack Integration.
 - Latest OnePlus instrumentation result: `OK (52 tests)` on OnePlus Ace 5 (PKG110, Android 16) — database + agent actions + literal PRoot sandbox e2e (`artifacts/oneplus-ace5-androidtest-20260916.txt`); tablet (OPD2101) rendering verified via uiautomator/screencap artifacts.
 - Real provider OAuth approval and Release signing require external credentials/material.

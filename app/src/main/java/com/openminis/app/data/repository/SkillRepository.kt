@@ -1681,12 +1681,12 @@ Do not create extraneous files: README.md, INSTALLATION_GUIDE.md, CHANGELOG.md, 
 // LAEP MASTER TASK / DEC-004 section 37. Bump the version string whenever
 // this content changes — installBundledSkill only re-applies when the
 // bundled version is newer than what's already installed.
-internal const val TEACHTRACK_SKILL_VERSION = "1.7.2"
+internal const val TEACHTRACK_SKILL_VERSION = "1.7.3"
 
 private val TEACHTRACK_SKILL_CONTENT = """
 ---
 name: teachtrack
-version: 1.7.2
+version: 1.7.3
 description: Operate TeachTrack, the teacher's own student-management app this Agent is embedded inside — query, create, and update students, courses, exams, scores, knowledge points, homework, problems, plans, parent communication, tasks, tags, templates, attachments, backups, and the sync Workspace, and navigate the app's UI. Use this whenever the user asks about a student, a class, a score, a lesson, homework, or anything about their teaching records — this is real local data, not something to answer from memory.
 ---
 
@@ -1785,7 +1785,14 @@ Read-only (no confirmation semantics, safe to call freely):
 `ui.open.student`, `attachment.list`, `attachment.query`,
 `parent_contact.query`, `template.list`, `template.render`,
 `tag.query`, `backup.list`, `workspace.status.query`, `workspace.check`,
-`workspace.sync.scan`, `workspace.conflict.list`, `workspace.conflict.resolve`.
+`workspace.sync.scan`, `workspace.conflict.list`, `workspace.conflict.resolve`,
+`exam.analysis.text.fill`.
+
+To put text into 题库 → 试卷分析, call `exam.analysis.text.fill` with `text`
+(or `content`) and optional `mode: replace` (default) or `append`. This opens
+that panel and preserves the text for manual editing, but does NOT import the
+exam, run 逐题分析, or approve anything into the question bank. Use `--file`
+for OCR/full-paper text; this action accepts up to 200000 characters.
 
 Writes (all auto-execute for you — this device is in Owner Trusted mode, so
 none of these pause for a confirmation dialog; they still enforce

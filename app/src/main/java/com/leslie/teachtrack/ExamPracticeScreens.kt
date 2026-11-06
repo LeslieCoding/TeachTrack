@@ -51,7 +51,7 @@ fun ExamPanel(vm: TeachTrackViewModel, baseUrl: String, token: String) {
         mutableStateOf(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()))
     }
     var examId by remember { mutableStateOf<String?>(null) }
-    var text by remember { mutableStateOf("") }
+    val text by com.leslie.teachtrack.agent.QuestionBankAgentBridge.examAnalysisText.collectAsStateWithLifecycle()
     var detail by remember { mutableStateOf<CloudExamDetail?>(null) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -148,9 +148,9 @@ fun ExamPanel(vm: TeachTrackViewModel, baseUrl: String, token: String) {
 
         OutlinedTextField(
             value = text,
-            onValueChange = { text = it },
+            onValueChange = { com.leslie.teachtrack.agent.QuestionBankAgentBridge.updateExamAnalysisText(it) },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("题目文本（OCR 或手工）") },
+            label = { Text("题目文本（Agent、OCR 或手工）") },
             minLines = 4,
             maxLines = 10,
             placeholder = { Text("1. 液体压强选择题 2分\n2. 计算液体压强 4分") }

@@ -120,7 +120,7 @@ class LocalCopilotActionRegistry(
     override val allowedActions = setOf(
         "student.create", "student.update", "student.search", "student.archive",
         "student.overview.query", "student.data.organize.preview", "student.followup.tasks.create", "knowledge.weakness.query",
-        "course.create", "course.resume", "course.timeline", "course.query", "exam.create", "exam.query", "score.create", "score.query", "score.trend",
+        "course.create", "course.resume", "course.timeline", "course.query", "exam.create", "exam.query", "exam.analysis.text.fill", "score.create", "score.query", "score.trend",
         "communication.create", "communication.query", "homework.create", "homework.query", "lesson_plan.create", "lesson_plan.query",
         "task.create", "task.status.update", "task.query", "batch.tasks.create",
         "batch.scores.create", "batch.courses.create", "batch.tags.assign", "batch.tasks.complete",
@@ -307,6 +307,18 @@ class LocalCopilotActionRegistry(
             "course.resume" -> { val id = studentId() ?: return missing(); val c = repository.latestCourse(id); return CopilotResult(true, c?.nextLessonPlan?.takeIf { it.isNotBlank() }?.let { "已带入上节课计划：$it" } ?: "该学生暂无上节课计划", effect = CopilotEffect.OpenStudent(id, startCourse = true)) }
             "course.timeline" -> { val id = studentId() ?: return missing(); return CopilotResult(true, "已打开学生时间线，共 ${repository.coursesOnce(id).size} 条课程记录", effect = CopilotEffect.OpenStudent(id)) }
             "exam.create" -> { val name = v("examName", "TeachTrack 考试"); repository.saveExam(ExamEntity(UUID.randomUUID().toString(), name, v("date", today), v("subject"), v("type", "自定义"), v("notes"))); return CopilotResult(true, "已创建考试：$name") }
+            "exam.analysis.text.fill" -> {
+                val content = v("text", v("content"))
+                if (content.isBlank()) return CopilotResult(false, "缺少要填入试卷分析输入框的文本")
+                val mode = v("mode", "replace").trim().lowercase()
+                if (mode !in setOf("replace", "append")) return CopilotResult(false, "mode 仅支持 replace 或 append")
+                val length = com.leslie.teachtrack.agent.QuestionBankAgentBridge.fillExamAnalysisText(content, mode == "append")
+                return CopilotResult(
+                    true,
+                    if (mode == "append") "已追加到试卷分析文本框，尚未执行逐题分析" else "已填入试卷分析文本框，尚未执行逐题分析",
+                    data = mapOf("characters" to length.toString(), "mode" to mode)
+                )
+            }
             "score.create" -> {
                 val id = studentId() ?: return missing()
                 return createScoreRecord(p, id, today)
