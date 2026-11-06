@@ -1,5 +1,9 @@
 package com.leslie.teachtrack
 
+import android.graphics.BitmapFactory
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,6 +19,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -22,8 +28,13 @@ import androidx.compose.ui.unit.sp
 import com.leslie.teachtrack.remote.CloudCredentials
 import com.leslie.teachtrack.remote.CloudQuestion
 import com.leslie.teachtrack.remote.CloudQuestionDetail
+import com.leslie.teachtrack.remote.CloudQuestionImage
 import com.leslie.teachtrack.remote.QuestionApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 
 internal val QbGreen = Color(0xFF176B57)
 private val QbMint = Color(0xFFDDF5EA)
@@ -43,10 +54,28 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
     var error by remember { mutableStateOf<String?>(null) }
     var notice by remember { mutableStateOf<String?>(null) }
     var detail by remember { mutableStateOf<CloudQuestionDetail?>(null) }
+    var detailImages by remember { mutableStateOf<List<CloudQuestionImage>>(emptyList()) }
     var editorOpen by remember { mutableStateOf(false) }
     var editorDetail by remember { mutableStateOf<CloudQuestionDetail?>(null) }
     var importOpen by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        val questionId = detail?.question?.id
+        if (uri != null && questionId != null) {
+            scope.launch {
+                runCatching {
+                    val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                        ?: error("无法读取图片")
+                    val mime = context.contentResolver.getType(uri) ?: "image/png"
+                    val imageApi = QuestionApi(baseUrl, token)
+                    imageApi.uploadImage(questionId, bytes, mime)
+                    detail = imageApi.detail(questionId)
+                    detailImages = imageApi.images(questionId)
+                }.onSuccess { notice = "题图已上传" }
+                    .onFailure { error = it.message ?: "题图上传失败" }
+            }
+        }
+    }
     val agentExamRequest by com.leslie.teachtrack.agent.QuestionBankAgentBridge.openExamAnalysisRequests.collectAsState()
 
     LaunchedEffect(agentExamRequest) {
@@ -162,7 +191,10 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
                     QuestionCard(question) {
                         scope.launch {
                             runCatching { api().detail(question.id) }
-                                .onSuccess { detail = it }
+                                .onSuccess { loaded ->
+                                    detail = loaded
+                                    detailImages = runCatching { api().images(question.id) }.getOrDefault(emptyList())
+                                }
                                 .onFailure { error = it.message }
                         }
                     }
@@ -174,7 +206,9 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
     detail?.let { current ->
         QuestionDetailDialog(
             detail = current,
-            onDismiss = { detail = null },
+            images = detailImages,
+            onAddImage = { imagePicker.launch("image/*") },
+            onDismiss = { detail = null; detailImages = emptyList() },
             onEdit = {
                 editorDetail = current
                 detail = null
@@ -289,16 +323,23 @@ private fun QuestionCard(question: CloudQuestion, onClick: () -> Unit) {
 @Composable
 private fun QuestionDetailDialog(
     detail: CloudQuestionDetail,
+    images: List<CloudQuestionImage>,
+    onAddImage: () -> Unit,
     onDismiss: () -> Unit,
     onEdit: () -> Unit,
     onReview: (String) -> Unit
 ) {
+    val needsImage = detail.abilityTags.contains("含图待补")
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("题目详情") },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(detail.question.stem, fontWeight = FontWeight.Medium)
+                images.forEach { image -> RemoteQuestionImage(image.url) }
+                if (needsImage) {
+                    Text("含图题尚未上传图片，不能审核通过，也不能进入组卷。", color = Color(0xFFB42318), fontSize = 12.sp)
+                }
                 if (detail.options.isNotEmpty()) {
                     detail.options.forEach { (key, content) -> Text("$key. $content", fontSize = 13.sp) }
                 }
@@ -315,16 +356,45 @@ private fun QuestionDetailDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { onReview("APPROVED") }) { Text("通过") }
+            TextButton(enabled = !needsImage, onClick = { onReview("APPROVED") }) { Text("通过") }
         },
         dismissButton = {
             Row {
+                TextButton(onClick = onAddImage) { Text("添加题图") }
                 TextButton(onClick = onEdit) { Text("编辑") }
                 TextButton(onClick = { onReview("REJECTED") }) { Text("拒绝") }
                 TextButton(onClick = onDismiss) { Text("关闭") }
             }
         }
     )
+}
+
+@Composable
+private fun RemoteQuestionImage(url: String) {
+    var bitmap by remember(url) { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
+    var failed by remember(url) { mutableStateOf(false) }
+    LaunchedEffect(url) {
+        val loaded = withContext(Dispatchers.IO) {
+            runCatching {
+                val request = Request.Builder().url(url).build()
+                OkHttpClient().newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) error("HTTP ${response.code}")
+                    BitmapFactory.decodeStream(response.body?.byteStream())
+                }
+            }.getOrNull()
+        }
+        if (loaded != null) bitmap = loaded.asImageBitmap() else failed = true
+    }
+    when {
+        bitmap != null -> Image(
+            bitmap = bitmap!!,
+            contentDescription = "题图",
+            modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp),
+            contentScale = ContentScale.Fit
+        )
+        failed -> Text("题图加载失败", color = Color(0xFFB42318), fontSize = 12.sp)
+        else -> CircularProgressIndicator(Modifier.size(24.dp))
+    }
 }
 
 private fun typeLabel(type: String): String = when (type) {

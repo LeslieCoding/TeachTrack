@@ -13,6 +13,12 @@
       "zone_name": "leslieholmes.ccwu.cc"
     }
   ],
+  "kv_namespaces": [
+    {
+      "binding": "MEDIA",
+      "id": "f184a9f9a3b9403ba211d1f9147d1592"
+    }
+  ],
   "d1_databases": [
     {
       "binding": "DB",

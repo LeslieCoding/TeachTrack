@@ -1,6 +1,7 @@
 export interface Env {
   DB: D1Database;
   FILES?: R2Bucket;
+  MEDIA?: KVNamespace;
   BOOTSTRAP_TOKEN?: string;
   STORAGE_SECRET?: string;
   ENVIRONMENT?: string;

@@ -2,6 +2,7 @@ import { audit } from "../audit";
 import { all, first, now, run, sha256Hex, text, uuid } from "../db";
 import { badRequest, camelize, HttpError, intParam, json, noContent, notFound, parseJson } from "../http";
 import type { Env, Principal, Row } from "../types";
+import { allImages } from "./assets";
 import { recordChange } from "./core";
 
 const TYPES = new Set(["SINGLE_CHOICE", "MULTI_CHOICE", "FILL_BLANK", "EXPERIMENT", "CALCULATION", "SHORT_ANSWER", "ESSAY", "OTHER"]);
@@ -104,6 +105,10 @@ async function createQuestion(env: Env, input: Row, principal: Principal): Promi
   const sourceType = text(input.sourceType, "SELF_CREATED");
   let reviewStatus = text(input.reviewStatus, "DRAFT");
   if (sourceType.startsWith("AI_") && reviewStatus === "APPROVED") reviewStatus = "NEEDS_TEACHER_REVIEW";
+  const tags = Array.isArray(input.abilityTags) ? input.abilityTags : [];
+  if (reviewStatus === "APPROVED" && hasPendingImage(tags)) {
+    return badRequest("IMAGE_REQUIRED", "含图题必须先上传题图，才能审核通过");
+  }
   const id = uuid();
   await run(env,
     `insert into questions
@@ -113,7 +118,7 @@ async function createQuestion(env: Env, input: Row, principal: Principal): Promi
     id, input.subjectId, text(input.grade), text(input.textbookVersion), input.questionType,
     Number(input.difficulty), stem, stemHash, normalizeStem(stem), sourceType, text(input.sourceName),
     text(input.copyrightStatus, "PERSONAL_USE"), text(input.usageScope, "PRIVATE_TEACHING"), reviewStatus,
-    JSON.stringify(Array.isArray(input.abilityTags) ? input.abilityTags : []), principal.userId,
+    JSON.stringify(tags), principal.userId,
   );
   await applyChildren(env, id, input);
   const detail = await getQuestion(env, id);
@@ -144,6 +149,10 @@ async function updateQuestion(env: Env, id: string, input: Row, principal: Princ
   if (merged.sourceType.startsWith("AI_") && merged.reviewStatus === "APPROVED" && !principal.scopes.includes("owner")) {
     throw new HttpError(403, "FORBIDDEN", "AI 生成题目必须由教师审核");
   }
+  const tags = Array.isArray(input.abilityTags) ? input.abilityTags : current.abilityTags;
+  if (merged.reviewStatus === "APPROVED" && hasPendingImage(tags) && (await allImages(env, id)).length === 0) {
+    return badRequest("IMAGE_REQUIRED", "含图题必须先上传题图，才能审核通过");
+  }
   const result = await run(env,
     `update questions set subject_id = ?, grade = ?, textbook_version = ?, question_type = ?, difficulty = ?,
        stem = ?, stem_hash = ?, normalized_hash = ?, source_type = ?, source_name = ?, copyright_status = ?,
@@ -153,7 +162,7 @@ async function updateQuestion(env: Env, id: string, input: Row, principal: Princ
     text(input.textbookVersion, current.question.textbookVersion), merged.questionType, merged.difficulty,
     stem, await sha256Hex(stem), normalizeStem(stem), merged.sourceType,
     text(input.sourceName, current.question.sourceName), merged.copyrightStatus, merged.usageScope,
-    merged.reviewStatus, JSON.stringify(Array.isArray(input.abilityTags) ? input.abilityTags : current.abilityTags),
+    merged.reviewStatus, JSON.stringify(tags),
     principal.userId, now(), id, baseVersion,
   );
   if (!result.meta.changes) throw new HttpError(409, "VERSION_CONFLICT", "题目已被其他端修改");
@@ -177,6 +186,9 @@ async function reviewQuestion(env: Env, id: string, status: string, principal: P
     }
     if (current.question.reviewStatus === "REJECTED") {
       return badRequest("INVALID_TRANSITION", "已拒绝的题目不能直接通过");
+    }
+    if (hasPendingImage(current.abilityTags) && (await allImages(env, id)).length === 0) {
+      return badRequest("IMAGE_REQUIRED", "含图题必须先上传题图，才能审核通过");
     }
   }
   await run(env,
@@ -351,6 +363,10 @@ async function insertVersion(env: Env, questionId: string, version: number, snap
   await run(env,
     "insert into question_versions (id, question_id, version, snapshot, change_note, created_by) values (?, ?, ?, ?, ?, ?)",
     uuid(), questionId, version, JSON.stringify(snapshot), note, userId);
+}
+
+function hasPendingImage(tags: unknown): boolean {
+  return Array.isArray(tags) && tags.includes("含图待补");
 }
 
 export { createQuestion, getQuestion, searchQuestions, updateQuestion };

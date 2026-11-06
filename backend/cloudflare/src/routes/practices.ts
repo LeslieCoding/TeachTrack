@@ -88,7 +88,12 @@ async function selectCandidates(env: Env, subjectId: string, knowledgeIds: strin
   return await all(env,
     `select q.id, q.difficulty, q.question_type from questions q
      where q.deleted_at is null and q.review_status = 'APPROVED' and q.subject_id = ?
-       and q.difficulty between ? and ? ${knowledgeFilter} order by q.updated_at desc limit ?`, ...params);
+       and q.difficulty between ? and ? ${knowledgeFilter}
+       and not (q.ability_tags like '%含图待补%' and not exists (
+         select 1 from question_assets qa join assets a on a.id = qa.asset_id
+         where qa.question_id = q.id and a.status = 'READY' and a.mime_type like 'image/%'
+       ))
+       order by q.updated_at desc limit ?`, ...params);
 }
 
 async function practiceSet(env: Env, id: string): Promise<Row> {

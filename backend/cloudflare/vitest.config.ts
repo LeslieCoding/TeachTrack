@@ -7,6 +7,7 @@ export default defineConfig({
       wrangler: { configPath: "./wrangler.jsonc" },
       miniflare: {
         r2Buckets: ["FILES"],
+        kvNamespaces: ["MEDIA"],
         bindings: {
           BOOTSTRAP_TOKEN: "test-teachtrack-token",
           STORAGE_SECRET: "test-storage-secret"

@@ -28,6 +28,8 @@ data class CloudQuestion(
 
 data class CloudKnowledgeLink(val knowledgePointId: String, val importance: String)
 
+data class CloudQuestionImage(val assetId: String, val url: String)
+
 data class CloudQuestionDetail(
     val question: CloudQuestion,
     val options: List<Pair<String, String>>,
@@ -98,6 +100,27 @@ class QuestionApi(
 
     suspend fun detail(id: String): CloudQuestionDetail = withContext(Dispatchers.IO) {
         parseDetail(getJson("/api/v1/questions/${URLEncoder.encode(id, "UTF-8")}"))
+    }
+
+    suspend fun images(id: String): List<CloudQuestionImage> = withContext(Dispatchers.IO) {
+        val array = getJsonArray("/api/v1/questions/${URLEncoder.encode(id, "UTF-8")}/images")
+        buildList {
+            for (i in 0 until array.length()) {
+                val item = array.getJSONObject(i)
+                add(CloudQuestionImage(item.getString("assetId"), item.getString("url")))
+            }
+        }
+    }
+
+    suspend fun uploadImage(id: String, bytes: ByteArray, contentType: String): Unit = withContext(Dispatchers.IO) {
+        val request = Request.Builder()
+            .url(url("/api/v1/questions/${URLEncoder.encode(id, "UTF-8")}/image"))
+            .header("Authorization", "Bearer $token")
+            .post(bytes.toRequestBody(contentType.toMediaType()))
+            .build()
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw responseError(response.body?.string().orEmpty(), response.code)
+        }
     }
 
     suspend fun subjects(): List<CloudSubject> = withContext(Dispatchers.IO) {
