@@ -8,8 +8,9 @@
 - D1 主区域：APAC
 - 数据：30 学生、31 课堂、177 知识点、1 道题
 - 本机 Java/PostgreSQL 后端与 Cloudflare Tunnel 已停止，云端仍可访问
-- Android：OPPO Pad 已成功读取云端学生数据
-- 本轮题库改动未部署到生产 Cloudflare；OnePlus PLK110 使用独立包名 `com.leslie.teachtrack.deviceTest`，未覆盖原签名应用或清空其数据，平板尚未安装本轮版本
+- Android：OPPO Pad 已安装本轮最新 Debug APK，成功读取云端学生数据
+- 2026-11-06 OPPO Pad 真机验收：P1 录题（重复题确认、保存草稿、刷新可见）通过；P2 文本批量导入新增 2、失败 0，同批再次导入 2/2 识别为完全重复并跳过；测试题已从正式 D1 删除
+- OnePlus PLK110 使用独立包名 `com.leslie.teachtrack.deviceTest`，未覆盖原签名应用或清空其数据
 - 题库开发计划：`docs/ai-practice/QUESTION_BANK_ROADMAP.md`
 
 ## 本轮本地开发（2026-11-06）
