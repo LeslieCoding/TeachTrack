@@ -26,5 +26,19 @@ foreach ($name in @("TeachTrackBackend.lnk", "TeachTrackTunnel.lnk")) {
     if (Test-Path $path) { Remove-Item $path -Force }
 }
 
-Get-ScheduledTask -TaskName "TeachTrackBackend", "TeachTrackTunnel" |
+$syncScript = Join-Path $backend "ops\sync-chatgpt-share.ps1"
+$syncAction = New-ScheduledTaskAction -Execute "powershell.exe" `
+    -Argument ('-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "{0}"' -f $syncScript) `
+    -WorkingDirectory $backend
+$syncTrigger = New-ScheduledTaskTrigger -Daily -At 06:17
+$syncSettings = New-ScheduledTaskSettingsSet -StartWhenAvailable -RestartCount 3 `
+    -RestartInterval (New-TimeSpan -Minutes 5) -ExecutionTimeLimit (New-TimeSpan -Hours 1)
+$syncSettings.Hidden = $true
+$syncSettings.DisallowStartIfOnBatteries = $false
+$syncSettings.StopIfGoingOnBatteries = $false
+Register-ScheduledTask -TaskName "TeachTrackChatGPTSync" -Action $syncAction -Trigger $syncTrigger `
+    -Principal $principal -Settings $syncSettings `
+    -Description "Sync the shared ChatGPT teaching feedback conversation into TeachTrack" -Force | Out-Null
+
+Get-ScheduledTask -TaskName "TeachTrackBackend", "TeachTrackTunnel", "TeachTrackChatGPTSync" |
     Select-Object TaskName, State, @{ Name = "Hidden"; Expression = { $_.Settings.Hidden } }

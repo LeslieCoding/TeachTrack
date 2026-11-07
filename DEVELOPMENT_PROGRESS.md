@@ -7,7 +7,7 @@
 - 远程基线：`main`（最新）；本轮题库 UI、导航和更新检查改动已提交并推送
 - 本机服务器：Java 21 + PostgreSQL 16；Java API 与免费 Quick Tunnel 正在运行
 - 数据库：`D:\SoftWare\pgdata-teachtrack`，仅监听 `127.0.0.1:55432`；Flyway V001–V014 已执行
-- 当前实际数据：30 学生、31 课堂、1 道题；接口验收临时数据已清理
+- 当前实际数据：35 名学生、180 条课堂/反馈、1 道题；ChatGPT 共享同步已导入，测试学生已清理
 - 文件存储：`backend/data/storage`；Owner Token 与签名密钥位于 gitignored 的 `backend/.env`
 - 公网入口：当前 Quick Tunnel 地址见 `backend/data/runtime/server-url.txt`；隧道重启会换地址
 - 隐藏自启：`TeachTrackBackend` 和 `TeachTrackTunnel` 已安装并验证，登录后自动运行
@@ -25,6 +25,8 @@
 - 导航：窄屏手机改为 5 个底部入口，设置/Agent/题库收进“更多”；宽屏保持 7 个入口
 - 更新：检查更新改为 `LeslieCoding/TeachTrack`，修复预发布版本比较，支持下载 APK 并交给系统安装器
 - 发布：新增 `docs/UPDATE_GUIDE.md`，版本号可通过 Gradle 参数覆盖
+- ChatGPT 共享：新增 `scripts/sync_chatgpt_share.py` 与每日同步任务，导入 13 名学生、149 份课后反馈、1 份期中家长会/试卷分析
+- 本地与云端：35 名学生、180 条课程；OPPO Pad 本地 Room 与 PostgreSQL 已核对一致
 
 ## 本轮本地开发（2026-11-06）
 
