@@ -78,8 +78,10 @@ object UpdateChecker {
     }
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(10, TimeUnit.MINUTES)
+        .writeTimeout(10, TimeUnit.MINUTES)
+        .retryOnConnectionFailure(true)
         .build()
 
     /**
@@ -303,7 +305,7 @@ object UpdateChecker {
             val safeName = versionName
                 ?.replace(Regex("[^A-Za-z0-9._-]"), "_")
                 ?.takeIf { it.isNotEmpty() }
-                ?.let { "minis-$it.apk" }
+                ?.let { "teachtrack-$it.apk" }
                 ?: DOWNLOAD_FILENAME
             val outFile = File(outDir, safeName)
             // A previous, possibly-aborted download could leave a stale APK

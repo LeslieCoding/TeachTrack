@@ -251,3 +251,6 @@ Oracle Always Free：本机无账号/VM；SSH 公钥已生成，等待 VM IP。
 - Android 单元测试与 APK/androidTest 构建通过
 - OnePlus 6（Android 11，窄屏）仪器测试：`TeachTrackComposeInstrumentedTest` 2/2 通过，验证 5 项底部导航和“更多”入口
 - App 更新检查：仓库地址改为 `LeslieCoding/TeachTrack`，预发布版本比较测试通过
+- OPPO Pad 真机：`3.0.0-alpha.3` 点击“检查更新”后显示 `3.0.0-alpha.3 → 3.0.0-alpha.4`、更新说明和下载按钮；下载进度与失败重试界面可见
+- OnePlus 6 仪器测试：数据库 + PRoot 沙箱 `OK (36 tests)`，窄屏导航 `OK (2 tests)`
+- OPPO Pad `alpha.4`：连接新公网地址，题库加载、学校/年级/题型/状态/难度筛选、批量选择界面均正常
