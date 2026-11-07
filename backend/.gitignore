@@ -8,5 +8,3 @@ backups/
 
 cloud-backup-repo/
 .cloud-backup-key
-
-.cloud-token

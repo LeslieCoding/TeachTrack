@@ -1,15 +1,13 @@
 # DEVELOPMENT_PROGRESS
 
-最后更新：2026-11-06
+最后更新：2026-11-07
 
-## 当前生产状态
+## 当前状态
 
-- 云端后端：Cloudflare Workers + D1，入口 `https://teachtrack.leslieholmes.ccwu.cc`
-- D1 主区域：APAC
-- 数据：30 学生、31 课堂、177 知识点、1 道题
-- 本机 Java/PostgreSQL 后端与 Cloudflare Tunnel 已停止，云端仍可访问
-- Android：OPPO Pad 已安装本轮最新 Debug APK，成功读取云端学生数据
-- 2026-11-06 OPPO Pad 真机验收：P1 录题（重复题确认、保存草稿、刷新可见）通过；P2 文本批量导入新增 2、失败 0，同批再次导入 2/2 识别为完全重复并跳过；测试题已从正式 D1 删除
+- Cloudflare Worker、D1、TeachTrack KV、Tunnel 及旧公网入口已删除；R2 原本就没有桶
+- 本地 Java/PostgreSQL 代码和原有数据保留，当前没有公网云端后端
+- Android 题库、试卷和练习代码保留；旧云端默认地址已移除，等待配置新后端
+- 百度网盘原始题库、教材和 PostgreSQL 备份未改动；Cloudflare D1 备份已删除
 - OnePlus PLK110 使用独立包名 `com.leslie.teachtrack.deviceTest`，未覆盖原签名应用或清空其数据
 - 题库开发计划：`docs/ai-practice/QUESTION_BANK_ROADMAP.md`
 
@@ -37,38 +35,36 @@ M01–M07 的后端能力已实现并测试；Android 侧完成题库页与同�
 | M07 | MCP JSON-RPC、11 工具、Token scope、AI 审计 | `McpApiTest`；实时 `/mcp` 冒烟 |
 | 本轮题库 | Agent 填文本、P1 录题/编辑、P2 文本导入、50 题幂等导入 | Android 52/52；Cloudflare 25/25；两个 APK 构建成功 |
 
-## 当前验证数字
+## 历史验证数字（2026-11-06）
 
-- Cloudflare：TypeScript 类型检查通过；**8 个测试文件、25 tests / 0 failures**，含 50 题首次导入与整批重复导入。
-- Android：**52 tests / 0 failures / 0 errors / 0 skipped**；默认包名的 `:app:testDebugUnitTest` 与 `:app:assembleDebug` 已再次通过。
+- Cloudflare：TypeScript 类型检查与 25 项测试曾通过；代码和云端资源现已删除，这些结果仅代表历史状态。
+- Android：**52 tests / 0 failures / 0 errors / 0 skipped**；默认包名的 `:app:testDebugUnitTest` 与 `:app:assembleDebug` 曾通过。
 - OnePlus PLK110（Android 17）：`AgentNewActionsInstrumentedTest` **17/17 通过**，其中 `exam.analysis.text.fill` 直接通过 `TeachTrackOffloadHandler` 验证；这不等同于完整 PRoot 沙箱或 UI 点击验收。
-- 构建产物：`app/build/outputs/apk/debug/app-debug.apk` 和 `app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk`。
-- 新增 `QuestionBankComposeInstrumentedTest` 覆盖真实 PRoot 填文本/手工编辑/追加、录题/查重/409 刷新、50 题 UI 导入/重复批次拦截。Espresso 已升级为 3.7.0 以兼容 Android 17；升级后的测试在首项执行期间 ADB 断开，不能记为通过。
+- `QuestionBankComposeInstrumentedTest` 曾覆盖题库 UI 场景，但执行期间 ADB 断开，不能记为通过。
 
 ## 未完成 / UNVERIFIED
 
 | 项 | 原因 |
 |---|---|
-| P1/P2 真机 UI 与隔离 Worker 联调 | PLK110 在 UI 测试首项执行期间断开 ADB；改在另一台电脑连接设备继续 |
-| P2 DOCX/CSV、原卷版/解析版配对 | 本轮只实现文本导入；扫描器已提供可复用的 DOCX 提取函数 |
+| 新云端后端 | Cloudflare 方案已删除，等待部署到新的云服务器 |
+| P1/P2 真机 UI 与新后端联调 | 原隔离 Worker 已删除，需先建立新测试后端 |
+| P2 DOCX/CSV、原卷版/解析版配对 | DOCX 云端导入工具已随 Cloudflare 方案删除；扫描器仍保留可复用提取函数 |
 | P3 完整筛选、批量审核、软删除恢复 | 尚未实现 |
-| 完整沙箱、Mock Agent、Compose UI 执行 | Agent 动作真机 17/17 已通过，其余已编译但未完成执行；50 题仅验证 App 解析器与 D1 服务端，尚无 UI 端到端通过证据 |
-| 真实生产云端网络 | 本轮使用本机隔离 D1，未修改生产题库 |
-| 两独立 Android 客户端同步 | 协议与客户端契约已测，Worker 未上机 |
+| 完整沙箱、Mock Agent、Compose UI 执行 | Agent 动作真机 17/17 已通过，其余 UI 验收未完成 |
 | 真实 AI Provider 调用 | 无 API Key；`AiProvider` 默认 Mock，不伪造生成 |
 | AI 原创题 / 变式题 | Provider 未配置；当前只从已审核题库组卷 |
-| MinIO/S3/R2 真实联调 | 无云存储凭证；图片题先标记“含图待补” |
+| MinIO/S3 真实联调 | 无云存储凭证；图片题先标记“含图待补” |
 | 真实 `.ttseed.json` 导入 | 文件仍缺失 |
-| 生产部署、监控、费用告警 | 需要云资源与授权 |
+| 生产部署、监控、费用告警 | 需要新云资源 |
 
 ## 下一项任务：题库
 
 详见 `docs/ai-practice/QUESTION_BANK_ROADMAP.md`。
 
-1. 在另一台电脑连接手机或平板，完成 Agent 填文本、P1/P2 UI、完整 PRoot 沙箱与 50 题导入验收。
-2. P2 DOCX/CSV：复用扫描器提取逻辑，处理原卷版/解析版配对。
+1. 部署新的 Java + PostgreSQL 云端后端并配置题图文件存储。
+2. P2 DOCX/CSV：复用扫描器提取逻辑，处理原卷版/解析版配对并写入新后端。
 3. P3：完整筛选、批量审核、批量软删除、知识点管理。
-4. P4：图片/扫描件上传（需要先解决 R2 或改用其他 S3 存储）。
+4. P4：图片/扫描件上传与完整组卷。
 5. P5：真实 AI Provider、变式题、质量门。
 
 第一批目标：初中科学 300 道已审核题，生成并完成 1 份练习。
@@ -76,31 +72,17 @@ M01–M07 的后端能力已实现并测试；Android 侧完成题库页与同�
 ## 检查点
 
 - Java 后端：`JAVA_HOME=D:\SoftWare\jdk-21 ./gradlew.bat -p backend test`
-- Cloudflare：`PATH=/d/SoftWare/node-22.14.0:$PATH npm.cmd --prefix backend/cloudflare test`
 - Android：`JAVA_HOME=D:/SoftWare/jdk-17 ANDROID_HOME=D:/SoftWare/Android/Sdk ./gradlew.bat :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest`
 - Android SDK：`D:\SoftWare\Android\Sdk`（已写入本机 gitignored `local.properties`）
 - DB：`D:\SoftWare\pgdata-teachtrack`，端口 55432
 
-### 另一台电脑：隔离真机验收
+### 另一台电脑：真机验收
 
-需要 JDK 17、Node.js 22、Android SDK 36 和 platform-tools；将 `local.properties` 的 `sdk.dir` 指向该电脑的 SDK。设备已安装其他签名的 TeachTrack 时，不要卸载原应用，使用独立包名：
+原 Cloudflare 隔离 Worker 验收流程已删除，不再可用。新后端部署后，再按其地址执行 `QuestionBankComposeInstrumentedTest`；其他无需题库的仪表测试仍可独立运行。设备安装继续使用独立包名：
 
 ```powershell
 ./gradlew.bat -PteachTrackApplicationId=com.leslie.teachtrack.deviceTest :app:installDebug :app:installDebugAndroidTest
-adb reverse tcp:18787 tcp:8787
-cd backend/cloudflare
-npm.cmd run migrate:local -- --persist-to ../../app/build/device-test/worker
-npm.cmd run dev -- --ip 127.0.0.1 --port 8787 --persist-to ../../app/build/device-test/worker --var BOOTSTRAP_TOKEN:device-test-token
 ```
-
-上述命令只初始化、使用本机隔离 D1，不要加 `--remote`。Worker 启动后另开终端执行：
-
-```powershell
-adb shell am instrument -w -r -e class com.leslie.teachtrack.QuestionBankComposeInstrumentedTest -e teachTrackTestBaseUrl http://127.0.0.1:18787 -e teachTrackTestToken device-test-token com.leslie.teachtrack.deviceTest.test/androidx.test.runner.AndroidJUnitRunner
-adb shell am instrument -w -r -e class com.leslie.teachtrack.AgentNewActionsInstrumentedTest,com.leslie.teachtrack.SandboxEndToEndInstrumentedTest,com.leslie.teachtrack.MockAgentLoopInstrumentedTest com.leslie.teachtrack.deviceTest.test/androidx.test.runner.AndroidJUnitRunner
-```
-
-测试用例会按需创建本机测试知识点，并保存/恢复设备原有题库连接设置；测试 Token 仅适用于上述临时 Worker，不是生产凭据。
 
 ## 云端数据库（2026-11-05 补充）
 

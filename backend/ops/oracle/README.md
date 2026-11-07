@@ -2,11 +2,9 @@
 
 ## 现状
 
-- 本机没有 Oracle 账号配置、VM 或 SSH 主机。
-- 已生成专用 SSH 密钥：
-  - 私钥：`D:\SoftWare\oracle\ssh\teachtrack_ed25519`
-  - 公钥：`D:\SoftWare\oracle\ssh\teachtrack_ed25519.pub`
-- 需要先在 Oracle 控制台创建 VM，才能继续迁库和部署。
+- Oracle 注册未成功，本机没有 Oracle 账号配置、VM 或 SSH 主机；本方案已暂停，本文仅保留历史草稿。
+- 专用 SSH 密钥位于 `D:\SoftWare\oracle\ssh\`，没有用于任何已创建主机。
+- 原 Cloudflare Tunnel 部署步骤已失效；如以后改用云服务器，应直接配置 HTTPS，不要按本文恢复 Cloudflare。
 
 ## 1. 创建 Oracle 账号
 

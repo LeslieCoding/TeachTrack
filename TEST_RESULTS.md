@@ -213,3 +213,12 @@ bypy 配置 → D:\SoftWare\bypy-home\.bypy
 ```
 
 Oracle Always Free：本机无账号/VM；SSH 公钥已生成，等待 VM IP。
+
+## Cloudflare 清理复核（2026-11-07）
+
+- Worker `teachtrack-api`、D1 `teachtrack`、TeachTrack KV、Tunnel `teachtrack` 及其 DNS CNAME 均已删除；R2 无桶。
+- TeachTrack 用量预警与 Tunnel 自动创建的 16 个 API 令牌已全部删除，控制台显示“无 API 令牌”。
+- 百度网盘 D1 备份已删除；原始题库、教材和 PostgreSQL 备份未改动。
+- 本地 Cloudflare 实现、D1/Tunnel 工具、配置、凭据、日志、缓存和 `cloudflared.exe` 已删除；App 不再预填旧域名。
+- Android `:app:testDebugUnitTest :app:assembleDebug` 已重新通过。
+- `TeachTrackTunnel` 计划任务条目已经管理员授权删除；无相关进程，端口 8788 未监听。

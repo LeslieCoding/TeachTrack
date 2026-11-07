@@ -45,7 +45,7 @@ private val QbBackground = Color(0xFFF4F9F6)
 fun QuestionBankScreen(vm: TeachTrackViewModel) {
     val context = LocalContext.current
     val credentials = remember { CloudCredentials(context) }
-    var baseUrl by remember { mutableStateOf(credentials.baseUrl().ifBlank { "https://teachtrack.leslieholmes.ccwu.cc" }) }
+    var baseUrl by remember { mutableStateOf(credentials.baseUrl()) }
     var token by remember { mutableStateOf(credentials.token().orEmpty()) }
     var hubTab by remember { mutableIntStateOf(0) }
     var query by remember { mutableStateOf("") }

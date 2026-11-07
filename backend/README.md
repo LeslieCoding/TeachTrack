@@ -2,7 +2,6 @@
 
 Java 21 + Spring Boot 3 + PostgreSQL 16 + Flyway。当前覆盖 **M02 数据库与文件底座**。
 
-另有一套已部署的 Cloudflare Workers + D1 并行实现，代码、测试和迁移工具位于 `cloudflare/`，详见 `cloudflare/README.md`。现有 Java 后端与 PostgreSQL 数据保留，用于回退。
 
 ## 为什么用 JDBC 而不是 JPA
 
