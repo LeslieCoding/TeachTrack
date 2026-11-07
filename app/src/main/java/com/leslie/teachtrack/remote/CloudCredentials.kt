@@ -1,14 +1,15 @@
 package com.leslie.teachtrack.remote
 
 import android.content.Context
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
 import android.util.Base64
+import com.leslie.teachtrack.BuildConfig
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
-import android.security.keystore.KeyGenParameterSpec
-import android.security.keystore.KeyProperties
 
 /**
  * Cloud backend address and bearer token. The URL is not sensitive; the token is
@@ -18,7 +19,9 @@ class CloudCredentials(context: Context) {
     private val prefs = context.applicationContext.getSharedPreferences("teachtrack_cloud", Context.MODE_PRIVATE)
     private val secretPrefs = context.applicationContext.getSharedPreferences("teachtrack_cloud_secret", Context.MODE_PRIVATE)
 
-    fun baseUrl(): String = prefs.getString("baseUrl", "").orEmpty()
+    fun baseUrl(): String = prefs.getString("baseUrl", null)
+        ?.takeUnless { it.isBlank() }
+        ?: BuildConfig.TEACHTRACK_SERVER_URL
     fun saveBaseUrl(value: String) {
         prefs.edit().putString("baseUrl", value.trim().trimEnd('/')).apply()
     }

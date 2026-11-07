@@ -70,6 +70,18 @@ class QuestionBankComposeInstrumentedTest {
     }
 
     @Test
+    fun serverSettingsRemainEditableAfterConnection() {
+        openBank("http://127.0.0.1:9")
+        composeRule.onNodeWithContentDescription("服务器设置").performClick()
+        composeRule.onNodeWithText("连接云端题库").assertIsDisplayed()
+        field("后端地址，例如 http://192.168.1.10:8080").assertIsDisplayed()
+        field("Owner Token").assertIsDisplayed()
+        composeRule.onNodeWithText("取消").performClick()
+        composeRule.onNodeWithText("连接云端题库").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("服务器设置").assertIsDisplayed()
+    }
+
+    @Test
     fun agentTextFillUsesSandboxAndRemainsEditable() {
         openBank("http://127.0.0.1:9")
         composeRule.onNodeWithText("试卷分析").performClick()

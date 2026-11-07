@@ -47,6 +47,7 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
     val credentials = remember { CloudCredentials(context) }
     var baseUrl by remember { mutableStateOf(credentials.baseUrl()) }
     var token by remember { mutableStateOf(credentials.token().orEmpty()) }
+    var connectionOpen by remember { mutableStateOf(false) }
     var hubTab by remember { mutableIntStateOf(0) }
     var query by remember { mutableStateOf("") }
     var items by remember { mutableStateOf<List<CloudQuestion>>(emptyList()) }
@@ -110,6 +111,9 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
                 Text("云端工作台", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = QbInk)
                 Text(if (token.isBlank()) "尚未连接云端" else baseUrl, fontSize = 12.sp, color = Color.Gray, maxLines = 1)
             }
+            IconButton(onClick = { connectionOpen = true }) {
+                Icon(Icons.Rounded.Settings, "服务器设置", tint = QbGreen)
+            }
             IconButton(onClick = { importOpen = true }, enabled = token.isNotBlank()) {
                 Icon(Icons.Rounded.Upload, "批量导入", tint = QbGreen)
             }
@@ -122,7 +126,7 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
         }
         Spacer(Modifier.height(12.dp))
 
-        if (token.isBlank() || baseUrl.isBlank()) {
+        if (connectionOpen || token.isBlank() || baseUrl.isBlank()) {
             ConnectionCard(
                 baseUrl = baseUrl,
                 onBaseUrlChange = { baseUrl = it },
@@ -133,9 +137,13 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
                     credentials.saveToken(token)
                     baseUrl = credentials.baseUrl()
                     token = credentials.token().orEmpty()
+                    connectionOpen = false
                     load()
                 }
             )
+            if (connectionOpen) {
+                TextButton(onClick = { connectionOpen = false }) { Text("取消") }
+            }
             return@Column
         }
 

@@ -1,14 +1,21 @@
 # DEVELOPMENT_PROGRESS
 
-最后更新：2026-11-07
+最后更新：2026-11-07 23:38
 
 ## 当前状态
 
-- Cloudflare Worker、D1、TeachTrack KV、Tunnel 及旧公网入口已删除；R2 原本就没有桶
-- 本地 Java/PostgreSQL 代码和原有数据保留，当前没有公网云端后端
-- Android 题库、试卷和练习代码保留；旧云端默认地址已移除，等待配置新后端
-- 百度网盘原始题库、教材和 PostgreSQL 备份未改动；Cloudflare D1 备份已删除
-- OnePlus PLK110 使用独立包名 `com.leslie.teachtrack.deviceTest`，未覆盖原签名应用或清空其数据
+- 远程基线：`main` / `9e12a98`；本轮 Windows 服务器和 App 配置改动尚未提交
+- 本机服务器：Corretto Java 21.0.13 + PostgreSQL 16.10；Java API 与免费 Quick Tunnel 均已启动
+- 数据库：`D:\SoftWare\pgdata-teachtrack`，仅监听 `127.0.0.1:55432`；Flyway V001–V014 已执行
+- 这是新建主库：0 学生、0 题、4 个预置学科；旧学生数据和原 Cloudflare D1 数据没有恢复
+- 文件存储：`backend/data/storage`；Owner Token 与文件签名密钥位于 gitignored 的 `backend/.env`，未写入 APK
+- 公网入口：当前 Quick Tunnel 地址见 `backend/data/runtime/server-url.txt`；重启隧道会换地址，固定 Named Tunnel 尚未授权配置
+- 隐藏自启：尚未安装；PowerShell 与 `schtasks` 均因权限拒绝创建。已准备 `backend/ops/install-autostart.ps1`，需在管理员 PowerShell 中运行；启动文件夹快捷方式已删除，无残留
+- 接电源时原电源策略已是不自动睡眠；仍需保持电脑开机、联网并登录 Windows
+- Android：APK 已预填当前 HTTPS 地址，支持已连接后修改服务器设置；52/52 单元测试、APK 与 androidTest APK 构建通过
+- 后端：23/23 测试通过；本机/公网 health、有效 Token、无效 Token 401、数据库与存储 API 已验证
+- 备份：首份 PostgreSQL dump 已在 `backend/backups/postgres`，独立恢复演练通过；当前没有离线或异地自动备份
+- 当前无 Android 设备连接，真机 UI、PRoot、同步和 50 题导入仍未执行
 - 题库开发计划：`docs/ai-practice/QUESTION_BANK_ROADMAP.md`
 
 ## 本轮本地开发（2026-11-06）
@@ -46,25 +53,26 @@ M01–M07 的后端能力已实现并测试；Android 侧完成题库页与同�
 
 | 项 | 原因 |
 |---|---|
-| 新云端后端 | Cloudflare 方案已删除，等待部署到新的云服务器 |
-| P1/P2 真机 UI 与新后端联调 | 原隔离 Worker 已删除，需先建立新测试后端 |
+| 固定公网入口 | 当前是免费 Quick Tunnel，重启会换地址；Named Tunnel 需要账号授权 |
+| 隐藏开机自启 | 当前会话无权限创建任务；`install-autostart.ps1` 仅通过语法检查，尚未注册 |
+| P1/P2 真机 UI 与新后端联调 | 当前无设备；写入测试需使用独立测试库，不对新主库执行测试数据导入 |
 | P2 DOCX/CSV、原卷版/解析版配对 | DOCX 云端导入工具已随 Cloudflare 方案删除；扫描器仍保留可复用提取函数 |
 | P3 完整筛选、批量审核、软删除恢复 | 尚未实现 |
-| 完整沙箱、Mock Agent、Compose UI 执行 | Agent 动作真机 17/17 已通过，其余 UI 验收未完成 |
+| 完整沙箱、Mock Agent、Compose UI 执行 | 新增服务器设置用例已编译但未执行；其余 UI 验收也未完成 |
 | 真实 AI Provider 调用 | 无 API Key；`AiProvider` 默认 Mock，不伪造生成 |
 | AI 原创题 / 变式题 | Provider 未配置；当前只从已审核题库组卷 |
-| MinIO/S3 真实联调 | 无云存储凭证；图片题先标记“含图待补” |
+| MinIO/S3 真实联调 | 当前使用本机文件存储，无 S3 配置 |
 | 真实 `.ttseed.json` 导入 | 文件仍缺失 |
-| 生产部署、监控、费用告警 | 需要新云资源 |
+| 异地备份、监控与告警 | 只有本机备份，尚未配置自动异地备份和监控 |
 
 ## 下一项任务：题库
 
 详见 `docs/ai-practice/QUESTION_BANK_ROADMAP.md`。
 
-1. 部署新的 Java + PostgreSQL 云端后端并配置题图文件存储。
-2. P2 DOCX/CSV：复用扫描器提取逻辑，处理原卷版/解析版配对并写入新后端。
+1. 连接手机或平板，验收服务器设置、P1/P2 UI、完整 PRoot 沙箱与同步。
+2. P2 DOCX/CSV：复用扫描器提取逻辑，处理原卷版/解析版配对并写入 Java + PostgreSQL 后端。
 3. P3：完整筛选、批量审核、批量软删除、知识点管理。
-4. P4：图片/扫描件上传与完整组卷。
+4. P4：真机验证本机题图存储，补拍照、裁剪与完整组卷。
 5. P5：真实 AI Provider、变式题、质量门。
 
 第一批目标：初中科学 300 道已审核题，生成并完成 1 份练习。
@@ -73,16 +81,21 @@ M01–M07 的后端能力已实现并测试；Android 侧完成题库页与同�
 
 - Java 后端：`JAVA_HOME=D:\SoftWare\jdk-21 ./gradlew.bat -p backend test`
 - Android：`JAVA_HOME=D:/SoftWare/jdk-17 ANDROID_HOME=D:/SoftWare/Android/Sdk ./gradlew.bat :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest`
+- 本机服务：`powershell.exe -ExecutionPolicy Bypass -File backend/ops/run-local.ps1`
+- 临时公网入口：`powershell.exe -ExecutionPolicy Bypass -File backend/ops/tunnel-quick.ps1`
+- 当前公网地址：`backend/data/runtime/server-url.txt`；APK 预填参数为 `-PteachTrackServerUrl=<当前HTTPS地址>`
 - Android SDK：`D:\SoftWare\Android\Sdk`（已写入本机 gitignored `local.properties`）
-- DB：`D:\SoftWare\pgdata-teachtrack`，端口 55432
+- DB：`D:\SoftWare\pgdata-teachtrack`，端口 55432，仅监听本机
 
 ### 另一台电脑：真机验收
 
-原 Cloudflare 隔离 Worker 验收流程已删除，不再可用。新后端部署后，再按其地址执行 `QuestionBankComposeInstrumentedTest`；其他无需题库的仪表测试仍可独立运行。设备安装继续使用独立包名：
+安装 `app/build/outputs/apk/debug/app-debug.apk`，或在另一台电脑拉取源码后重新构建。APK 只预填地址，不包含 Owner Token；Token 由教师从本机 `backend/.env` 获取后在 App 中输入。若设备已有其他签名版本，使用独立包名：
 
 ```powershell
-./gradlew.bat -PteachTrackApplicationId=com.leslie.teachtrack.deviceTest :app:installDebug :app:installDebugAndroidTest
+./gradlew.bat "-PteachTrackApplicationId=com.leslie.teachtrack.deviceTest" "-PteachTrackServerUrl=<当前HTTPS地址>" :app:installDebug :app:installDebugAndroidTest
 ```
+
+`QuestionBankComposeInstrumentedTest` 的写入用例只接受 loopback 隔离后端；不要把它直接指向公网主库。完整 UI、PRoot 和 50 题导入仍待真机执行。
 
 ## 云端数据库（2026-11-05 补充）
 

@@ -33,6 +33,11 @@ android { namespace = "com.leslie.teachtrack"; compileSdk = 36
             "ANTHROPIC_OAUTH_IDENTIFIER_PROMPT",
             "\"${customizationValue("ANTHROPIC_OAUTH_IDENTIFIER_PROMPT")}\""
         )
+        buildConfigField(
+            "String",
+            "TEACHTRACK_SERVER_URL",
+            "\"${providers.gradleProperty("teachTrackServerUrl").getOrElse("")}\""
+        )
 
         ndk {
             abiFilters += listOf("arm64-v8a")

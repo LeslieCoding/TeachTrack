@@ -1,5 +1,22 @@
 # TEST_RESULTS
 
+## Windows 本机服务器（2026-11-07）
+
+```text
+Java: Corretto 21.0.13
+PostgreSQL: 16.10，仅监听 127.0.0.1:55432
+Flyway: V001–V014
+Backend: 23 tests / 0 failures / 0 errors / 0 skipped
+Android: 52 tests / 0 failures / 0 errors / 0 skipped
+:app:assembleDebug / :app:assembleDebugAndroidTest → BUILD SUCCESSFUL
+本机与 Quick Tunnel HTTPS /actuator/health → UP
+有效 Owner Token → database/storage/students/questions/subjects API 200
+无效 Token → 401
+PostgreSQL dump → 独立库恢复 → 行数一致
+```
+
+主库是新库：0 学生、0 课堂、0 题、4 个预置学科。旧业务数据未恢复。当前没有 Android 设备连接；新增服务器设置 Compose 用例和其他真机用例只完成编译，未执行。Quick Tunnel 地址重启会变化，不能视为固定生产入口。隐藏自启安装脚本仅通过语法检查；PowerShell 和 schtasks 注册均被系统权限拒绝，未创建任务。
+
 ## Android
 
 ```text

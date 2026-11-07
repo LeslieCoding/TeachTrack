@@ -59,6 +59,30 @@ JAVA_HOME=D:/SoftWare/jdk-21 ../gradlew.bat -p backend bootRun
 curl -s http://127.0.0.1:8080/actuator/health
 ```
 
+### Windows 本机服务器
+
+初始化 PostgreSQL、配置 `backend/.env` 后，构建并运行可执行 jar：
+
+```powershell
+$env:JAVA_HOME = "D:\SoftWare\jdk-21"
+./gradlew.bat -p backend bootJar
+powershell.exe -ExecutionPolicy Bypass -File backend/ops/run-local.ps1
+```
+
+`run-local.ps1` 会检查并启动 `D:\SoftWare\pgdata-teachtrack`，然后启动仅监听 `127.0.0.1:8080` 的后端。数据库不对局域网或公网开放，日志和文件位于 `backend/data`。
+
+需要其他网络中的 Android 设备访问时，可另开终端运行免费的临时隧道：
+
+```powershell
+powershell.exe -ExecutionPolicy Bypass -File backend/ops/tunnel-quick.ps1
+```
+
+当前 HTTPS 地址写入 `backend/data/runtime/server-url.txt`。Quick Tunnel 重启后地址会变化，只作为免账号的临时入口；长期固定地址需要另外授权 Named Tunnel。不要在路由器上暴露 PostgreSQL 或直接映射 8080。
+
+构建 APK 时可用 `-PteachTrackServerUrl=https://...` 预填地址；Token 仍由教师在 App 中输入并加密保存，不得写入 APK。
+
+需要登录后隐藏自启时，在管理员 PowerShell 中运行 `backend/ops/install-autostart.ps1`。脚本使用当前账户 SID 创建 `TeachTrackBackend` 和 `TeachTrackTunnel`，关闭电池限制且不限执行时长；不使用 Run 注册表或启动文件夹。
+
 ## 认证
 
 所有 `/api/v1/**` 需要：
