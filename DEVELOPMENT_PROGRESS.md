@@ -11,7 +11,7 @@
 - 文件存储：`backend/data/storage`；Owner Token 与签名密钥位于 gitignored 的 `backend/.env`
 - 公网入口：当前 Quick Tunnel 地址见 `backend/data/runtime/server-url.txt`；隧道重启会换地址
 - 隐藏自启：`TeachTrackBackend` 和 `TeachTrackTunnel` 已安装并验证，登录后自动运行
-- Android：`3.0.0-alpha.5`；OPPO Pad 与 OnePlus 6 均已连接并完成窄屏导航验收
+- Android：`3.0.0-alpha.6`；OPPO Pad 与 OnePlus 6 均已连接并完成窄屏导航验收
 - 后端：全量测试通过；真实接口已验证题图直传/列表/签名下载、批量审核、批量删除
 - 备份：PostgreSQL dump 与独立恢复演练已通过；当前没有自动异地备份
 - 题库开发计划：`docs/ai-practice/QUESTION_BANK_ROADMAP.md`

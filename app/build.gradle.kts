@@ -26,8 +26,8 @@ android { namespace = "com.leslie.teachtrack"; compileSdk = 36
         // Agent Runtime (PRoot/Alpine sandbox). See LAEP/STATE/DECISIONS.md DEC-004.
         minSdk = 26
         targetSdk = 35
-        versionCode = providers.gradleProperty("teachTrackVersionCode").getOrElse("300005").toInt()
-        versionName = providers.gradleProperty("teachTrackVersionName").getOrElse("3.0.0-alpha.5")
+        versionCode = providers.gradleProperty("teachTrackVersionCode").getOrElse("300006").toInt()
+        versionName = providers.gradleProperty("teachTrackVersionName").getOrElse("3.0.0-alpha.6")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField(

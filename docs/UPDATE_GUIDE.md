@@ -6,7 +6,7 @@
 
 - 检查的是 `https://github.com/LeslieCoding/TeachTrack/releases`
 - 只接受附带 `.apk` 资产的 Release
-- 版本比较支持 `3.0.0-alpha.5` 这类预发布版本，并正确处理数字顺序
+- 版本比较支持 `3.0.0-alpha.6` 这类预发布版本，并正确处理数字顺序
 - 大文件下载使用 10 分钟读超时和连接重试，避免 GitHub 慢速连接被 60 秒超时中断
 - 发现新版本后显示更新说明，下载完成后交给 Android 系统安装器
 - 下载的 APK 保存在应用私有目录，安装完成前不会被系统缓存清理
@@ -16,7 +16,7 @@
 
 1. 修改版本号（默认值在 `app/build.gradle.kts`，也可用 Gradle 参数覆盖）：
    ```powershell
-   ./gradlew.bat -PteachTrackVersionCode=300006 -PteachTrackVersionName=3.0.0-alpha.6 :app:assembleDebug
+   ./gradlew.bat -PteachTrackVersionCode=300007 -PteachTrackVersionName=3.0.0-alpha.7 :app:assembleDebug
    ```
 2. 构建并验证：
    ```powershell
@@ -24,8 +24,8 @@
    ```
 3. 创建 GitHub Release，tag 使用 `v` 前缀，并上传 APK：
    ```powershell
-   gh release create v3.0.0-alpha.6 app/build/outputs/apk/debug/app-debug.apk `
-     --repo LeslieCoding/TeachTrack --title "TeachTrack 3.0.0-alpha.6" --prerelease
+   gh release create v3.0.0-alpha.7 app/build/outputs/apk/debug/app-debug.apk `
+     --repo LeslieCoding/TeachTrack --title "TeachTrack 3.0.0-alpha.7" --prerelease
    ```
 4. 在旧版本设备打开“检查更新”，确认弹窗显示新版本，再完成下载和安装。
 

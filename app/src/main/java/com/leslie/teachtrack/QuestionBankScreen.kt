@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -166,6 +167,7 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
         }
     }
 
+    val compact = LocalConfiguration.current.screenWidthDp < 600
     Column(Modifier.fillMaxSize().background(QbBackground).padding(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(40.dp).background(QbMint, RoundedCornerShape(12.dp)), Alignment.Center) {
@@ -173,33 +175,50 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
             }
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
-                Text("云端工作台", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = QbInk)
+                Text("云端工作台", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = QbInk, maxLines = 1)
                 Text(if (token.isBlank()) "尚未连接云端" else baseUrl, fontSize = 12.sp, color = Color.Gray, maxLines = 1)
             }
-            IconButton(onClick = { filterOpen = true }, enabled = token.isNotBlank() && hubTab == 0) {
-                Icon(Icons.Rounded.FilterList, "题库筛选", tint = QbGreen)
+            if (compact) {
+                IconButton(onClick = { connectionOpen = true }) {
+                    Icon(Icons.Rounded.Settings, "服务器设置", tint = QbGreen)
+                }
+            } else {
+                QuestionBankToolbarActions(
+                    connected = token.isNotBlank(),
+                    hubTab = hubTab,
+                    loading = loading,
+                    showSettings = true,
+                    onSettings = { connectionOpen = true },
+                    onFilter = { filterOpen = true },
+                    onBulk = {
+                        selectionMode = !selectionMode
+                        if (!selectionMode) selectedIds.clear()
+                        hubTab = 0
+                    },
+                    onImport = { importOpen = true },
+                    onAdd = { editorDetail = null; editorOpen = true },
+                    onRefresh = { load() }
+                )
             }
-            IconButton(
-                onClick = {
-                    selectionMode = !selectionMode
-                    if (!selectionMode) selectedIds.clear()
-                    hubTab = 0
-                },
-                enabled = token.isNotBlank() && hubTab == 0
-            ) {
-                Icon(Icons.Rounded.Checklist, "批量操作", tint = QbGreen)
-            }
-            IconButton(onClick = { connectionOpen = true }) {
-                Icon(Icons.Rounded.Settings, "服务器设置", tint = QbGreen)
-            }
-            IconButton(onClick = { importOpen = true }, enabled = token.isNotBlank()) {
-                Icon(Icons.Rounded.Upload, "批量导入", tint = QbGreen)
-            }
-            IconButton(onClick = { editorDetail = null; editorOpen = true }, enabled = token.isNotBlank()) {
-                Icon(Icons.Rounded.Add, "录入题目", tint = QbGreen)
-            }
-            IconButton(onClick = { load() }, enabled = token.isNotBlank() && !loading) {
-                Icon(Icons.Rounded.Refresh, "刷新", tint = QbGreen)
+        }
+        if (compact) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                QuestionBankToolbarActions(
+                    connected = token.isNotBlank(),
+                    hubTab = hubTab,
+                    loading = loading,
+                    showSettings = false,
+                    onSettings = { connectionOpen = true },
+                    onFilter = { filterOpen = true },
+                    onBulk = {
+                        selectionMode = !selectionMode
+                        if (!selectionMode) selectedIds.clear()
+                        hubTab = 0
+                    },
+                    onImport = { importOpen = true },
+                    onAdd = { editorDetail = null; editorOpen = true },
+                    onRefresh = { load() }
+                )
             }
         }
         Spacer(Modifier.height(12.dp))
@@ -503,6 +522,41 @@ private val FILTER_REVIEW_OPTIONS = listOf(
     "APPROVED" to "已通过",
     "REJECTED" to "已拒绝"
 )
+
+@Composable
+private fun QuestionBankToolbarActions(
+    connected: Boolean,
+    hubTab: Int,
+    loading: Boolean,
+    showSettings: Boolean,
+    onSettings: () -> Unit,
+    onFilter: () -> Unit,
+    onBulk: () -> Unit,
+    onImport: () -> Unit,
+    onAdd: () -> Unit,
+    onRefresh: () -> Unit
+) {
+    if (showSettings) {
+        IconButton(onClick = onSettings) {
+            Icon(Icons.Rounded.Settings, "服务器设置", tint = QbGreen)
+        }
+    }
+    IconButton(onClick = onFilter, enabled = connected && hubTab == 0) {
+        Icon(Icons.Rounded.FilterList, "题库筛选", tint = QbGreen)
+    }
+    IconButton(onClick = onBulk, enabled = connected && hubTab == 0) {
+        Icon(Icons.Rounded.Checklist, "批量操作", tint = QbGreen)
+    }
+    IconButton(onClick = onImport, enabled = connected) {
+        Icon(Icons.Rounded.Upload, "批量导入", tint = QbGreen)
+    }
+    IconButton(onClick = onAdd, enabled = connected) {
+        Icon(Icons.Rounded.Add, "录入题目", tint = QbGreen)
+    }
+    IconButton(onClick = onRefresh, enabled = connected && !loading) {
+        Icon(Icons.Rounded.Refresh, "刷新", tint = QbGreen)
+    }
+}
 
 @Composable
 private fun ConnectionCard(
