@@ -26,22 +26,16 @@ import java.util.concurrent.TimeUnit
  * coordinates download → install. iOS has no equivalent (sideloading is not
  * permitted) so this is Android-only.
  *
- * Comparison strategy: strip a leading `v` from `tag_name`, then split both
- * the tag and the local versionName on `.` and compare numerically component
- * by component. A tag like `v1.0.1` beats local `1.0.0`; `v1.0.0-rc1` beats
- * `1.0.0` because the suffix sorts higher under string fallback.
+ * Comparison strategy: strip a leading `v`, compare numeric release components,
+ * then compare prerelease identifiers semantically. `3.0.0-alpha.4` is newer
+ * than `3.0.0-alpha.3`, while final `3.0.0` is newer than either prerelease.
  */
 object UpdateChecker {
 
     private const val TAG = "UpdateChecker"
-    private const val OWNER = "OpenMinis"
-    // T133: the public repo is OpenMinis/OpenMinis (org + repo share a name).
-    // Previously pointed at OpenMinis/MinisApp, which is the private dev
-    // mirror — every API call 404'd, which we mistranslated as "no release
-    // published". The 0.1-preview release is published as a prerelease on
-    // OpenMinis/OpenMinis with a MinisApp-*.apk asset attached.
-    private const val REPO = "OpenMinis"
-    private const val DOWNLOAD_FILENAME = "minis-update.apk"
+    private const val OWNER = "LeslieCoding"
+    private const val REPO = "TeachTrack"
+    private const val DOWNLOAD_FILENAME = "teachtrack-update.apk"
     /**
      * Sub-directory of `filesDir` where we stage downloaded update APKs. We
      * moved off `cacheDir/shared/` (the original location) so the OS can't
@@ -258,7 +252,7 @@ object UpdateChecker {
     }
 
     /** Public so UI can deep-link users to manual download when GitHub is blocked. */
-    const val RELEASES_URL: String = "https://github.com/OpenMinis/OpenMinis/releases"
+    const val RELEASES_URL: String = "https://github.com/LeslieCoding/TeachTrack/releases"
 
     /** Returns (downloadUrl, sizeBytes) for the first .apk asset, or (null, 0). */
     private fun findApkAsset(assets: JSONArray?): Pair<String?, Long> {
@@ -281,12 +275,8 @@ object UpdateChecker {
      * (remote)" reported the remote as newer because the trailing token
      * fell into string comparison.
      */
-    private fun normalizeTag(tag: String): String {
-        val trimmed = tag.trim().removePrefix("v").removePrefix("V")
-        // "0.1-preview" → "0.1"; "0.1.0" → "0.1.0"; "1.2.3-rc1" → "1.2.3"
-        val dashIdx = trimmed.indexOf('-')
-        return if (dashIdx > 0) trimmed.substring(0, dashIdx) else trimmed
-    }
+    internal fun normalizeTag(tag: String): String =
+        tag.trim().removePrefix("v").removePrefix("V")
 
     /**
      * Stream the APK from [url] into `${cacheDir}/shared/minis-update.apk`,
@@ -464,20 +454,45 @@ object UpdateChecker {
     /**
      * Numeric-aware version comparator. `1.0.10` beats `1.0.9`. Non-numeric
      * components fall back to lexicographic compare so a `1.0.0-rc1` build is
-     * treated as "newer than 1.0.0" — acceptable noise for our use case.
+     * treated as a normal release. Pre-release ordering is semantic: alpha.4
+     * is newer than alpha.3, and a final release is newer than its prerelease.
      */
-    private fun compareVersions(a: String, b: String): Int {
-        val ap = a.split('.', '-')
-        val bp = b.split('.', '-')
-        val n = maxOf(ap.size, bp.size)
+    internal fun compareVersions(a: String, b: String): Int {
+        val (aCore, aPre) = splitVersion(a)
+        val (bCore, bPre) = splitVersion(b)
+        val n = maxOf(aCore.size, bCore.size)
         for (i in 0 until n) {
-            val x = ap.getOrNull(i) ?: ""
-            val y = bp.getOrNull(i) ?: ""
+            val x = aCore.getOrNull(i) ?: 0
+            val y = bCore.getOrNull(i) ?: 0
+            val c = x.compareTo(y)
+            if (c != 0) return c
+        }
+        if (aPre.isEmpty() && bPre.isEmpty()) return 0
+        if (aPre.isEmpty()) return 1
+        if (bPre.isEmpty()) return -1
+        val count = maxOf(aPre.size, bPre.size)
+        for (i in 0 until count) {
+            val x = aPre.getOrNull(i) ?: return -1
+            val y = bPre.getOrNull(i) ?: return 1
             val xi = x.toIntOrNull()
             val yi = y.toIntOrNull()
-            val c = if (xi != null && yi != null) xi.compareTo(yi) else x.compareTo(y)
+            val c = when {
+                xi != null && yi != null -> xi.compareTo(yi)
+                xi != null -> -1
+                yi != null -> 1
+                else -> x.compareTo(y)
+            }
             if (c != 0) return c
         }
         return 0
+    }
+
+    private fun splitVersion(value: String): Pair<List<Int>, List<String>> {
+        val normalized = normalizeTag(value)
+        val dash = normalized.indexOf('-')
+        val core = if (dash >= 0) normalized.substring(0, dash) else normalized
+        val pre = if (dash >= 0) normalized.substring(dash + 1) else ""
+        return core.split('.').map { it.toIntOrNull() ?: 0 } to
+            pre.split('.', '-').filter { it.isNotBlank() }
     }
 }

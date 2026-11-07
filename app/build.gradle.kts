@@ -25,7 +25,9 @@ android { namespace = "com.leslie.teachtrack"; compileSdk = 36
         // minSdk raised 24 -> 26: floor required by the vendored OpenMinis
         // Agent Runtime (PRoot/Alpine sandbox). See LAEP/STATE/DECISIONS.md DEC-004.
         minSdk = 26
-        targetSdk = 35; versionCode = 300003; versionName = "3.0.0-alpha.3"
+        targetSdk = 35
+        versionCode = providers.gradleProperty("teachTrackVersionCode").getOrElse("300004").toInt()
+        versionName = providers.gradleProperty("teachTrackVersionName").getOrElse("3.0.0-alpha.4")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField(

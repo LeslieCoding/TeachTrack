@@ -211,6 +211,9 @@ class QuestionBankComposeInstrumentedTest {
         credentials.saveBaseUrl(baseUrl)
         credentials.saveToken(token)
         composeRule.activityRule.scenario.recreate()
+        if (composeRule.onAllNodesWithText("更多").fetchSemanticsNodes().isNotEmpty()) {
+            composeRule.onNodeWithText("更多").performClick()
+        }
         composeRule.onNodeWithText("题库").performClick()
         composeRule.onNodeWithText("云端工作台").assertIsDisplayed()
         return QuestionApi(baseUrl, token)

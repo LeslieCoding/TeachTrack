@@ -113,6 +113,76 @@ class QuestionApiTest {
         assertEquals(HttpStatus.NOT_FOUND, gone.getStatusCode());
     }
 
+    @Test
+    void imageUploadListAndSignedDownload() {
+        String stem = "题图接口测试 " + UUID.randomUUID();
+        ResponseEntity<Map> created = rest.exchange("/api/v1/questions", HttpMethod.POST,
+                new HttpEntity<>(Map.of(
+                        "subjectId", SUBJECT_ID,
+                        "grade", "八年级",
+                        "questionType", "EXPERIMENT",
+                        "difficulty", 3,
+                        "stem", stem,
+                        "sourceType", "SELF_CREATED"
+                ), headers()), Map.class);
+        assertEquals(HttpStatus.CREATED, created.getStatusCode(), String.valueOf(created.getBody()));
+        String id = String.valueOf(((Map) created.getBody().get("question")).get("id"));
+
+        HttpHeaders imageHeaders = new HttpHeaders();
+        imageHeaders.setBearerAuth(TOKEN);
+        imageHeaders.setContentType(MediaType.IMAGE_PNG);
+        byte[] image = new byte[]{(byte) 0x89, 'P', 'N', 'G', 1, 2, 3, 4};
+        ResponseEntity<Map> uploaded = rest.exchange("/api/v1/questions/" + id + "/image", HttpMethod.POST,
+                new HttpEntity<>(image, imageHeaders), Map.class);
+        assertEquals(HttpStatus.CREATED, uploaded.getStatusCode(), String.valueOf(uploaded.getBody()));
+        assertNotNull(uploaded.getBody().get("assetId"));
+
+        ResponseEntity<List> listed = rest.exchange("/api/v1/questions/" + id + "/images", HttpMethod.GET,
+                new HttpEntity<>(headers()), List.class);
+        assertEquals(HttpStatus.OK, listed.getStatusCode());
+        assertEquals(1, listed.getBody().size());
+        String url = String.valueOf(((Map) listed.getBody().get(0)).get("url"));
+        ResponseEntity<byte[]> downloaded = rest.getForEntity(java.net.URI.create(url), byte[].class);
+        assertEquals(HttpStatus.OK, downloaded.getStatusCode());
+        assertEquals(image.length, downloaded.getBody().length);
+        assertEquals(MediaType.IMAGE_PNG, downloaded.getHeaders().getContentType());
+    }
+
+    @Test
+    void bulkReviewAndDeleteReportPartialResults() {
+        List<String> ids = List.of(createQuestion("批量审核测试一 " + UUID.randomUUID()),
+                createQuestion("批量审核测试二 " + UUID.randomUUID()));
+        ResponseEntity<Map> reviewed = rest.exchange("/api/v1/questions/bulk-review", HttpMethod.POST,
+                new HttpEntity<>(Map.of("ids", ids, "status", "APPROVED"), headers()), Map.class);
+        assertEquals(HttpStatus.OK, reviewed.getStatusCode(), String.valueOf(reviewed.getBody()));
+        assertEquals(2, ((Number) reviewed.getBody().get("succeeded")).intValue());
+        assertEquals(0, ((List) reviewed.getBody().get("failed")).size());
+
+        ResponseEntity<Map> deleted = rest.exchange("/api/v1/questions/bulk-delete", HttpMethod.POST,
+                new HttpEntity<>(Map.of("ids", ids), headers()), Map.class);
+        assertEquals(HttpStatus.OK, deleted.getStatusCode(), String.valueOf(deleted.getBody()));
+        assertEquals(2, ((Number) deleted.getBody().get("succeeded")).intValue());
+        for (String id : ids) {
+            ResponseEntity<Map> gone = rest.exchange("/api/v1/questions/" + id, HttpMethod.GET,
+                    new HttpEntity<>(headers()), Map.class);
+            assertEquals(HttpStatus.NOT_FOUND, gone.getStatusCode());
+        }
+    }
+
+    private String createQuestion(String stem) {
+        ResponseEntity<Map> created = rest.exchange("/api/v1/questions", HttpMethod.POST,
+                new HttpEntity<>(Map.of(
+                        "subjectId", SUBJECT_ID,
+                        "grade", "八年级",
+                        "questionType", "OTHER",
+                        "difficulty", 3,
+                        "stem", stem,
+                        "sourceType", "SELF_CREATED"
+                ), headers()), Map.class);
+        assertEquals(HttpStatus.CREATED, created.getStatusCode(), String.valueOf(created.getBody()));
+        return String.valueOf(((Map) created.getBody().get("question")).get("id"));
+    }
+
     private String createKnowledgePoint() {
         String name = "液体压强-" + UUID.randomUUID();
         Map<String, Object> body = Map.of(

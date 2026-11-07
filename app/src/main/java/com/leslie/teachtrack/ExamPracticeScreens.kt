@@ -201,8 +201,10 @@ fun PracticePanel(vm: TeachTrackViewModel, baseUrl: String, token: String) {
     var count by remember { mutableStateOf("5") }
     var mode by remember { mutableStateOf("BASIC") }
     var practice by remember { mutableStateOf<CloudPractice?>(null) }
+    val answers = remember { mutableStateMapOf<String, String>() }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var notice by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         runCatching { api.subjects() }
@@ -225,7 +227,11 @@ fun PracticePanel(vm: TeachTrackViewModel, baseUrl: String, token: String) {
             runCatching {
                 val serverId = api.resolveStudent(student.id)
                 api.generatePractice(serverId, subjectId, count.toIntOrNull()?.coerceIn(1, 50) ?: 5, mode)
-            }.onSuccess { practice = it }
+            }.onSuccess {
+                practice = it
+                answers.clear()
+                notice = null
+            }
                 .onFailure { error = it.message ?: "生成失败" }
             loading = false
         }
@@ -239,6 +245,25 @@ fun PracticePanel(vm: TeachTrackViewModel, baseUrl: String, token: String) {
             runCatching { api.approvePractice(id) }
                 .onSuccess { practice = it }
                 .onFailure { error = it.message ?: "审核失败" }
+            loading = false
+        }
+    }
+
+    fun submit() {
+        val current = practice ?: return
+        if (current.items.any { answers[it.id].orEmpty().isBlank() }) {
+            error = "请先填写全部题目答案"
+            return
+        }
+        scope.launch {
+            loading = true
+            error = null
+            runCatching { api.submitPractice(current.id, answers.toMap()) }
+                .onSuccess {
+                    practice = it
+                    notice = "练习已提交并自动判分，掌握度已更新"
+                }
+                .onFailure { error = it.message ?: "提交失败" }
             loading = false
         }
     }
@@ -287,21 +312,42 @@ fun PracticePanel(vm: TeachTrackViewModel, baseUrl: String, token: String) {
 
         if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
         error?.let { Text(it, color = MaterialTheme.colorScheme.error, fontSize = 13.sp) }
+        notice?.let { Text(it, color = EpGreen, fontSize = 13.sp) }
 
         practice?.let { current ->
             Text("${current.title} · ${current.status} · ${current.items.size} 题",
                 fontWeight = FontWeight.SemiBold, color = EpGreen)
             current.items.forEachIndexed { index, item ->
                 Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) {
-                    Column(Modifier.padding(14.dp)) {
+                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text("${index + 1}. ${item.score} 分 · ${item.sourceKind}", fontSize = 12.sp, color = Color.Gray)
                         Text(item.stem.ifBlank { "（无题干）" }, color = EpInk)
+                        OutlinedTextField(
+                            value = answers[item.id].orEmpty(),
+                            onValueChange = { answers[item.id] = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            enabled = current.status != "COMPLETED",
+                            label = { Text("学生答案") }
+                        )
                     }
                 }
+            }
+            if (current.mastery.isNotEmpty()) {
+                Text(
+                    current.mastery.joinToString(" · ") {
+                        "掌握度 ${it.masteryScore.toInt()}%（对 ${it.correctCount} / 错 ${it.wrongCount}）"
+                    },
+                    fontSize = 12.sp,
+                    color = EpGreen
+                )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (current.status == "DRAFT" || current.status == "GENERATED") {
                     Button(onClick = { approve() }, enabled = !loading) { Text("审核通过") }
+                }
+                if (current.status == "APPROVED") {
+                    Button(onClick = { submit() }, enabled = !loading) { Text("提交并自动判分") }
                 }
                 OutlinedButton(onClick = { export("STUDENT", "PDF") }, enabled = !loading) { Text("学生版 PDF") }
                 OutlinedButton(onClick = { export("TEACHER", "PDF") }, enabled = !loading) { Text("教师版 PDF") }

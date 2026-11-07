@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,6 +30,7 @@ import com.leslie.teachtrack.remote.CloudCredentials
 import com.leslie.teachtrack.remote.CloudQuestion
 import com.leslie.teachtrack.remote.CloudQuestionDetail
 import com.leslie.teachtrack.remote.CloudQuestionImage
+import com.leslie.teachtrack.remote.CloudSubject
 import com.leslie.teachtrack.remote.QuestionApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -51,6 +53,17 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
     var hubTab by remember { mutableIntStateOf(0) }
     var query by remember { mutableStateOf("") }
     var items by remember { mutableStateOf<List<CloudQuestion>>(emptyList()) }
+    var subjects by remember { mutableStateOf<List<CloudSubject>>(emptyList()) }
+    var filterOpen by remember { mutableStateOf(false) }
+    var filterSubjectId by remember { mutableStateOf("") }
+    var filterGrade by remember { mutableStateOf("") }
+    var filterType by remember { mutableStateOf("") }
+    var filterStatus by remember { mutableStateOf("") }
+    var filterDifficulty by remember { mutableStateOf<Int?>(null) }
+    var selectionMode by remember { mutableStateOf(false) }
+    val selectedIds = remember { mutableStateListOf<String>() }
+    var confirmBulkDelete by remember { mutableStateOf(false) }
+    var bulkRunning by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var notice by remember { mutableStateOf<String?>(null) }
@@ -90,15 +103,67 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
         scope.launch {
             loading = true
             error = null
-            runCatching { api().search(query.trim()) }
-                .onSuccess { items = it }
+            runCatching {
+                api().search(
+                    query = query.trim(),
+                    subjectId = filterSubjectId,
+                    grade = filterGrade,
+                    questionType = filterType,
+                    difficulty = filterDifficulty,
+                    reviewStatus = filterStatus
+                )
+            }
+                .onSuccess {
+                    items = it
+                    selectedIds.retainAll(it.map { question -> question.id }.toSet())
+                }
                 .onFailure { error = it.message ?: "无法连接云端题库" }
             loading = false
         }
     }
 
+    fun bulkReview(status: String) {
+        if (selectedIds.isEmpty() || bulkRunning) return
+        scope.launch {
+            bulkRunning = true
+            error = null
+            runCatching { api().bulkReview(selectedIds.toList(), status) }
+                .onSuccess { result ->
+                    notice = "批量操作完成：成功 ${result.succeeded}/${result.requested}" +
+                        if (result.failed.isEmpty()) "" else "，失败 ${result.failed.size}"
+                    selectedIds.clear()
+                    selectionMode = false
+                    load()
+                }
+                .onFailure { error = it.message ?: "批量操作失败" }
+            bulkRunning = false
+        }
+    }
+
+    fun bulkDelete() {
+        if (selectedIds.isEmpty() || bulkRunning) return
+        scope.launch {
+            bulkRunning = true
+            error = null
+            runCatching { api().bulkDelete(selectedIds.toList()) }
+                .onSuccess { result ->
+                    notice = "已删除 ${result.succeeded}/${result.requested} 道题" +
+                        if (result.failed.isEmpty()) "" else "，失败 ${result.failed.size}"
+                    selectedIds.clear()
+                    selectionMode = false
+                    confirmBulkDelete = false
+                    load()
+                }
+                .onFailure { error = it.message ?: "批量删除失败" }
+            bulkRunning = false
+        }
+    }
+
     LaunchedEffect(token, baseUrl) {
-        if (token.isNotBlank() && baseUrl.isNotBlank()) load()
+        if (token.isNotBlank() && baseUrl.isNotBlank()) {
+            runCatching { api().subjects() }.onSuccess { subjects = it }
+            load()
+        }
     }
 
     Column(Modifier.fillMaxSize().background(QbBackground).padding(16.dp)) {
@@ -110,6 +175,19 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
             Column(Modifier.weight(1f)) {
                 Text("云端工作台", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = QbInk)
                 Text(if (token.isBlank()) "尚未连接云端" else baseUrl, fontSize = 12.sp, color = Color.Gray, maxLines = 1)
+            }
+            IconButton(onClick = { filterOpen = true }, enabled = token.isNotBlank() && hubTab == 0) {
+                Icon(Icons.Rounded.FilterList, "题库筛选", tint = QbGreen)
+            }
+            IconButton(
+                onClick = {
+                    selectionMode = !selectionMode
+                    if (!selectionMode) selectedIds.clear()
+                    hubTab = 0
+                },
+                enabled = token.isNotBlank() && hubTab == 0
+            ) {
+                Icon(Icons.Rounded.Checklist, "批量操作", tint = QbGreen)
             }
             IconButton(onClick = { connectionOpen = true }) {
                 Icon(Icons.Rounded.Settings, "服务器设置", tint = QbGreen)
@@ -178,6 +256,50 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
                 TextButton(onClick = { load() }, enabled = !loading) { Text("搜索") }
             }
         )
+        val filterCount = listOf(
+            filterSubjectId, filterGrade, filterType, filterStatus,
+            filterDifficulty?.toString().orEmpty()
+        ).count { it.isNotBlank() }
+        if (filterCount > 0) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("已启用 $filterCount 个筛选", fontSize = 12.sp, color = QbGreen)
+                Spacer(Modifier.weight(1f))
+                TextButton(onClick = {
+                    filterSubjectId = ""
+                    filterGrade = ""
+                    filterType = ""
+                    filterStatus = ""
+                    filterDifficulty = null
+                    load()
+                }) { Text("清除筛选") }
+            }
+        }
+        if (selectionMode) {
+            Row(
+                Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text("已选 ${selectedIds.size}", fontSize = 13.sp, color = QbInk)
+                TextButton(onClick = {
+                    if (selectedIds.size == items.size) selectedIds.clear()
+                    else {
+                        selectedIds.clear()
+                        selectedIds.addAll(items.map { it.id })
+                    }
+                }) { Text(if (selectedIds.size == items.size && items.isNotEmpty()) "取消全选" else "全选") }
+                Spacer(Modifier.weight(1f))
+                Button(onClick = { bulkReview("APPROVED") }, enabled = selectedIds.isNotEmpty() && !bulkRunning) {
+                    Text("通过")
+                }
+                OutlinedButton(onClick = { bulkReview("REJECTED") }, enabled = selectedIds.isNotEmpty() && !bulkRunning) {
+                    Text("拒绝")
+                }
+                TextButton(onClick = { confirmBulkDelete = true }, enabled = selectedIds.isNotEmpty() && !bulkRunning) {
+                    Text("删除", color = MaterialTheme.colorScheme.error)
+                }
+            }
+        }
 
         if (loading) {
             LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 8.dp))
@@ -196,14 +318,23 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
         } else {
             LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(items, key = { it.id }) { question ->
-                    QuestionCard(question) {
-                        scope.launch {
-                            runCatching { api().detail(question.id) }
-                                .onSuccess { loaded ->
-                                    detail = loaded
-                                    detailImages = runCatching { api().images(question.id) }.getOrDefault(emptyList())
-                                }
-                                .onFailure { error = it.message }
+                    QuestionCard(
+                        question = question,
+                        selectionMode = selectionMode,
+                        selected = question.id in selectedIds
+                    ) {
+                        if (selectionMode) {
+                            if (question.id in selectedIds) selectedIds.remove(question.id)
+                            else selectedIds.add(question.id)
+                        } else {
+                            scope.launch {
+                                runCatching { api().detail(question.id) }
+                                    .onSuccess { loaded ->
+                                        detail = loaded
+                                        detailImages = runCatching { api().images(question.id) }.getOrDefault(emptyList())
+                                    }
+                                    .onFailure { error = it.message }
+                            }
                         }
                     }
                 }
@@ -254,7 +385,124 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
             }
         )
     }
+    if (filterOpen) {
+        QuestionFilterDialog(
+            subjects = subjects,
+            subjectId = filterSubjectId,
+            onSubject = { filterSubjectId = it },
+            grade = filterGrade,
+            onGrade = { filterGrade = it },
+            type = filterType,
+            onType = { filterType = it },
+            status = filterStatus,
+            onStatus = { filterStatus = it },
+            difficulty = filterDifficulty,
+            onDifficulty = { filterDifficulty = it },
+            onClear = {
+                filterSubjectId = ""
+                filterGrade = ""
+                filterType = ""
+                filterStatus = ""
+                filterDifficulty = null
+            },
+            onApply = {
+                filterOpen = false
+                load()
+            },
+            onDismiss = { filterOpen = false }
+        )
+    }
+    if (confirmBulkDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmBulkDelete = false },
+            title = { Text("批量删除题目") },
+            text = { Text("将软删除选中的 ${selectedIds.size} 道题，数据仍可恢复。确认继续？") },
+            confirmButton = {
+                TextButton(onClick = { bulkDelete() }, enabled = !bulkRunning) { Text("删除") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmBulkDelete = false }, enabled = !bulkRunning) { Text("取消") }
+            }
+        )
+    }
 }
+
+@Composable
+private fun QuestionFilterDialog(
+    subjects: List<CloudSubject>,
+    subjectId: String,
+    onSubject: (String) -> Unit,
+    grade: String,
+    onGrade: (String) -> Unit,
+    type: String,
+    onType: (String) -> Unit,
+    status: String,
+    onStatus: (String) -> Unit,
+    difficulty: Int?,
+    onDifficulty: (Int?) -> Unit,
+    onClear: () -> Unit,
+    onApply: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("题库筛选") },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("学科", fontSize = 12.sp, color = Color.Gray)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    item { FilterChip(subjectId.isBlank(), { onSubject("") }, label = { Text("全部") }) }
+                    items(subjects, key = { it.id }) { subject ->
+                        FilterChip(subjectId == subject.id, { onSubject(subject.id) }, label = { Text(subject.name) })
+                    }
+                }
+                Text("年级", fontSize = 12.sp, color = Color.Gray)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    item { FilterChip(grade.isBlank(), { onGrade("") }, label = { Text("全部") }) }
+                    items(listOf("七上", "七下", "八上", "八下", "九上", "九下")) { value ->
+                        FilterChip(grade == value, { onGrade(value) }, label = { Text(value) })
+                    }
+                }
+                Text("题型", fontSize = 12.sp, color = Color.Gray)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    item { FilterChip(type.isBlank(), { onType("") }, label = { Text("全部") }) }
+                    items(QUESTION_TYPE_OPTIONS, key = { it.first }) { (value, label) ->
+                        FilterChip(type == value, { onType(value) }, label = { Text(label) })
+                    }
+                }
+                Text("审核状态", fontSize = 12.sp, color = Color.Gray)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    item { FilterChip(status.isBlank(), { onStatus("") }, label = { Text("全部") }) }
+                    items(FILTER_REVIEW_OPTIONS, key = { it.first }) { (value, label) ->
+                        FilterChip(status == value, { onStatus(value) }, label = { Text(label) })
+                    }
+                }
+                Text("难度", fontSize = 12.sp, color = Color.Gray)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    item { FilterChip(difficulty == null, { onDifficulty(null) }, label = { Text("全部") }) }
+                    items((1..5).toList()) { value ->
+                        FilterChip(difficulty == value, { onDifficulty(value) }, label = { Text("$value 级") })
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onApply) { Text("应用筛选") } },
+        dismissButton = {
+            Row {
+                TextButton(onClick = onClear) { Text("清除") }
+                TextButton(onClick = onDismiss) { Text("取消") }
+            }
+        }
+    )
+}
+
+private val FILTER_REVIEW_OPTIONS = listOf(
+    "DRAFT" to "草稿",
+    "NEEDS_REVIEW" to "待审核",
+    "NEEDS_TEACHER_REVIEW" to "待教师审核",
+    "APPROVED" to "已通过",
+    "REJECTED" to "已拒绝"
+)
 
 @Composable
 private fun ConnectionCard(
@@ -306,23 +554,34 @@ private fun EmptyQuestionState() {
 }
 
 @Composable
-private fun QuestionCard(question: CloudQuestion, onClick: () -> Unit) {
+private fun QuestionCard(
+    question: CloudQuestion,
+    selectionMode: Boolean,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
     Card(
         Modifier.fillMaxWidth().clickable(onClick = onClick),
         shape = RoundedCornerShape(14.dp)
     ) {
-        Column(Modifier.padding(14.dp)) {
-            Text(question.stem.take(160), fontWeight = FontWeight.Medium, color = QbInk)
-            Spacer(Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                AssistChip(onClick = {}, label = { Text(typeLabel(question.questionType), fontSize = 11.sp) })
-                Text("难度 ${question.difficulty}", fontSize = 12.sp, color = Color.Gray)
-                Spacer(Modifier.weight(1f))
-                Text(
-                    statusLabel(question.reviewStatus),
-                    fontSize = 12.sp,
-                    color = if (question.reviewStatus == "APPROVED") QbGreen else Color(0xFFB26A00)
-                )
+        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            if (selectionMode) {
+                Checkbox(checked = selected, onCheckedChange = { onClick() })
+                Spacer(Modifier.width(8.dp))
+            }
+            Column(Modifier.weight(1f)) {
+                Text(question.stem.take(160), fontWeight = FontWeight.Medium, color = QbInk)
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    AssistChip(onClick = {}, label = { Text(typeLabel(question.questionType), fontSize = 11.sp) })
+                    Text("难度 ${question.difficulty}", fontSize = 12.sp, color = Color.Gray)
+                    Spacer(Modifier.weight(1f))
+                    Text(
+                        statusLabel(question.reviewStatus),
+                        fontSize = 12.sp,
+                        color = if (question.reviewStatus == "APPROVED") QbGreen else Color(0xFFB26A00)
+                    )
+                }
             }
         }
     }

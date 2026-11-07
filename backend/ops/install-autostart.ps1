@@ -15,7 +15,8 @@ $tasks = @(
 )
 foreach ($task in $tasks) {
     $script = Join-Path $backend ("ops\" + $task.Script)
-    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `\"$script`\"" -WorkingDirectory $backend
+    $arguments = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "{0}"' -f $script
+    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument $arguments -WorkingDirectory $backend
     Register-ScheduledTask -TaskName $task.Name -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Description $task.Description -Force | Out-Null
 }
 

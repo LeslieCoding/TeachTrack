@@ -98,6 +98,38 @@ class QuestionImportParserTest {
         assertTrue(rows.all { it.errors.isEmpty() && it.questionType == "SINGLE_CHOICE" })
     }
 
+    @Test fun parsesCsvWithChineseHeadersQuotedCommasAndNewlines() {
+        val rows = QuestionImportParser.parseCsv(
+            """
+            题干,选项A,选项B,答案,解析,题型,难度,知识点,年级,教材,来源
+            "计算压强，并说明理由
+            写出公式",甲,乙,A,"解析含,逗号",计算,4,液体压强、压强,八下,浙教版,2026 期末
+            "选择题",A. 正确,B. 错误,A,解析,多选,3,,八下,,
+            """.trimIndent()
+        )
+        assertEquals(2, rows.size)
+        assertTrue(rows[0].stem.contains("计算压强，并说明理由"))
+        assertTrue(rows[0].stem.contains("\n写出公式"))
+        assertEquals("解析含,逗号", rows[0].analysis)
+        assertEquals("CALCULATION", rows[0].questionType)
+        assertEquals(4, rows[0].difficulty)
+        assertEquals(listOf("液体压强", "压强"), rows[0].knowledgeNames)
+        assertEquals("MULTI_CHOICE", rows[1].questionType)
+        assertEquals(listOf("A", "B"), rows[1].options.map { it.first })
+        assertTrue(rows.all { it.errors.isEmpty() })
+    }
+
+    @Test fun csvRequiresStemColumnAndReportsInvalidRows() {
+        assertTrue(QuestionImportParser.parseCsv("name,answer\n题, A").isEmpty())
+        val rows = QuestionImportParser.parseCsv(
+            "题干,题型,难度\n缺少选项,单选,9\n正常题,填空,2"
+        )
+        assertEquals(2, rows.size)
+        assertTrue(rows[0].errors.any { it.contains("至少需要 2 个选项") })
+        assertTrue(rows[0].errors.any { it.contains("无法识别难度") })
+        assertTrue(rows[1].errors.isEmpty())
+    }
+
     @Test fun knowledgeMatchingUsesExplicitNamesOrStemInference() {
         val points = listOf(
             com.leslie.teachtrack.remote.CloudKnowledgePoint("kp1", "液体压强", "八上", "第三章", "第 7 节"),

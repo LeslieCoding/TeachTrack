@@ -75,6 +75,8 @@ data class CloudDuplicateCheck(
     val similar: List<CloudQuestion>
 )
 
+data class CloudBulkResult(val requested: Int, val succeeded: Int, val failed: List<String>)
+
 class QuestionApiException(
     val status: Int,
     val code: String,
@@ -89,13 +91,64 @@ class QuestionApi(
         .readTimeout(20, TimeUnit.SECONDS)
         .build()
 ) {
-    suspend fun search(query: String, limit: Int = 50): List<CloudQuestion> = withContext(Dispatchers.IO) {
-        val encoded = URLEncoder.encode(query, "UTF-8")
-        val root = getJson("/api/v1/questions?limit=$limit&q=$encoded")
+    suspend fun search(
+        query: String,
+        limit: Int = 100,
+        subjectId: String = "",
+        grade: String = "",
+        questionType: String = "",
+        difficulty: Int? = null,
+        reviewStatus: String = "",
+        knowledgePointId: String = ""
+    ): List<CloudQuestion> = withContext(Dispatchers.IO) {
+        val params = buildList {
+            add("limit=$limit")
+            if (query.isNotBlank()) add("q=${URLEncoder.encode(query, "UTF-8")}")
+            if (subjectId.isNotBlank()) add("subjectId=${URLEncoder.encode(subjectId, "UTF-8")}")
+            if (grade.isNotBlank()) add("grade=${URLEncoder.encode(grade, "UTF-8")}")
+            if (questionType.isNotBlank()) add("questionType=${URLEncoder.encode(questionType, "UTF-8")}")
+            if (difficulty != null) {
+                add("minDifficulty=$difficulty")
+                add("maxDifficulty=$difficulty")
+            }
+            if (reviewStatus.isNotBlank()) add("reviewStatus=${URLEncoder.encode(reviewStatus, "UTF-8")}")
+            if (knowledgePointId.isNotBlank()) add("knowledgePointId=${URLEncoder.encode(knowledgePointId, "UTF-8")}")
+        }
+        val root = getJson("/api/v1/questions?${params.joinToString("&")}")
         val items = root.optJSONArray("items") ?: return@withContext emptyList()
         buildList {
             for (i in 0 until items.length()) add(parseQuestion(items.getJSONObject(i)))
         }
+    }
+
+    suspend fun bulkReview(ids: List<String>, status: String): CloudBulkResult = withContext(Dispatchers.IO) {
+        parseBulk(postJson("/api/v1/questions/bulk-review",
+            JSONObject().put("ids", JSONArray(ids)).put("status", status)))
+    }
+
+    suspend fun bulkDelete(ids: List<String>): CloudBulkResult = withContext(Dispatchers.IO) {
+        parseBulk(postJson("/api/v1/questions/bulk-delete", JSONObject().put("ids", JSONArray(ids))))
+    }
+
+    private fun parseBulk(root: JSONObject): CloudBulkResult {
+        val failed = mutableListOf<String>()
+        root.optJSONArray("failed")?.let { array ->
+            for (i in 0 until array.length()) failed += array.optString(i)
+        }
+        return CloudBulkResult(
+            requested = root.optInt("requested"),
+            succeeded = root.optInt("succeeded"),
+            failed = failed
+        )
+    }
+
+    private fun postJson(path: String, body: JSONObject): JSONObject {
+        val request = Request.Builder()
+            .url(url(path))
+            .header("Authorization", "Bearer $token")
+            .post(body.toString().toRequestBody(JSON))
+            .build()
+        return executeJson(request)
     }
 
     suspend fun detail(id: String): CloudQuestionDetail = withContext(Dispatchers.IO) {
@@ -153,6 +206,31 @@ class QuestionApi(
                 }
             }
         }
+
+    suspend fun createKnowledgePoint(
+        subjectId: String,
+        name: String,
+        grade: String = "",
+        textbookVersion: String = "",
+        chapter: String = "",
+        section: String = ""
+    ): CloudKnowledgePoint = withContext(Dispatchers.IO) {
+        val body = JSONObject()
+            .put("subjectId", subjectId)
+            .put("name", name)
+            .put("grade", grade)
+            .put("textbookVersion", textbookVersion)
+            .put("chapter", chapter)
+            .put("section", section)
+        val item = postJson("/api/v1/knowledge-points", body)
+        CloudKnowledgePoint(
+            id = item.getString("id"),
+            name = item.optString("name"),
+            grade = item.optString("grade"),
+            chapter = item.optString("chapter"),
+            section = item.optString("section")
+        )
+    }
 
     suspend fun duplicates(stem: String): CloudDuplicateCheck = withContext(Dispatchers.IO) {
         val root = getJson("/api/v1/questions/duplicates?stem=${URLEncoder.encode(stem, "UTF-8")}")

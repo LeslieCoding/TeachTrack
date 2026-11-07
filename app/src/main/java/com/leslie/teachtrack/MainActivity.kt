@@ -29,6 +29,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -245,7 +247,7 @@ class TeachTrackViewModel(private val repo: TeachTrackRepository, context: andro
         if (activityContext !is android.app.Activity) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         activityContext.startActivity(intent)
     }
-    if (selected != null) StudentWorkspace(vm, selected!!, startCourse = openCourse, startScore = openScore, onBack = { selected = null; openCourse = false; openScore = false }, onAskAgent = { student -> com.openminis.app.deeplink.DeepLinkCoordinator.setPendingChatDraft("当前学生：${student.name} (studentId: ${student.id})。请基于此学生回答或操作："); askAgentRequests.value += 1; selected = null; openCourse = false; openScore = false; tab = 5 }) else Scaffold(bottomBar = { NavigationBar(containerColor = Color.White) { listOf(Icons.Rounded.Home to "首页", Icons.Rounded.People to "学生", Icons.Rounded.Event to "计划", Icons.Rounded.Insights to "统计", Icons.Rounded.Settings to "设置", Icons.Rounded.SmartToy to "Agent", Icons.Rounded.MenuBook to "题库").forEachIndexed { i, item -> NavigationBarItem(selected = tab == i, onClick = { tab = i }, icon = { Icon(item.first, null) }, label = { Text(item.second) }) } } }) { padding -> Box(Modifier.padding(padding)) { when (tab) {
+    if (selected != null) StudentWorkspace(vm, selected!!, startCourse = openCourse, startScore = openScore, onBack = { selected = null; openCourse = false; openScore = false }, onAskAgent = { student -> com.openminis.app.deeplink.DeepLinkCoordinator.setPendingChatDraft("当前学生：${student.name} (studentId: ${student.id})。请基于此学生回答或操作："); askAgentRequests.value += 1; selected = null; openCourse = false; openScore = false; tab = 5 }) else Scaffold(bottomBar = { TeachTrackBottomBar(tab = tab, compact = LocalConfiguration.current.screenWidthDp < 600, onSelect = { tab = it }) }) { padding -> Box(Modifier.padding(padding)) { when (tab) {
         0 -> Dashboard(vm, onStudent = { selected = it }, onNewStudent = { tab = 1; openAdd = true }, onRecordCourse = { id -> if (id != null) { selected = id; openCourse = true } else { tab = 1; openAdd = true } }, onRecordScore = { id -> if (id != null) { selected = id; openScore = true } else { tab = 1; openAdd = true } })
         1 -> StudentsScreen(vm, onStudent = { selected = it }, openAdd = openAdd, onAddConsumed = { openAdd = false })
         2 -> PlanningScreen(vm)
@@ -262,6 +264,80 @@ class TeachTrackViewModel(private val repo: TeachTrackRepository, context: andro
         5 -> com.leslie.teachtrack.agent.AgentHost(openNewChatRequests = askAgentRequests)
         else -> QuestionBankScreen(vm)
     } } } }
+private data class TeachTrackNavItem(val index: Int, val label: String, val icon: ImageVector)
+
+private val PRIMARY_NAV = listOf(
+    TeachTrackNavItem(0, "首页", Icons.Rounded.Home),
+    TeachTrackNavItem(1, "学生", Icons.Rounded.People),
+    TeachTrackNavItem(2, "计划", Icons.Rounded.Event),
+    TeachTrackNavItem(3, "统计", Icons.Rounded.Insights)
+)
+private val SECONDARY_NAV = listOf(
+    TeachTrackNavItem(4, "设置", Icons.Rounded.Settings),
+    TeachTrackNavItem(5, "Agent", Icons.Rounded.SmartToy),
+    TeachTrackNavItem(6, "题库", Icons.Rounded.MenuBook)
+)
+
+@Composable
+private fun TeachTrackBottomBar(tab: Int, compact: Boolean, onSelect: (Int) -> Unit) {
+    var moreOpen by remember { mutableStateOf(false) }
+    NavigationBar(containerColor = Color.White) {
+        if (compact) {
+            PRIMARY_NAV.forEach { item ->
+                NavigationBarItem(
+                    selected = tab == item.index,
+                    onClick = { onSelect(item.index) },
+                    icon = { Icon(item.icon, item.label) },
+                    label = { Text(item.label, fontSize = 11.sp, maxLines = 1) }
+                )
+            }
+            NavigationBarItem(
+                selected = tab in SECONDARY_NAV.map { it.index },
+                onClick = { moreOpen = true },
+                icon = { Icon(Icons.Rounded.MoreHoriz, "更多") },
+                label = { Text("更多", fontSize = 11.sp, maxLines = 1) }
+            )
+        } else {
+            (PRIMARY_NAV + SECONDARY_NAV).forEach { item ->
+                NavigationBarItem(
+                    selected = tab == item.index,
+                    onClick = { onSelect(item.index) },
+                    icon = { Icon(item.icon, item.label) },
+                    label = { Text(item.label, maxLines = 1) }
+                )
+            }
+        }
+    }
+    if (moreOpen) {
+        AlertDialog(
+            onDismissRequest = { moreOpen = false },
+            title = { Text("更多功能") },
+            text = {
+                Column {
+                    SECONDARY_NAV.forEach { item ->
+                        Row(
+                            Modifier.fillMaxWidth()
+                                .clickable {
+                                    moreOpen = false
+                                    onSelect(item.index)
+                                }
+                                .padding(horizontal = 8.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(item.icon, item.label, tint = DeepGreen)
+                            Spacer(Modifier.width(14.dp))
+                            Text(item.label, fontSize = 16.sp, color = Ink)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { moreOpen = false }) { Text("关闭") }
+            }
+        )
+    }
+}
+
 @Composable private fun Dashboard(vm: TeachTrackViewModel, onStudent: (String) -> Unit, onNewStudent: () -> Unit, onRecordCourse: (String?) -> Unit, onRecordScore: (String?) -> Unit) { val students by vm.students.collectAsStateWithLifecycle(); val courses by vm.allCourses.collectAsStateWithLifecycle(); val pending by vm.pendingTaskCount.collectAsStateWithLifecycle(); val scores by vm.allScores.collectAsStateWithLifecycle(); val exams by vm.allExams.collectAsStateWithLifecycle(); val homework by vm.allHomework.collectAsStateWithLifecycle(); val communications by vm.allCommunications.collectAsStateWithLifecycle(); val today = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }; val todayCourses = courses.filter { it.date == today }; val activeStudents = students.filter { it.status == StudentStatus.ACTIVE }; val studentMap = activeStudents.associateBy { it.id }; Column(Modifier.fillMaxSize().background(AppBackground).verticalScroll(rememberScrollState()).padding(20.dp)) { Text("早上好，老师", fontSize = 14.sp, color = Color.Gray); Text("今天关注谁？", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Ink); Spacer(Modifier.height(20.dp)); SectionCard("今日课程", Icons.Rounded.Event) { if (todayCourses.isEmpty()) EmptyState("还没有今日课程", "在学生页记录今天课程后，这里会显示真实课程") else todayCourses.take(3).forEach { course -> val student = studentMap[course.studentId]; if (student != null) Row(Modifier.fillMaxWidth().clickable { onStudent(student.id) }.padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) { Box(Modifier.size(44.dp).background(Mint, RoundedCornerShape(14.dp)), Alignment.Center) { Text(student.name.take(1), color = DeepGreen, fontWeight = FontWeight.Bold) }; Spacer(Modifier.width(12.dp)); Column { Text(student.name, fontWeight = FontWeight.SemiBold); Text(listOf(course.startTime, course.subject.ifBlank { student.subject }, course.title).filter { it.isNotBlank() }.joinToString(" · "), color = Color.Gray, fontSize = 13.sp) }; Spacer(Modifier.weight(1f)); Icon(Icons.Rounded.ChevronRight, null, tint = Color.Gray) } } }; Spacer(Modifier.height(16.dp)); Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) { MetricCard("在读学生", activeStudents.size.toString(), Modifier.weight(1f)); MetricCard("待处理", pending.toString(), Modifier.weight(1f)) }; Spacer(Modifier.height(16.dp)); SectionCard("快速开始", Icons.Rounded.Bolt) { Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) { ActionButton("新学生", Icons.Rounded.PersonAdd, onNewStudent); ActionButton("记录课程", Icons.Rounded.EditNote) { onRecordCourse(activeStudents.firstOrNull()?.id) }; ActionButton("录入成绩", Icons.Rounded.Grade) { onRecordScore(activeStudents.firstOrNull()?.id) } } }; DashboardInsights(activeStudents, courses, scores, exams, homework, communications, onStudent) } }
 
 @Composable private fun StudentsScreen(vm: TeachTrackViewModel, onStudent: (String) -> Unit, openAdd: Boolean = false, onAddConsumed: () -> Unit = {}) {

@@ -1,22 +1,30 @@
 # DEVELOPMENT_PROGRESS
 
-最后更新：2026-11-07 23:38
+最后更新：2026-11-08
 
 ## 当前状态
 
-- 远程基线：`main` / `9e12a98`；本轮 Windows 服务器和 App 配置改动尚未提交
-- 本机服务器：Corretto Java 21.0.13 + PostgreSQL 16.10；Java API 与免费 Quick Tunnel 均已启动
+- 远程基线：`main` / `71e40c7`；本轮题库 UI、导航和更新检查改动尚未提交
+- 本机服务器：Java 21 + PostgreSQL 16；Java API 与免费 Quick Tunnel 正在运行
 - 数据库：`D:\SoftWare\pgdata-teachtrack`，仅监听 `127.0.0.1:55432`；Flyway V001–V014 已执行
-- 这是新建主库：0 学生、0 题、4 个预置学科；旧学生数据和原 Cloudflare D1 数据没有恢复
-- 文件存储：`backend/data/storage`；Owner Token 与文件签名密钥位于 gitignored 的 `backend/.env`，未写入 APK
-- 公网入口：当前 Quick Tunnel 地址见 `backend/data/runtime/server-url.txt`；重启隧道会换地址，固定 Named Tunnel 尚未授权配置
-- 隐藏自启：尚未安装；PowerShell 与 `schtasks` 均因权限拒绝创建。已准备 `backend/ops/install-autostart.ps1`，需在管理员 PowerShell 中运行；启动文件夹快捷方式已删除，无残留
-- 接电源时原电源策略已是不自动睡眠；仍需保持电脑开机、联网并登录 Windows
-- Android：APK 已预填当前 HTTPS 地址，支持已连接后修改服务器设置；52/52 单元测试、APK 与 androidTest APK 构建通过
-- 后端：23/23 测试通过；本机/公网 health、有效 Token、无效 Token 401、数据库与存储 API 已验证
-- 备份：首份 PostgreSQL dump 已在 `backend/backups/postgres`，独立恢复演练通过；当前没有离线或异地自动备份
-- 当前无 Android 设备连接，真机 UI、PRoot、同步和 50 题导入仍未执行
+- 当前实际数据：30 学生、31 课堂、1 道题；接口验收临时数据已清理
+- 文件存储：`backend/data/storage`；Owner Token 与签名密钥位于 gitignored 的 `backend/.env`
+- 公网入口：当前 Quick Tunnel 地址见 `backend/data/runtime/server-url.txt`；隧道重启会换地址
+- 隐藏自启：`TeachTrackBackend` 和 `TeachTrackTunnel` 已安装并验证，登录后自动运行
+- Android：`3.0.0-alpha.4`；OPPO Pad 与 OnePlus 6 均已连接并完成窄屏导航验收
+- 后端：全量测试通过；真实接口已验证题图直传/列表/签名下载、批量审核、批量删除
+- 备份：PostgreSQL dump 与独立恢复演练已通过；当前没有自动异地备份
 - 题库开发计划：`docs/ai-practice/QUESTION_BANK_ROADMAP.md`
+
+## 本轮开发（2026-11-08）
+
+- 题库：补齐 App 已调用但后端缺失的题图接口；支持筛选、批量通过/拒绝/软删除
+- 导入：文本导入新增标准 CSV 模式；新增 `scripts/import_docx.py`，支持 DOCX 题号切分、表格/段落文本和内嵌图片上传
+- 练习：App 可逐题填写答案、提交并自动判分，显示掌握度和导出 PDF/DOCX
+- 知识点：题目编辑器内可直接新建知识点并选中
+- 导航：窄屏手机改为 5 个底部入口，设置/Agent/题库收进“更多”；宽屏保持 7 个入口
+- 更新：检查更新改为 `LeslieCoding/TeachTrack`，修复预发布版本比较，支持下载 APK 并交给系统安装器
+- 发布：新增 `docs/UPDATE_GUIDE.md`，版本号可通过 Gradle 参数覆盖
 
 ## 本轮本地开发（2026-11-06）
 

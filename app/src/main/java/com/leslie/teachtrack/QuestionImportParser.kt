@@ -44,6 +44,117 @@ object QuestionImportParser {
         return blocks.mapIndexed { index, block -> parseBlock(index + 1, block) }
     }
 
+    fun parseCsv(raw: String): List<ParsedQuestion> {
+        val rows = parseCsvRows(raw.replace("\r\n", "\n").replace('\r', '\n'))
+        if (rows.size < 2) return emptyList()
+        val header = rows.first().map(::normalizeHeader)
+        fun column(vararg names: String): Int? {
+            val normalized = names.map(::normalizeHeader).toSet()
+            return header.indexOfFirst { it in normalized }.takeIf { it >= 0 }
+        }
+        val stemIndex = column("题干", "题目", "stem", "question", "questionStem") ?: return emptyList()
+        val optionIndexes = ('A'..'H').map { key ->
+            key.toString() to column("option$key", "选项$key", key.toString())
+        }.filter { it.second != null }.map { it.first to it.second!! }
+        val answerIndex = column("答案", "标准答案", "answer", "standardAnswer")
+        val analysisIndex = column("解析", "analysis", "解答")
+        val typeIndex = column("题型", "type", "questionType")
+        val difficultyIndex = column("难度", "difficulty")
+        val knowledgeIndex = column("知识点", "knowledge", "knowledgePoint")
+        val gradeIndex = column("年级", "grade")
+        val textbookIndex = column("教材", "教材版本", "textbook", "textbookVersion")
+        val sourceIndex = column("来源", "source", "sourceName")
+
+        return rows.drop(1).mapIndexedNotNull { rowIndex, row ->
+            fun value(index: Int?): String = index?.let { row.getOrNull(it).orEmpty().trim() }.orEmpty()
+            val stem = value(stemIndex)
+            if (row.all { it.isBlank() }) return@mapIndexedNotNull null
+            val options = optionIndexes.mapNotNull { (key, index) ->
+                value(index).takeIf { it.isNotEmpty() }?.let { key to it }
+            }
+            val answer = value(answerIndex)
+            val explicitType = typeIndex?.let { parseType(value(it)) }.orEmpty()
+            val type = explicitType.ifBlank { detectType(stem, options, answer) }
+            val difficulty = difficultyIndex?.let { parseDifficulty(value(it)) } ?: 3
+            val errors = mutableListOf<String>()
+            if (stem.isBlank()) errors += "缺少题干"
+            if (difficultyIndex != null && value(difficultyIndex).isNotBlank() && parseDifficulty(value(difficultyIndex)) == null) {
+                errors += "无法识别难度：${value(difficultyIndex)}"
+            }
+            if (typeIndex != null && value(typeIndex).isNotBlank() && explicitType.isBlank()) {
+                errors += "无法识别题型：${value(typeIndex)}"
+            }
+            if (type in CHOICE_TYPES) {
+                if (options.size < 2) errors += "选择题至少需要 2 个选项"
+                if (answer.isBlank()) errors += "选择题缺少答案"
+            }
+            val knowledgeNames = value(knowledgeIndex)
+                .split(Regex("""[、，,;；]"""))
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+            ParsedQuestion(
+                number = rowIndex + 1,
+                stem = stem,
+                options = options,
+                questionType = type,
+                difficulty = difficulty,
+                standardAnswer = answer,
+                analysis = value(analysisIndex),
+                knowledgeNames = knowledgeNames,
+                grade = value(gradeIndex),
+                textbookVersion = value(textbookIndex),
+                sourceName = value(sourceIndex),
+                requiresImage = IMAGE_REFERENCE.containsMatchIn(stem),
+                errors = errors
+            )
+        }
+    }
+
+    private fun normalizeHeader(value: String): String =
+        value.removePrefix("\uFEFF").trim().lowercase().replace("_", "").replace(" ", "")
+
+    private fun parseCsvRows(raw: String): List<List<String>> {
+        val rows = mutableListOf<List<String>>()
+        val row = mutableListOf<String>()
+        val field = StringBuilder()
+        var quoted = false
+        var index = 0
+        while (index < raw.length) {
+            val char = raw[index]
+            if (quoted) {
+                if (char == '"') {
+                    if (index + 1 < raw.length && raw[index + 1] == '"') {
+                        field.append('"')
+                        index++
+                    } else {
+                        quoted = false
+                    }
+                } else {
+                    field.append(char)
+                }
+            } else {
+                when (char) {
+                    '"' -> quoted = true
+                    ',' -> {
+                        row += field.toString().trim()
+                        field.clear()
+                    }
+                    '\n' -> {
+                        row += field.toString().trim()
+                        field.clear()
+                        if (row.any { it.isNotBlank() }) rows += row.toList()
+                        row.clear()
+                    }
+                    else -> field.append(char)
+                }
+            }
+            index++
+        }
+        row += field.toString().trim()
+        if (row.any { it.isNotBlank() }) rows += row.toList()
+        return rows
+    }
+
     private fun parseBlock(number: Int, block: String): ParsedQuestion {
         val lines = block.replaceFirst(leadingQuestionNumber, "").lines()
         val stem = mutableListOf<String>()

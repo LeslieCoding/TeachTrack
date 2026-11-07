@@ -63,6 +63,46 @@ public class AssetService {
         return new UploadTicket(assetId, presigned);
     }
 
+    public UUID uploadDirect(
+            String ownerType,
+            UUID ownerId,
+            String filename,
+            String contentType,
+            byte[] data
+    ) {
+        if (data == null || data.length == 0) {
+            throw ApiException.badRequest("EMPTY_FILE", "上传内容为空");
+        }
+        if (data.length > MAX_UPLOAD_BYTES) {
+            throw ApiException.badRequest("FILE_TOO_LARGE", "最大允许 50 MB");
+        }
+        String safeOwner = ownerType == null || ownerType.isBlank()
+                ? "general" : ownerType.trim().toLowerCase(Locale.ROOT);
+        String safeName = sanitize(filename);
+        String ownerSegment = ownerId == null ? "unassigned" : ownerId.toString();
+        String key = safeOwner + "/" + ownerSegment + "/" + UUID.randomUUID() + "-" + safeName;
+        String mime = contentType == null || contentType.isBlank()
+                ? "application/octet-stream" : contentType;
+        UUID assetId = UUID.randomUUID();
+        repository.insert(new AssetRepository.AssetRow(
+                assetId, safeOwner, ownerId, storage.providerId(), key, mime, 0L, "", "PENDING"));
+        try {
+            storage.put(key, data, mime);
+            String sha256 = HexFormat.of().formatHex(
+                    MessageDigest.getInstance("SHA-256").digest(data));
+            repository.markReady(assetId, data.length, sha256);
+            audit.record(null, "asset.upload", "Asset", assetId, "SUCCESS", null);
+            return assetId;
+        } catch (RuntimeException exception) {
+            repository.markFailed(assetId);
+            audit.record(null, "asset.upload", "Asset", assetId, "FAILURE", "STORAGE_ERROR");
+            throw exception;
+        } catch (Exception exception) {
+            repository.markFailed(assetId);
+            throw new IllegalStateException("Unable to hash upload", exception);
+        }
+    }
+
     public void completeUpload(String encodedKey, long expiresAt, String signature, byte[] data) {
         String key = decodeKey(encodedKey);
         if (!signer.verify("upload", key, expiresAt, signature)) {

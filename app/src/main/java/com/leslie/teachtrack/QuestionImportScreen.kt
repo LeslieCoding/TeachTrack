@@ -67,6 +67,7 @@ fun QuestionImportDialog(
     var sourceName by remember { mutableStateOf("") }
     var reviewStatus by remember { mutableStateOf("DRAFT") }
     var rawText by remember { mutableStateOf("") }
+    var csvMode by remember { mutableStateOf(false) }
     var previewVisible by remember { mutableStateOf(false) }
     var checking by remember { mutableStateOf(false) }
     var importing by remember { mutableStateOf(false) }
@@ -103,9 +104,9 @@ fun QuestionImportDialog(
             checking = true
             error = null
             summary = null
-            val parsed = QuestionImportParser.parse(rawText)
+            val parsed = if (csvMode) QuestionImportParser.parseCsv(rawText) else QuestionImportParser.parse(rawText)
             if (parsed.isEmpty()) {
-                error = "没有识别到题目。请按题号或空行分隔题目。"
+                error = if (csvMode) "没有识别到 CSV 数据。请确认首行包含“题干”列。" else "没有识别到题目。请按题号或空行分隔题目。"
                 checking = false
                 return@launch
             }
@@ -235,18 +236,34 @@ fun QuestionImportDialog(
                             FilterChip(reviewStatus == "DRAFT", { reviewStatus = "DRAFT" }, label = { Text("导入为草稿") })
                             FilterChip(reviewStatus == "NEEDS_REVIEW", { reviewStatus = "NEEDS_REVIEW" }, label = { Text("导入后待审核") })
                         }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilterChip(!csvMode, { csvMode = false }, label = { Text("纯文本") })
+                            FilterChip(csvMode, { csvMode = true }, label = { Text("CSV") })
+                        }
                         Text(
-                            "按“1. 题干”或空行分隔；支持 A. 选项、答案、解析、难度、知识点、年级、教材、来源、题型标记。含图题只保存文字并标记“含图待补”。",
+                            if (csvMode) {
+                                "CSV 首行支持：题干, optionA–optionH, 答案, 解析, 题型, 难度, 知识点, 年级, 教材, 来源。也支持中英文表头，字段可含逗号或换行。"
+                            } else {
+                                "按“1. 题干”或空行分隔；支持 A. 选项、答案、解析、难度、知识点、年级、教材、来源、题型标记。含图题只保存文字并标记“含图待补”。"
+                            },
                             fontSize = 12.sp, color = Color.Gray
                         )
                         OutlinedTextField(
                             rawText,
                             { rawText = it },
                             Modifier.fillMaxWidth(),
-                            label = { Text("粘贴题目纯文本") },
+                            label = { Text(if (csvMode) "粘贴 CSV" else "粘贴题目纯文本") },
                             minLines = 12,
                             maxLines = 24,
-                            placeholder = { Text("1. 液体内部压强有什么特点？（　　）\nA. 各方向相等\nB. 各方向不等\n答案：A\n解析：同种液体同一深度压强相等\n难度：3\n知识点：液体压强") }
+                            placeholder = {
+                                Text(
+                                    if (csvMode) {
+                                        "题干,optionA,optionB,答案,解析,题型,难度,知识点\n\"液体压强与哪些因素有关？\",\"深度\",\"密度\",\"AB\",\"同种液体…\",\"多选\",3,\"液体压强\""
+                                    } else {
+                                        "1. 液体内部压强有什么特点？（　　）\nA. 各方向相等\nB. 各方向不等\n答案：A\n解析：同种液体同一深度压强相等\n难度：3\n知识点：液体压强"
+                                    }
+                                )
+                            }
                         )
                     }
                     Button(onClick = { parseAndCheck() }, enabled = !checking && rawText.isNotBlank(), modifier = Modifier.padding(top = 10.dp)) {

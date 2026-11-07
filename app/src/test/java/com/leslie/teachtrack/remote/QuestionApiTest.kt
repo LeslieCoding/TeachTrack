@@ -92,6 +92,52 @@ class QuestionApiTest {
         assertTrue(server.takeRequest().path.orEmpty().startsWith("/api/v1/questions/duplicates?stem="))
     }
 
+    @Test fun searchSendsAllFiltersAndBulkResultsAreParsed() = runBlocking {
+        server.enqueue(MockResponse().setBody("""{"items":[],"limit":100,"offset":0,"total":0}"""))
+        api().search(
+            query = "压强", subjectId = "science", grade = "八上",
+            questionType = "SINGLE_CHOICE", difficulty = 3, reviewStatus = "APPROVED"
+        )
+        val searchPath = server.takeRequest().path.orEmpty()
+        assertTrue(searchPath.contains("q=%E5%8E%8B%E5%BC%BA"))
+        assertTrue(searchPath.contains("subjectId=science"))
+        assertTrue(searchPath.contains("grade=%E5%85%AB%E4%B8%8A"))
+        assertTrue(searchPath.contains("questionType=SINGLE_CHOICE"))
+        assertTrue(searchPath.contains("minDifficulty=3"))
+        assertTrue(searchPath.contains("maxDifficulty=3"))
+        assertTrue(searchPath.contains("reviewStatus=APPROVED"))
+
+        server.enqueue(MockResponse().setBody(
+            """{"requested":2,"succeeded":1,"failed":["q2: missing"]}"""
+        ))
+        val result = api().bulkReview(listOf("q1", "q2"), "APPROVED")
+        assertEquals(2, result.requested)
+        assertEquals(1, result.succeeded)
+        assertEquals(listOf("q2: missing"), result.failed)
+        val bulk = server.takeRequest()
+        assertEquals("/api/v1/questions/bulk-review", bulk.path)
+        val body = JSONObject(bulk.body.readUtf8())
+        assertEquals("q1", body.getJSONArray("ids").getString(0))
+        assertEquals("APPROVED", body.getString("status"))
+    }
+
+    @Test fun questionImagesUseDirectUploadAndSignedList() = runBlocking {
+        server.enqueue(MockResponse().setResponseCode(201).setBody(
+            """{"assetId":"a1","url":"http://localhost/download/a1"}"""
+        ))
+        api().uploadImage("q1", byteArrayOf(1, 2, 3), "image/png")
+        val upload = server.takeRequest()
+        assertEquals("/api/v1/questions/q1/image", upload.path)
+        assertEquals("image/png", upload.getHeader("Content-Type"))
+
+        server.enqueue(MockResponse().setBody(
+            """[{"assetId":"a1","url":"http://localhost/download/a1"}]"""
+        ))
+        val images = api().images("q1")
+        assertEquals("a1", images.single().assetId)
+        assertEquals("/api/v1/questions/q1/images", server.takeRequest().path)
+    }
+
     @Test fun metadataEndpointsUseSubjectFilter() = runBlocking {
         server.enqueue(MockResponse().setBody("""[{"id":"science","name":"科学"}]"""))
         server.enqueue(MockResponse().setBody("""[{"id":"kp1","name":"液体压强","grade":"八上","chapter":"第三章","section":"第 7 节"}]"""))
@@ -100,5 +146,23 @@ class QuestionApiTest {
         assertEquals("液体压强", points.single().name)
         assertEquals("/api/v1/subjects", server.takeRequest().path)
         assertTrue(server.takeRequest().path.orEmpty().contains("subjectId=science"))
+    }
+
+    @Test fun createsKnowledgePointInsideEditor() = runBlocking {
+        server.enqueue(MockResponse().setResponseCode(201).setBody(
+            """{"id":"kp2","name":"电功率","grade":"九上","chapter":"第三章","section":"第 6 节"}"""
+        ))
+        val point = api().createKnowledgePoint(
+            subjectId = "science", name = "电功率", grade = "九上",
+            chapter = "第三章", section = "第 6 节"
+        )
+        assertEquals("kp2", point.id)
+        assertEquals("电功率", point.name)
+        val request = server.takeRequest()
+        assertEquals("/api/v1/knowledge-points", request.path)
+        val body = JSONObject(request.body.readUtf8())
+        assertEquals("science", body.getString("subjectId"))
+        assertEquals("电功率", body.getString("name"))
+        assertEquals("第 6 节", body.getString("section"))
     }
 }

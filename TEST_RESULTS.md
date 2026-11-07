@@ -239,3 +239,15 @@ Oracle Always Free：本机无账号/VM；SSH 公钥已生成，等待 VM IP。
 - 本地 Cloudflare 实现、D1/Tunnel 工具、配置、凭据、日志、缓存和 `cloudflared.exe` 已删除；App 不再预填旧域名。
 - Android `:app:testDebugUnitTest :app:assembleDebug` 已重新通过。
 - `TeachTrackTunnel` 计划任务条目已经管理员授权删除；无相关进程，端口 8788 未监听。
+
+## 本机服务器与题库接口（2026-11-08）
+
+- PostgreSQL 实际数据：30 学生、31 课堂、1 题；未清库
+- 本机与公网 health 200，无 Token 401，有效 Owner Token 200
+- 真实接口：新建题 → 上传 PNG 题图 → 列表 → 签名下载 200 → 批量通过 → 批量删除，全部通过，临时数据已清理
+- 后端全量测试通过，覆盖题图、批量审核/删除、试卷分析、练习提交与导出
+- DOCX 导入脚本用带内嵌图片的样例实测：解析 1 题、上传 1 图、签名下载 200，完成后删除测试题
+- 自启任务 `TeachTrackBackend`、`TeachTrackTunnel` 已安装，隐藏、Ready
+- Android 单元测试与 APK/androidTest 构建通过
+- OnePlus 6（Android 11，窄屏）仪器测试：`TeachTrackComposeInstrumentedTest` 2/2 通过，验证 5 项底部导航和“更多”入口
+- App 更新检查：仓库地址改为 `LeslieCoding/TeachTrack`，预发布版本比较测试通过

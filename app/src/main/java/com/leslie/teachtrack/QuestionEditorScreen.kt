@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.LinearProgressIndicator
@@ -77,6 +78,10 @@ fun QuestionEditorDialog(
     var scoringPoints by remember(initial) { mutableStateOf(initial?.scoringPoints.orEmpty()) }
     var solutionSteps by remember(initial) { mutableStateOf(initial?.solutionSteps.orEmpty()) }
     var knowledgeQuery by remember { mutableStateOf("") }
+    var knowledgeCreateOpen by remember { mutableStateOf(false) }
+    var newKnowledgeName by remember { mutableStateOf("") }
+    var newKnowledgeChapter by remember { mutableStateOf("") }
+    var newKnowledgeSection by remember { mutableStateOf("") }
     var selectedKnowledge by remember(initial) {
         mutableStateOf(initial?.knowledge?.map { it.knowledgePointId }?.toSet().orEmpty())
     }
@@ -288,7 +293,18 @@ fun QuestionEditorDialog(
                             }
                         }
                     }
-                    OutlinedTextField(knowledgeQuery, { knowledgeQuery = it }, Modifier.fillMaxWidth(), singleLine = true, label = { Text("搜索并选择知识点") })
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        OutlinedTextField(
+                            knowledgeQuery,
+                            { knowledgeQuery = it },
+                            Modifier.weight(1f),
+                            singleLine = true,
+                            label = { Text("搜索并选择知识点") }
+                        )
+                        TextButton(onClick = { knowledgeCreateOpen = true }, enabled = subjectId.isNotBlank()) {
+                            Text("新建")
+                        }
+                    }
                     val filteredKnowledge = knowledgePoints.filter {
                         knowledgeQuery.isBlank() || listOf(it.name, it.chapter, it.section).any { field -> field.contains(knowledgeQuery, true) }
                     }
@@ -331,6 +347,69 @@ fun QuestionEditorDialog(
                 }
             }
         }
+    }
+    if (knowledgeCreateOpen) {
+        AlertDialog(
+            onDismissRequest = { if (!saving) knowledgeCreateOpen = false },
+            title = { Text("新建知识点") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        newKnowledgeName,
+                        { newKnowledgeName = it },
+                        Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        label = { Text("知识点名称") }
+                    )
+                    OutlinedTextField(
+                        newKnowledgeChapter,
+                        { newKnowledgeChapter = it },
+                        Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        label = { Text("章节，如第三章") }
+                    )
+                    OutlinedTextField(
+                        newKnowledgeSection,
+                        { newKnowledgeSection = it },
+                        Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        label = { Text("小节，如第 7 节") }
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    enabled = newKnowledgeName.isNotBlank() && subjectId.isNotBlank() && !saving,
+                    onClick = {
+                        scope.launch {
+                            saving = true
+                            error = null
+                            runCatching {
+                                api.createKnowledgePoint(
+                                    subjectId = subjectId,
+                                    name = newKnowledgeName.trim(),
+                                    grade = grade.trim(),
+                                    textbookVersion = textbookVersion.trim(),
+                                    chapter = newKnowledgeChapter.trim(),
+                                    section = newKnowledgeSection.trim()
+                                )
+                            }.onSuccess { point ->
+                                knowledgePoints = knowledgePoints + point
+                                selectedKnowledge = selectedKnowledge + point.id
+                                newKnowledgeName = ""
+                                newKnowledgeChapter = ""
+                                newKnowledgeSection = ""
+                                knowledgeCreateOpen = false
+                            }.onFailure { error = it.message ?: "新建知识点失败" }
+                            saving = false
+                        }
+                    }
+                ) { Text("创建并选中") }
+            },
+            dismissButton = {
+                TextButton(onClick = { knowledgeCreateOpen = false }, enabled = !saving) { Text("取消") }
+            }
+        )
     }
 }
 

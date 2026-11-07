@@ -34,11 +34,19 @@ data class CloudExamDetail(
     val analyses: List<CloudExamAnalysis>
 )
 data class CloudPracticeItem(val id: String, val stem: String, val score: Double, val sourceKind: String)
+data class CloudMastery(
+    val knowledgePointId: String,
+    val masteryScore: Double,
+    val confidence: Double,
+    val correctCount: Int,
+    val wrongCount: Int
+)
 data class CloudPractice(
     val id: String,
     val title: String,
     val status: String,
-    val items: List<CloudPracticeItem>
+    val items: List<CloudPracticeItem>,
+    val mastery: List<CloudMastery> = emptyList()
 )
 
 class ExamPracticeApi(
@@ -100,6 +108,16 @@ class ExamPracticeApi(
         parsePractice(postJson("/api/v1/practices/$id/approve", JSONObject()))
     }
 
+    suspend fun submitPractice(id: String, answers: Map<String, String>): CloudPractice =
+        withContext(Dispatchers.IO) {
+            val payload = JSONArray()
+            answers.forEach { (itemId, answer) ->
+                payload.put(JSONObject().put("itemId", itemId).put("studentAnswer", answer))
+            }
+            parsePractice(postJson("/api/v1/practices/$id/submit",
+                JSONObject().put("answers", payload)))
+        }
+
     suspend fun exportPractice(id: String, variant: String, format: String): String =
         withContext(Dispatchers.IO) {
             getJson("/api/v1/practices/$id/export?variant=$variant&format=$format").getString("downloadUrl")
@@ -155,11 +173,25 @@ class ExamPracticeApi(
                 )
             }
         }
+        val mastery = mutableListOf<CloudMastery>()
+        root.optJSONArray("mastery")?.let { array ->
+            for (i in 0 until array.length()) {
+                val item = array.getJSONObject(i)
+                mastery += CloudMastery(
+                    knowledgePointId = item.optString("knowledgePointId"),
+                    masteryScore = item.optDouble("masteryScore", 0.0),
+                    confidence = item.optDouble("confidence", 0.0),
+                    correctCount = item.optInt("correctCount"),
+                    wrongCount = item.optInt("wrongCount")
+                )
+            }
+        }
         return CloudPractice(
             id = set.optString("id"),
             title = set.optString("title"),
             status = set.optString("status"),
-            items = items
+            items = items,
+            mastery = mastery
         )
     }
 
