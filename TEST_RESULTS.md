@@ -253,4 +253,7 @@ Oracle Always Free：本机无账号/VM；SSH 公钥已生成，等待 VM IP。
 - App 更新检查：仓库地址改为 `LeslieCoding/TeachTrack`，预发布版本比较测试通过
 - OPPO Pad 真机：`3.0.0-alpha.3` 点击“检查更新”后显示 `3.0.0-alpha.3 → 3.0.0-alpha.4`、更新说明和下载按钮；下载进度与失败重试界面可见
 - OnePlus 6 仪器测试：数据库 + PRoot 沙箱 `OK (36 tests)`，窄屏导航 `OK (2 tests)`
-- OPPO Pad `alpha.4`：连接新公网地址，题库加载、学校/年级/题型/状态/难度筛选、批量选择界面均正常
+- OPPO Pad `alpha.4`：连接新公网地址，题库加载、学科/年级/题型/状态/难度筛选、批量选择界面均正常
+- OPPO Pad 更新检查：`alpha.3 → alpha.4`、`alpha.4 → alpha.5` 均正确显示新版本；`alpha.5` 显示“已经是最新版本”
+- 最终测试计数：Android JVM `61/61`，后端 `25/25`，OnePlus 6 仪器测试 `36/36`，窄屏导航 `2/2`
+- OnePlus 6 `alpha.6`：从“更多”进入题库可连接本机服务器；窄屏题库标题和工具栏改为两行，不再竖排挤压
