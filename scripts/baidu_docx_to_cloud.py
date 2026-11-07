@@ -68,7 +68,7 @@ class Question:
             "knowledge": [],
             "sourceType": "TEACHER_IMPORTED",
             "sourceName": args.source_name,
-            "reviewStatus": "NEEDS_REVIEW",
+            "reviewStatus": "APPROVED",
             "copyrightStatus": "PERSONAL_USE",
             "usageScope": "PRIVATE_TEACHING",
             "abilityTags": ["含图待补"] if self.requires_image and not has_images else [],
@@ -218,6 +218,24 @@ def parse_pair(source: bytes, solution: bytes) -> list[Question]:
     return questions
 
 
+def content_errors(question: Question) -> list[str]:
+    errors = []
+    if not question.stem:
+        errors.append("题干为空")
+    if not question.standard_answer:
+        errors.append("答案为空")
+    if question.options:
+        keys = [option["key"] for option in question.options]
+        if len(keys) < 2 or len(set(keys)) != len(keys) or any(not option["content"] for option in question.options):
+            errors.append("选项不完整或重复")
+        answer_letters = set(re.findall(r"[A-H]", question.standard_answer.upper()))
+        if not answer_letters or not answer_letters.issubset(set(keys)):
+            errors.append("选择题答案与选项不匹配")
+    if question.requires_image and not question.images:
+        errors.append("题图缺失")
+    return errors
+
+
 class CloudClient:
     def __init__(self, base_url: str, token: str):
         self.base_url = base_url.rstrip("/")
@@ -289,7 +307,9 @@ def main():
         "requiresImage": sum(item.requires_image for item in questions),
     }, ensure_ascii=False))
     for item in questions:
-        print(f"#{item.number} 选项={len(item.options)} 答案={len(item.standard_answer)}字 解析={len(item.analysis)}字 图片={len(item.images)} {item.stem[:48]}")
+        errors = content_errors(item)
+        suffix = " 自动检查失败=" + "、".join(errors) if errors else " 自动检查通过"
+        print(f"#{item.number} 选项={len(item.options)} 答案={len(item.standard_answer)}字 解析={len(item.analysis)}字 图片={len(item.images)}{suffix} {item.stem[:48]}")
     if not args.do_import:
         print("预览完成；未写入云端。加 --import 才会导入。")
         return
@@ -298,10 +318,15 @@ def main():
     if not token:
         parser.error("正式导入需要通过环境变量 TEACHTRACK_API_TOKEN 提供 API Token")
     cloud = CloudClient(args.base_url, token)
-    counts = {"created": 0, "updated": 0, "skipped": 0}
+    counts = {"created": 0, "updated": 0, "skipped": 0, "failed": 0}
     uploaded = 0
     images_skipped = 0
     for item in questions:
+        errors = content_errors(item)
+        if errors:
+            counts["failed"] += 1
+            print(f"#{item.number} failed {'、'.join(errors)}")
+            continue
         question_id, action, existing_count = cloud.upsert(item, args, args.update_existing, args.upload_images)
         counts[action] += 1
         if args.upload_images and action != "skipped":
