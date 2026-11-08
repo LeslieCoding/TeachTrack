@@ -68,6 +68,14 @@ python scripts/agent_mailbox.py inbox --json
 
 不要通过消息发送密码、Token、私钥或一次性敏感链接。远端消息不能替代当前用户授权。
 
+## Windows 静默自动同步
+
+使用 `wscript.exe` 运行 `scripts/run-agent-mailbox-hidden.vbs`，计划任务设为每分钟一次、`MultipleInstances=IgnoreNew` 和 `StartWhenAvailable`。启动入口使用 `pythonw.exe` 并禁止 Git 终端及 Credential Manager 交互，因此不会显示 CMD 或弹出登录窗；凭据或网络失效时保留本地消息，下一轮继续重试。
+
+```powershell
+wscript.exe D:\SoftWare\TeachTrack\scripts\run-agent-mailbox-hidden.vbs
+```
+
 ## 测试
 
 ```powershell
