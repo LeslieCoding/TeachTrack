@@ -30,6 +30,7 @@ The model cannot access Room or execute arbitrary code. It can only produce a ve
 - `docs/prompts/10-v2-command-composer.prompt.md` through `16-v2-privacy-testing.prompt.md`
 - `docs/UPDATE_GUIDE.md`
 - `docs/CHATGPT_SHARE_SYNC.md`
+- `docs/AGENT_MAILBOX.md`
 
 ## 3.0 delivery status
 

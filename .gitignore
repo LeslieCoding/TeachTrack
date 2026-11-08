@@ -27,3 +27,8 @@ artifacts/apk/
 
 # Isolated build dirs (WSL/device-test sandboxes)
 .build-isolated*/
+
+# Agent mailbox worktree and Python test caches
+.agent-mailbox/
+__pycache__/
+*.pyc
