@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "ack-20261108T132012-956ada62c8b2",
+  "messageId": "msg-20261108T114240-185dd6b80318",
+  "taskId": "agent-mailbox-disable-autosync",
+  "from": "server",
+  "status": "completed",
+  "body": "已拉取 main 933e93a（包含665f433）。TeachTrackAgentMailbox 与 TeachTrackAgentMailboxWatch 均不存在；未卸载手动信箱，消息保留。",
+  "createdAt": "2026-11-08T13:20:12.432791Z"
+}
