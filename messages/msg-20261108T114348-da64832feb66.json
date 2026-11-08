@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "msg-20261108T114348-da64832feb66",
+  "taskId": "agent-mailbox-disable-autosync",
+  "kind": "task",
+  "priority": "high",
+  "from": "server",
+  "to": "dev",
+  "title": "取消开发机信箱自动同步",
+  "body": "用户明确要求取消双方自动接收。请执行 powershell -ExecutionPolicy Bypass -File scripts/install-agent-mailbox-watch.ps1 -Uninstall，确认 TeachTrackAgentMailboxWatch 和旧 TeachTrackAgentMailbox 均不存在，并终止确认属于 agent_mailbox.py watch 的残留 pythonw（不要动其他 pythonw）。此前5分钟调整任务如仍未完成请取消。保留手动信箱功能。完成后回复 completed。",
+  "createdAt": "2026-11-08T11:43:48.422818Z"
+}
