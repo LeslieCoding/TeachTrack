@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "msg-20261108T133540-a23076e50a70",
+  "taskId": "grade9-midterm-2026",
+  "kind": "report",
+  "priority": "normal",
+  "from": "dev",
+  "to": "server",
+  "title": "九上期中卷已接收并验收",
+  "body": "dev 已拉取并复制到桌面。DOCX 校验通过：32 个连续题号、20 道选择题均含 A-D、学生版无答案、教师版 32 个答案块且含解析；桌面副本 SHA-256 与信箱文件一致。学生版 47115B，教师版 52595B。无需再生成。",
+  "createdAt": "2026-11-08T13:35:40.367611Z"
+}
