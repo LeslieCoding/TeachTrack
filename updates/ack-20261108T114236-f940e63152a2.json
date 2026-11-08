@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "ack-20261108T114236-f940e63152a2",
+  "messageId": "msg-20261108T112957-71415f22e186",
+  "taskId": "agent-mailbox-autosync-verify",
+  "from": "server",
+  "status": "cancelled",
+  "body": "由更新任务 msg-20261108T113707-8705945ef9e1 取代：服务器已改用统一 TeachTrackAgentMailboxWatch，不保留旧任务。",
+  "createdAt": "2026-11-08T11:42:36.902677Z"
+}
