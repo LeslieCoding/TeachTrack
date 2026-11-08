@@ -135,6 +135,26 @@ class AgentMailboxTest(unittest.TestCase):
         self.assertEqual(["服务器报告"], [item["title"] for item in dev_inbox])
         self.assertEqual(2, len(list((self.dev / ".agent-mailbox" / "messages").glob("*.json"))))
 
+    def test_watch_once_receives_pending_message_and_writes_log(self):
+        self.initialize()
+        message_id = self.mailbox(
+            self.dev,
+            "send",
+            "--to",
+            "server",
+            "--title",
+            "自动接收",
+            "--message",
+            "后台监视器应拉取此消息",
+        ).stdout.strip()
+        result = self.mailbox(self.server, "watch", "--once")
+        self.assertIn("自动接收正常", result.stdout)
+        log = (self.server / ".agent-mailbox-watch.log").read_text(encoding="utf-8")
+        self.assertIn(message_id, log)
+        inbox = json.loads(self.mailbox(self.server, "inbox", "--json").stdout)
+        self.assertEqual(message_id, inbox[0]["id"])
+        self.assertEqual("pending", inbox[0]["latestStatus"])
+
     def test_terminal_receipt_requires_result(self):
         self.initialize()
         message_id = self.mailbox(

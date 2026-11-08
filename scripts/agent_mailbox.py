@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
+
+if sys.platform == "win32":
+    import winreg
 
 BRANCH = "agent-mailbox"
 WORKTREE_NAME = ".agent-mailbox"
@@ -27,6 +32,33 @@ class QueuedError(MailboxError):
     pass
 
 
+def git_environment():
+    env = os.environ.copy()
+    if sys.platform != "win32" or env.get("HTTPS_PROXY") or env.get("https_proxy"):
+        return env
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Internet Settings") as key:
+            enabled, _ = winreg.QueryValueEx(key, "ProxyEnable")
+            server, _ = winreg.QueryValueEx(key, "ProxyServer")
+        if enabled and server:
+            proxies = {}
+            for part in server.split(";"):
+                scheme, separator, address = part.partition("=")
+                if separator:
+                    proxies[scheme.strip()] = address.strip()
+                else:
+                    proxies["https"] = part.strip()
+            proxy = proxies.get("https") or proxies.get("http")
+            if proxy:
+                if "://" not in proxy:
+                    proxy = f"http://{proxy}"
+                env.setdefault("HTTP_PROXY", proxy)
+                env.setdefault("HTTPS_PROXY", proxy)
+    except OSError:
+        pass
+    return env
+
+
 def git(repo, *args, check=True):
     result = subprocess.run(
         ["git", *args],
@@ -35,6 +67,7 @@ def git(repo, *args, check=True):
         encoding="utf-8",
         errors="replace",
         capture_output=True,
+        env=git_environment(),
     )
     if check and result.returncode:
         detail = result.stderr.strip() or result.stdout.strip()
@@ -53,7 +86,7 @@ def node_name(value):
 
 
 def utc_now():
-    return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+    return datetime.now(timezone.utc).isoformat(timespec="microseconds").replace("+00:00", "Z")
 
 
 def event_id(prefix):
@@ -253,6 +286,44 @@ def load_view(root, args, incoming):
     return view_for_node(messages, updates, node, incoming, args.include_closed, getattr(args, "message_id", None))
 
 
+def append_watch_log(root, message):
+    path = root / ".agent-mailbox-watch.log"
+    if path.exists() and path.stat().st_size > 1_000_000:
+        path.replace(path.with_suffix(".log.1"))
+    with path.open("a", encoding="utf-8") as stream:
+        stream.write(f"{utc_now()} {message}\n")
+
+
+def watch_mailbox(root, interval, once):
+    if interval < 5:
+        raise MailboxError("自动接收间隔不能小于 5 秒")
+    mailbox = worktree(root)
+    node = current_node(root)
+    seen = set()
+    last_error = ""
+    append_watch_log(root, f"watch started; node={node}; interval={interval}s")
+    while True:
+        try:
+            sync_mailbox(mailbox)
+            messages, updates = all_events(mailbox)
+            events = messages + updates
+            new_events = [item for item in events if item.get("id") not in seen]
+            if new_events:
+                append_watch_log(root, f"received {len(new_events)} new event(s): " + ", ".join(item["id"] for item in new_events))
+            seen = {item.get("id") for item in events}
+            last_error = ""
+            if once:
+                print(f"自动接收正常：{len(messages)} 条消息，{len(updates)} 条回执")
+                return 0
+        except MailboxError as exc:
+            if once:
+                raise
+            if str(exc) != last_error:
+                append_watch_log(root, f"sync error: {exc}")
+                last_error = str(exc)
+        time.sleep(interval)
+
+
 def build_parser():
     parser = argparse.ArgumentParser(description="通过独立 Git 分支在多台电脑的 Agent 之间传递任务和结果")
     parser.add_argument("--repo", default=str(Path(__file__).resolve().parents[1]), help=argparse.SUPPRESS)
@@ -262,6 +333,10 @@ def build_parser():
     init.add_argument("--node", required=True, type=node_name)
 
     commands.add_parser("sync", help="接收远端消息并发送本机排队消息")
+
+    watch = commands.add_parser("watch", help="持续自动接收消息和发送排队事件")
+    watch.add_argument("--interval", type=int, default=60, help="同步间隔秒数，默认 60")
+    watch.add_argument("--once", action="store_true", help=argparse.SUPPRESS)
 
     send = commands.add_parser("send", help="发送任务、报告或备注")
     send.add_argument("--to", required=True, type=node_name)
@@ -296,6 +371,8 @@ def main():
         elif args.command == "sync":
             sync_mailbox(worktree(root))
             print("信箱已同步")
+        elif args.command == "watch":
+            return watch_mailbox(root, args.interval, args.once)
         elif args.command == "send":
             send_message(root, args)
         elif args.command == "ack":
