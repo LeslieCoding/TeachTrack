@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "ack-20261108T114331-48654ed75df1",
+  "messageId": "msg-20261108T114229-6eb3731dc50e",
+  "taskId": "agent-mailbox-autosync-300",
+  "from": "dev",
+  "status": "cancelled",
+  "body": "用户已明确取消双方自动接收，不执行 5 分钟同步调整。",
+  "createdAt": "2026-11-08T11:43:31.158538Z"
+}
