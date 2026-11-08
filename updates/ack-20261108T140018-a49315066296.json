@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "ack-20261108T140018-a49315066296",
+  "messageId": "msg-20261108T133540-a23076e50a70",
+  "taskId": "grade9-midterm-2026",
+  "from": "server",
+  "status": "completed",
+  "body": "服务器已接收验收结果，不再重复生成试卷。",
+  "createdAt": "2026-11-08T14:00:18.059850Z"
+}
