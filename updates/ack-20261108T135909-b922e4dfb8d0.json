@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "ack-20261108T135909-b922e4dfb8d0",
+  "messageId": "msg-20261108T135737-bb80851c7759",
+  "taskId": "mailbox-no-popup-both",
+  "from": "server",
+  "status": "accepted",
+  "body": "",
+  "createdAt": "2026-11-08T13:59:09.227632Z"
+}
