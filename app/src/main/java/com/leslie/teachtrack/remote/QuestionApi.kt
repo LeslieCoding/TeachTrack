@@ -26,6 +26,13 @@ data class CloudQuestion(
     val sourceName: String = ""
 )
 
+data class CloudQuestionPage(
+    val items: List<CloudQuestion>,
+    val limit: Int,
+    val offset: Int,
+    val total: Long
+)
+
 data class CloudKnowledgeLink(val knowledgePointId: String, val importance: String)
 
 data class CloudQuestionImage(val assetId: String, val url: String)
@@ -100,9 +107,32 @@ class QuestionApi(
         difficulty: Int? = null,
         reviewStatus: String = "",
         knowledgePointId: String = ""
-    ): List<CloudQuestion> = withContext(Dispatchers.IO) {
+    ): List<CloudQuestion> = searchPage(
+        query = query,
+        limit = limit,
+        offset = 0,
+        subjectId = subjectId,
+        grade = grade,
+        questionType = questionType,
+        difficulty = difficulty,
+        reviewStatus = reviewStatus,
+        knowledgePointId = knowledgePointId
+    ).items
+
+    suspend fun searchPage(
+        query: String,
+        limit: Int = 100,
+        offset: Int = 0,
+        subjectId: String = "",
+        grade: String = "",
+        questionType: String = "",
+        difficulty: Int? = null,
+        reviewStatus: String = "",
+        knowledgePointId: String = ""
+    ): CloudQuestionPage = withContext(Dispatchers.IO) {
         val params = buildList {
             add("limit=$limit")
+            add("offset=$offset")
             if (query.isNotBlank()) add("q=${URLEncoder.encode(query, "UTF-8")}")
             if (subjectId.isNotBlank()) add("subjectId=${URLEncoder.encode(subjectId, "UTF-8")}")
             if (grade.isNotBlank()) add("grade=${URLEncoder.encode(grade, "UTF-8")}")
@@ -115,10 +145,18 @@ class QuestionApi(
             if (knowledgePointId.isNotBlank()) add("knowledgePointId=${URLEncoder.encode(knowledgePointId, "UTF-8")}")
         }
         val root = getJson("/api/v1/questions?${params.joinToString("&")}")
-        val items = root.optJSONArray("items") ?: return@withContext emptyList()
-        buildList {
-            for (i in 0 until items.length()) add(parseQuestion(items.getJSONObject(i)))
+        val array = root.optJSONArray("items")
+        val pageItems = buildList {
+            if (array != null) {
+                for (i in 0 until array.length()) add(parseQuestion(array.getJSONObject(i)))
+            }
         }
+        CloudQuestionPage(
+            items = pageItems,
+            limit = root.optInt("limit", limit),
+            offset = root.optInt("offset", offset),
+            total = root.optLong("total", pageItems.size.toLong())
+        )
     }
 
     suspend fun bulkReview(ids: List<String>, status: String): CloudBulkResult = withContext(Dispatchers.IO) {

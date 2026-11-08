@@ -19,6 +19,7 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onLast
@@ -532,6 +533,43 @@ class QuestionBankComposeInstrumentedTest {
         assertEquals("DRAFT", imported.reviewStatus)
         assertEquals("九上", imported.grade)
         assertEquals("STUDENT_EXAM", imported.sourceType)
+    }
+
+    @Test
+    fun questionBankPaginatesLargeResult() {
+        val base = backendBaseUrl()
+        val seed = QuestionApi(base, testToken())
+        val subject = runBlocking { seed.subjects().first { it.name.contains("科学") } }
+        val marker = "分页验收${System.currentTimeMillis()}"
+        runBlocking {
+            repeat(120) { index ->
+                seed.create(
+                    CloudQuestionInput(
+                        subjectId = subject.id, grade = "八上", textbookVersion = "", questionType = "SINGLE_CHOICE",
+                        difficulty = 2, stem = "$marker 第${index + 1}题：液体压强随深度增大",
+                        sourceType = "SELF_CREATED", sourceName = "", reviewStatus = "DRAFT",
+                        options = listOf("A" to "增大", "B" to "减小"), standardAnswer = "A", analysis = "p=ρgh"
+                    )
+                )
+            }
+        }
+        openBank(base)
+        field("搜索题干 / 知识点").performTextReplacement(marker)
+        hideKeyboard()
+        composeRule.onNodeWithText("搜索").performClick()
+        composeRule.waitUntil(90_000) {
+            composeRule.onAllNodesWithTag("question-list").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("question-list").performScrollToIndex(99)
+        composeRule.waitUntilExactlyOneExists(hasText("加载更多（已显示 100 / 共 120）"), 90_000)
+        composeRule.onNodeWithText("加载更多（已显示 100 / 共 120）").performScrollTo().performClick()
+        composeRule.waitUntil(90_000) {
+            composeRule.onAllNodesWithText("加载更多", substring = true).fetchSemanticsNodes().isEmpty()
+        }
+        composeRule.onNodeWithTag("question-list").performScrollToIndex(119)
+        composeRule.waitUntil(30_000) {
+            composeRule.onAllNodes(hasText(marker, substring = true)).fetchSemanticsNodes().isNotEmpty()
+        }
     }
 
     private fun firstStudentTag(): String {

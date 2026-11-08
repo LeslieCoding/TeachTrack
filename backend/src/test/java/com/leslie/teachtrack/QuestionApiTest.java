@@ -184,25 +184,36 @@ class QuestionApiTest {
     }
 
     @Test
-    void rejectsNormalizedDuplicateWithDifferentNumbers() {
-        String base = "规范重复题 " + UUID.randomUUID() + " 质量为 ";
+    void acceptsDifferentNumbersButRejectsPunctuationVariant() {
+        String base = "数值不同不算重复 " + UUID.randomUUID() + " 质量为 ";
         Map<String, Object> first = Map.of(
                 "subjectId", SUBJECT_ID, "grade", "八年级", "questionType", "OTHER",
-                "difficulty", 3, "stem", base + "1 千克", "sourceType", "TEACHER_IMPORTED"
+                "difficulty", 3, "stem", "1. " + base + "1 千克", "sourceType", "TEACHER_IMPORTED"
         );
         Map<String, Object> second = Map.of(
                 "subjectId", SUBJECT_ID, "grade", "八年级", "questionType", "OTHER",
-                "difficulty", 3, "stem", base + "2 千克", "sourceType", "TEACHER_IMPORTED"
+                "difficulty", 3, "stem", "2. " + base + "2 千克", "sourceType", "TEACHER_IMPORTED"
         );
         ResponseEntity<Map> created = rest.exchange("/api/v1/questions", HttpMethod.POST,
                 new HttpEntity<>(first, headers()), Map.class);
         assertEquals(HttpStatus.CREATED, created.getStatusCode(), String.valueOf(created.getBody()));
         String id = String.valueOf(((Map) created.getBody().get("question")).get("id"));
-        ResponseEntity<Map> duplicate = rest.exchange("/api/v1/questions", HttpMethod.POST,
+        ResponseEntity<Map> differentValue = rest.exchange("/api/v1/questions", HttpMethod.POST,
                 new HttpEntity<>(second, headers()), Map.class);
+        assertEquals(HttpStatus.CREATED, differentValue.getStatusCode(), String.valueOf(differentValue.getBody()));
+        String secondId = String.valueOf(((Map) differentValue.getBody().get("question")).get("id"));
+
+        Map<String, Object> punctuationVariant = Map.of(
+                "subjectId", SUBJECT_ID, "grade", "八年级", "questionType", "OTHER",
+                "difficulty", 3, "stem", "（1）" + base + "1千克", "sourceType", "TEACHER_IMPORTED"
+        );
+        ResponseEntity<Map> duplicate = rest.exchange("/api/v1/questions", HttpMethod.POST,
+                new HttpEntity<>(punctuationVariant, headers()), Map.class);
         assertEquals(HttpStatus.CONFLICT, duplicate.getStatusCode());
         assertEquals("DUPLICATE_QUESTION", ((Map) duplicate.getBody().get("error")).get("code"));
+
         rest.exchange("/api/v1/questions/" + id, HttpMethod.DELETE, new HttpEntity<>(headers()), Void.class);
+        rest.exchange("/api/v1/questions/" + secondId, HttpMethod.DELETE, new HttpEntity<>(headers()), Void.class);
     }
 
     @Test

@@ -313,3 +313,23 @@ APK 包含 trycloudflare.com → False
 app/build/outputs/apk/debug/app-debug.apk → 62,457,793 bytes
 app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk → 1,277,050 bytes
 ```
+
+## 题库规范化去重与分页（2026-11-08）
+
+拉取 GitHub 最新版本 `1f4baca` 后回归，测出两处真实问题并修复：
+
+| 问题 | 现象 | 根因 | 修复 |
+|---|---|---|---|
+| 数字不同被当成重复题 | App 批量导入 50 道编号题只成功 0 道；`深度 0.2 m` 与 `深度 0.4 m` 返回 409 DUPLICATE_QUESTION | `normalizeStem` 把所有数字替换成 `#`，任何含数字差异的题都归一到同一哈希 | 只去掉开头题号（`1.`、`（三）`），题干内数字保留；后端、V018 回填、导入脚本三处同一规则 |
+| 5 万题库只能看到前 100 道 | 列表固定 `limit=100`，无法翻到后面的题 | 客户端没有分页，后端早已支持 `limit/offset/total` | `searchPage` + 「加载更多（已显示 X / 共 Y）」按钮，列表滚动到底即可继续加载 |
+
+```text
+后端：27 tests / 0 failures（新增 acceptsDifferentNumbersButRejectsPunctuationVariant）
+Android JVM：61 tests / 0 failures
+OnePlus 6（Android 11）QuestionBankComposeInstrumentedTest：两轮均 OK (15 tests)
+新增用例 questionBankPaginatesLargeResult：120 道题 → 首屏 100 → 点加载更多 → 120 道全部可滚动到达
+```
+
+- Flyway 新增 `V018__recompute_normalized_hash_keep_digits.sql`：删索引 → 按新规则重算 → 题号不同但题干相同的行软删除（保留最完整的已审核行）→ 重建唯一索引。本机生产库、测试库、`teachtrack_test` 均已应用。
+- 一致性验证：对 V018 之前写入的题（哈希由 SQL 回填），用「（1）+ 改标点」变体重提交，返回 409 DUPLICATE_QUESTION，证明 SQL 回填与 Java 计算同值。
+- 注意：另一台服务器上用旧规则导入的 55,617 道题里，约 10,764 道是被数字归一误合并的；需要在新规则下重跑导入才能补回。

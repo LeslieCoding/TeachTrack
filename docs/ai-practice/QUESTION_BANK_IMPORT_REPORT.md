@@ -86,3 +86,18 @@ python scripts/import_question_bank.py --import-only --import
 ```
 
 中间分片状态库在导入完成后已清理；重新运行脚本会在 `backend/data/import/` 重建忽略于 Git 的状态库和报告。
+
+## 规范化规则变更（2026-11-08 补充）
+
+原来的 `normalize_stem` 把所有数字替换成 `#`，在真实题库里会把「深度 0.2 m」和「深度 0.4 m」这类数值不同的题合并成一道，本次导入因此少收了约 10,764 道题。
+
+现规则与后端 `QuestionService.normalizeStem` 一致：只去掉开头题号（`1.`、`（三）`），题干内数字保留；标点与空白照旧去除。
+
+要补回被误合并的题目，请在最新代码上重跑：
+
+```powershell
+python scripts/import_question_bank.py --source "D:\Students\My Documents" --dry-run
+python scripts/import_question_bank.py --source "D:\Students\My Documents"
+```
+
+后端已有唯一索引，重复题会被跳过，重跑是安全的。

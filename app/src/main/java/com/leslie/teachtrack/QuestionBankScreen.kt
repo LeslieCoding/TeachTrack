@@ -45,6 +45,8 @@ private val QbMint = Color(0xFFDDF5EA)
 private val QbInk = Color(0xFF15312A)
 private val QbBackground = Color(0xFFF4F9F6)
 
+private const val QUESTION_PAGE_SIZE = 100
+
 @Composable
 fun QuestionBankScreen(vm: TeachTrackViewModel) {
     val context = LocalContext.current
@@ -62,6 +64,8 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
     var filterType by remember { mutableStateOf("") }
     var filterStatus by remember { mutableStateOf("") }
     var filterDifficulty by remember { mutableStateOf<Int?>(null) }
+    var total by remember { mutableStateOf(0L) }
+    var loadingMore by remember { mutableStateOf(false) }
     var selectionMode by remember { mutableStateOf(false) }
     val selectedIds = remember { mutableStateListOf<String>() }
     var confirmBulkDelete by remember { mutableStateOf(false) }
@@ -100,14 +104,16 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
 
     fun api(): QuestionApi = QuestionApi(baseUrl, token)
 
-    fun load() {
+    fun load(append: Boolean = false) {
         if (baseUrl.isBlank() || token.isBlank()) return
         scope.launch {
-            loading = true
+            if (append) loadingMore = true else loading = true
             error = null
             runCatching {
-                api().search(
+                api().searchPage(
                     query = query.trim(),
+                    limit = QUESTION_PAGE_SIZE,
+                    offset = if (append) items.size else 0,
                     subjectId = filterSubjectId,
                     grade = filterGrade,
                     questionType = filterType,
@@ -115,12 +121,13 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
                     reviewStatus = filterStatus
                 )
             }
-                .onSuccess {
-                    items = it
-                    selectedIds.retainAll(it.map { question -> question.id }.toSet())
+                .onSuccess { page ->
+                    items = if (append) items + page.items else page.items
+                    total = page.total
+                    selectedIds.retainAll(items.map { question -> question.id }.toSet())
                 }
                 .onFailure { error = it.message ?: "无法连接云端题库" }
-            loading = false
+            if (append) loadingMore = false else loading = false
         }
     }
 
@@ -341,7 +348,10 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
         if (!loading && items.isEmpty() && error == null) {
             EmptyQuestionState()
         } else {
-            LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            LazyColumn(
+                Modifier.weight(1f).testTag("question-list"),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 items(items, key = { it.id }) { question ->
                     QuestionCard(
                         question = question,
@@ -360,6 +370,20 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
                                     }
                                     .onFailure { error = it.message }
                             }
+                        }
+                    }
+                }
+                if (items.size.toLong() < total) {
+                    item(key = "load-more") {
+                        OutlinedButton(
+                            onClick = { load(append = true) },
+                            enabled = !loadingMore && !loading,
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                        ) {
+                            Text(
+                                if (loadingMore) "加载中…"
+                                else "加载更多（已显示 ${items.size} / 共 $total）"
+                            )
                         }
                     }
                 }

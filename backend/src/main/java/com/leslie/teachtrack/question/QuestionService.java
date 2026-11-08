@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -307,10 +308,12 @@ public class QuestionService {
         return "{\"id\":\"" + id + "\",\"reviewStatus\":\"" + reviewStatus + "\"}";
     }
 
+    private static final Pattern LEADING_NUMBER = Pattern.compile(
+            "^\\s*[（(]?\\s*(?:\\d+|[一二三四五六七八九十]+)\\s*[.、)）．]\\s*");
+
     private static String normalizeStem(String stem) {
-        String normalized = stem.toLowerCase(Locale.ROOT)
-                .replaceAll("[\\p{Punct}\\s，。；：！？、【】（）《》“”‘’]", "")
-                .replaceAll("[0-9]", "#");
+        String normalized = LEADING_NUMBER.matcher(stem.toLowerCase(Locale.ROOT)).replaceFirst("")
+                .replaceAll("[\\p{Punct}\\s，。；：！？、【】（）《》“”‘’]", "");
         return Ids.sha256Hex(normalized);
     }
 

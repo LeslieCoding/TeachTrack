@@ -63,6 +63,7 @@ IMAGE_HINT_RE = re.compile(r"如图|所示|图中|图像|图象|图甲|图乙|�
 ANSWER_DOC_RE = re.compile(r"(?:参考)?答案(?:与?解析|详解)?(?:版)?(?:[（(].*?[)）]|[)）])?$")
 CHAPTER_RE = re.compile(r"(?<![\d.])(\d\.\d(?:\s*[~-～—–]\s*\d\.\d)?)(?![\d.])")
 PUNCT_RE = re.compile(r"[\u0021-\u002f\u003a-\u0040\u005b-\u0060\u007b-\u007e\s，。；：！？、【】（）《》“”‘’]")
+LEADING_NUMBER_RE = re.compile(r"^\s*[（(]?\s*(?:\d+|[一二三四五六七八九十]+)\s*[.、)）．]\s*")
 
 SUBJECTS = {
     "初中科学": "初中科学",
@@ -112,8 +113,8 @@ def clean_visible_text(value: str) -> str:
 
 
 def normalize_stem(stem: str) -> str:
-    value = PUNCT_RE.sub("", stem.lower())
-    value = re.sub(r"\d", "#", value)
+    """与后端 QuestionService.normalizeStem 同一规则：只去掉开头题号，数字本身保留。"""
+    value = PUNCT_RE.sub("", LEADING_NUMBER_RE.sub("", stem.lower()))
     return value.strip()
 
 
