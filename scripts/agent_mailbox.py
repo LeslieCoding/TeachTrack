@@ -70,6 +70,7 @@ def git(repo, *args, check=True):
         errors="replace",
         capture_output=True,
         env=git_environment(),
+        creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
     )
     if check and result.returncode:
         detail = result.stderr.strip() or result.stdout.strip()
