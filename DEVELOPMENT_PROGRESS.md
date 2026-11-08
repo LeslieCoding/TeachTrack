@@ -4,15 +4,18 @@
 
 ## 当前状态
 
-- 远程基线：`main`（最新）；本轮题库 UI、导航和更新检查改动已提交并推送
-- 本机服务器：Java 21 + PostgreSQL 16；Java API 与免费 Quick Tunnel 正在运行
-- 数据库：`D:\SoftWare\pgdata-teachtrack`，仅监听 `127.0.0.1:55432`；Flyway V001–V014 已执行
-- 当前实际数据：35 名学生、180 条课堂/反馈、1 道题；ChatGPT 共享同步已导入，测试学生已清理
-- 文件存储：`backend/data/storage`；Owner Token 与签名密钥位于 gitignored 的 `backend/.env`
-- 公网入口：当前 Quick Tunnel 地址见 `backend/data/runtime/server-url.txt`；隧道重启会换地址
-- 隐藏自启：`TeachTrackBackend` 和 `TeachTrackTunnel` 已安装并验证，登录后自动运行
-- Android：`3.0.0-alpha.6`；OPPO Pad 与 OnePlus 6 均已连接并完成窄屏导航验收
-- 后端：全量测试通过；真实接口已验证题图直传/列表/签名下载、批量审核、批量删除
+- 远程基线：`main` / `c77ea16`；已整合另一台电脑的题库 UI、导航、真机验收和 ChatGPT 同步功能
+- 本机服务器：Corretto Java 21.0.13 + PostgreSQL 16.10；Java API 与固定 Named Tunnel 运行中
+- 数据库：`D:\SoftWare\pgdata-teachtrack`，仅监听 `127.0.0.1:55432`；Flyway V001–V017 已执行
+- 题库主库：**55,617 道唯一题**（26,270 自动通过 / 29,347 待审核）；0 规范化重复、0 空题干、0 导入失败
+- 当前实际课程数据：0 学生、0 课堂；题库导入报告：`docs/ai-practice/QUESTION_BANK_IMPORT_REPORT.md`
+- 文件存储：`backend/data/storage`；Owner Token 与文件签名密钥位于 gitignored 的 `backend/.env`，未写入 APK
+- 固定公网入口：`https://teachtrack.leslie-kaito.ccwu.cc`；健康检查 200，有效 Token 200，错误 Token 401
+- 隧道配置：`D:\SoftWare\cloudflared\config.yml`，仅转发至本机 `127.0.0.1:8080`；凭据不进入项目仓库
+- 隐藏自启：`TeachTrackBackend` 与 `TeachTrackTunnel` 已注册并通过重启验证；使用 `run-hidden.vbs` 启动，不显示终端窗口，不使用启动文件夹
+- 接电源时原电源策略已是不自动睡眠；仍需保持电脑开机、联网并登录 Windows
+- Android：`3.0.0-alpha.6`；固定地址 APK 与 androidTest APK 构建通过；另一台电脑已完成题库和窄屏导航真机验收
+- 后端：长题干规范化键改为 SHA-256，规范化题干唯一索引已启用；题图、批量审核和删除接口已验证
 - 备份：PostgreSQL dump 与独立恢复演练已通过；当前没有自动异地备份
 - 题库开发计划：`docs/ai-practice/QUESTION_BANK_ROADMAP.md`
 
@@ -63,12 +66,9 @@ M01–M07 的后端能力已实现并测试；Android 侧完成题库页与同�
 
 | 项 | 原因 |
 |---|---|
-| 固定公网入口 | 当前是免费 Quick Tunnel，重启会换地址；Named Tunnel 需要账号授权 |
-| 隐藏开机自启 | 当前会话无权限创建任务；`install-autostart.ps1` 仅通过语法检查，尚未注册 |
-| P1/P2 真机 UI 与新后端联调 | 当前无设备；写入测试需使用独立测试库，不对新主库执行测试数据导入 |
-| P2 DOCX/CSV、原卷版/解析版配对 | DOCX 云端导入工具已随 Cloudflare 方案删除；扫描器仍保留可复用提取函数 |
-| P3 完整筛选、批量审核、软删除恢复 | 尚未实现 |
-| 完整沙箱、Mock Agent、Compose UI 执行 | 新增服务器设置用例已编译但未执行；其余 UI 验收也未完成 |
+| 固定地址 APK 真机复测 | 另一台电脑已完成题库 UI 和沙箱验收；新固定地址构建仍需复测 |
+| 题库质量 | 29,347 道待审核；41,802 道含图待补；79 个扫描 PDF 未 OCR；49 道混入解析、354 道超长题干已降为待审 |
+| P3 软删除恢复 | 筛选、批量审核和软删除已实现；恢复入口尚未实现 |
 | 真实 AI Provider 调用 | 无 API Key；`AiProvider` 默认 Mock，不伪造生成 |
 | AI 原创题 / 变式题 | Provider 未配置；当前只从已审核题库组卷 |
 | MinIO/S3 真实联调 | 当前使用本机文件存储，无 S3 配置 |
@@ -79,21 +79,22 @@ M01–M07 的后端能力已实现并测试；Android 侧完成题库页与同�
 
 详见 `docs/ai-practice/QUESTION_BANK_ROADMAP.md`。
 
-1. 连接手机或平板，验收服务器设置、P1/P2 UI、完整 PRoot 沙箱与同步。
-2. P2 DOCX/CSV：复用扫描器提取逻辑，处理原卷版/解析版配对并写入 Java + PostgreSQL 后端。
+1. 连接手机或平板，验收固定地址 APK 的服务器设置、题库 UI 和 PRoot。
+2. 抽查 55,617 道题的质量，优先处理 29,347 道待审核和 49 道题干混入解析的题。
 3. P3：完整筛选、批量审核、批量软删除、知识点管理。
-4. P4：真机验证本机题图存储，补拍照、裁剪与完整组卷。
-5. P5：真实 AI Provider、变式题、质量门。
+4. P4：题图上传与完整组卷（当前 41,802 道含图待补）。
+5. 对 79 个纯扫描 PDF 做 OCR，再增量导入。
+6. P5：真实 AI Provider、变式题、质量门。
 
-第一批目标：初中科学 300 道已审核题，生成并完成 1 份练习。
+第一批目标 300 道已审核题已远超；下一步是从现有审核通过的题中完成 1 份练习，并继续提高数据质量。
 
 ## 检查点
 
 - Java 后端：`JAVA_HOME=D:\SoftWare\jdk-21 ./gradlew.bat -p backend test`
 - Android：`JAVA_HOME=D:/SoftWare/jdk-17 ANDROID_HOME=D:/SoftWare/Android/Sdk ./gradlew.bat :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest`
 - 本机服务：`powershell.exe -ExecutionPolicy Bypass -File backend/ops/run-local.ps1`
-- 临时公网入口：`powershell.exe -ExecutionPolicy Bypass -File backend/ops/tunnel-quick.ps1`
-- 当前公网地址：`backend/data/runtime/server-url.txt`；APK 预填参数为 `-PteachTrackServerUrl=<当前HTTPS地址>`
+- 题库导入：`python scripts/import_question_bank.py --parse-only` / `--import-only --import`
+- 固定公网地址：`https://teachtrack.leslie-kaito.ccwu.cc`；APK 预填参数为 `-PteachTrackServerUrl=https://teachtrack.leslie-kaito.ccwu.cc`
 - Android SDK：`D:\SoftWare\Android\Sdk`（已写入本机 gitignored `local.properties`）
 - DB：`D:\SoftWare\pgdata-teachtrack`，端口 55432，仅监听本机
 

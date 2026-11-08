@@ -183,6 +183,48 @@ class QuestionApiTest {
         return String.valueOf(((Map) created.getBody().get("question")).get("id"));
     }
 
+    @Test
+    void rejectsNormalizedDuplicateWithDifferentNumbers() {
+        String base = "规范重复题 " + UUID.randomUUID() + " 质量为 ";
+        Map<String, Object> first = Map.of(
+                "subjectId", SUBJECT_ID, "grade", "八年级", "questionType", "OTHER",
+                "difficulty", 3, "stem", base + "1 千克", "sourceType", "TEACHER_IMPORTED"
+        );
+        Map<String, Object> second = Map.of(
+                "subjectId", SUBJECT_ID, "grade", "八年级", "questionType", "OTHER",
+                "difficulty", 3, "stem", base + "2 千克", "sourceType", "TEACHER_IMPORTED"
+        );
+        ResponseEntity<Map> created = rest.exchange("/api/v1/questions", HttpMethod.POST,
+                new HttpEntity<>(first, headers()), Map.class);
+        assertEquals(HttpStatus.CREATED, created.getStatusCode(), String.valueOf(created.getBody()));
+        String id = String.valueOf(((Map) created.getBody().get("question")).get("id"));
+        ResponseEntity<Map> duplicate = rest.exchange("/api/v1/questions", HttpMethod.POST,
+                new HttpEntity<>(second, headers()), Map.class);
+        assertEquals(HttpStatus.CONFLICT, duplicate.getStatusCode());
+        assertEquals("DUPLICATE_QUESTION", ((Map) duplicate.getBody().get("error")).get("code"));
+        rest.exchange("/api/v1/questions/" + id, HttpMethod.DELETE, new HttpEntity<>(headers()), Void.class);
+    }
+
+    @Test
+    void acceptsLongStemWithoutExceedingIndexSize() {
+        String stem = "长题干回归 " + UUID.randomUUID() + " " + "液体内部压强随深度增大而增大。".repeat(150);
+        Map<String, Object> create = Map.of(
+                "subjectId", SUBJECT_ID,
+                "grade", "八年级",
+                "questionType", "OTHER",
+                "difficulty", 3,
+                "stem", stem,
+                "sourceType", "TEACHER_IMPORTED",
+                "answer", Map.of("standardAnswer", "见解析", "analysis", "长题干索引回归"),
+                "abilityTags", List.of("回归")
+        );
+        ResponseEntity<Map> created = rest.exchange("/api/v1/questions", HttpMethod.POST,
+                new HttpEntity<>(create, headers()), Map.class);
+        assertEquals(HttpStatus.CREATED, created.getStatusCode(), String.valueOf(created.getBody()));
+        String id = String.valueOf(((Map) created.getBody().get("question")).get("id"));
+        rest.exchange("/api/v1/questions/" + id, HttpMethod.DELETE, new HttpEntity<>(headers()), Void.class);
+    }
+
     private String createKnowledgePoint() {
         String name = "液体压强-" + UUID.randomUUID();
         Map<String, Object> body = Map.of(

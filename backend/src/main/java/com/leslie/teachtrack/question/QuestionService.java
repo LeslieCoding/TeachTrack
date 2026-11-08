@@ -63,6 +63,10 @@ public class QuestionService {
             throw new ApiException(HttpStatus.CONFLICT, "DUPLICATE_QUESTION",
                     "题干完全相同的题目已存在: " + existing.id());
         });
+        repository.findByNormalizedHash(normalizeStem(stem), null).ifPresent(existing -> {
+            throw new ApiException(HttpStatus.CONFLICT, "DUPLICATE_QUESTION",
+                    "规范化后重复的题目已存在: " + existing.id());
+        });
 
         String sourceType = defaultIfBlank(request.sourceType(), "SELF_CREATED");
         String reviewStatus = defaultIfBlank(request.reviewStatus(), "DRAFT");
@@ -304,9 +308,10 @@ public class QuestionService {
     }
 
     private static String normalizeStem(String stem) {
-        return stem.toLowerCase(Locale.ROOT)
+        String normalized = stem.toLowerCase(Locale.ROOT)
                 .replaceAll("[\\p{Punct}\\s，。；：！？、【】（）《》“”‘’]", "")
                 .replaceAll("[0-9]", "#");
+        return Ids.sha256Hex(normalized);
     }
 
     private static String defaultIfBlank(String value, String fallback) {

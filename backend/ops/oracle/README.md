@@ -39,8 +39,7 @@ ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDo1LdWqgCL0p9xPfIUyAeZyrG+aBNRoCMfuQn1IJNne
 只保留 SSH 22：
 
 - 不需要开放 8080、5432、80、443。
-- Cloudflare Tunnel 是出站连接，不需要入站端口。
-- 不要给 PostgreSQL 配公网访问。
+- 不要给 PostgreSQL 配公网访问；远程入口应使用独立 HTTPS 反向代理。
 
 ## 4. 交给我的信息
 
@@ -55,14 +54,14 @@ SSH 用户名（Ubuntu 镜像默认 ubuntu）
 
 ## 5. 我会执行的部署
 
-1. 安装 OpenJDK 21、PostgreSQL 16、Python3/pip、bypy、cloudflared。
+1. 安装 OpenJDK 21、PostgreSQL 16、Python3/pip、bypy。
 2. 创建 `teachtrack` 数据库与用户。
 3. 上传并用 `pg_restore` 恢复本地 `teachtrack.dump`。
 4. 上传后端 jar，配置 `/etc/teachtrack/env`。
 5. 创建 `teachtrack-backend` systemd 服务（`Restart=always`）。
-6. 把 `cloudflared` 配置/证书/隧道凭据搬到 VM，运行 connector。
-7. 停掉本机 `TeachTrackBackend` / `TeachTrackTunnel`。
-8. 验证 `https://teachtrack.leslieholmes.ccwu.cc/actuator/health` 200。
+6. 配置新的 HTTPS 反向代理，不使用 Cloudflare。
+7. 停掉本机 `TeachTrackBackend`。
+8. 验证新的 `/actuator/health` 返回 200。
 9. 配置每日 `pg_dump` 到百度网盘，并做一次恢复演练。
 
 ## 6. 成本与限制
@@ -70,4 +69,4 @@ SSH 用户名（Ubuntu 镜像默认 ubuntu）
 - Always Free：2 OCPU / 12 GB / 200 GB 块存储，长期免费。
 - 账号 30 天闲置可能被回收；建议每月至少登录/使用一次。
 - 2 GB 内存不够，必须用 12 GB ARM 配置。
-- 国内直连 Oracle 新加坡/东京可能波动；Cloudflare Tunnel 可缓解但不保证低延迟。
+- 国内直连 Oracle 新加坡/东京可能波动，延迟需实测。

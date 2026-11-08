@@ -1,21 +1,22 @@
 # TEST_RESULTS
 
-## Windows 本机服务器（2026-11-07）
+## Windows 本机服务器（2026-11-08）
 
 ```text
 Java: Corretto 21.0.13
 PostgreSQL: 16.10，仅监听 127.0.0.1:55432
-Flyway: V001–V014
-Backend: 23 tests / 0 failures / 0 errors / 0 skipped
-Android: 52 tests / 0 failures / 0 errors / 0 skipped
+Flyway: V001–V017
+Backend: 27 tests / 0 failures / 0 errors / 0 skipped
+Android: 61 tests / 0 failures / 0 errors / 0 skipped
 :app:assembleDebug / :app:assembleDebugAndroidTest → BUILD SUCCESSFUL
-本机与 Quick Tunnel HTTPS /actuator/health → UP
+本机与固定公网 /actuator/health → UP
 有效 Owner Token → database/storage/students/questions/subjects API 200
 无效 Token → 401
 PostgreSQL dump → 独立库恢复 → 行数一致
+题库导入：110,037 原始题记录 → 55,617 道唯一题；重复组 0，空题干 0
 ```
 
-主库是新库：0 学生、0 课堂、0 题、4 个预置学科。旧业务数据未恢复。当前没有 Android 设备连接；新增服务器设置 Compose 用例和其他真机用例只完成编译，未执行。Quick Tunnel 地址重启会变化，不能视为固定生产入口。隐藏自启安装脚本仅通过语法检查；PowerShell 和 schtasks 注册均被系统权限拒绝，未创建任务。
+主库当前为 0 学生、0 课堂、55,617 道未删除题；题库由 `D:\Students\My Documents` 全量扫描导入，详见 `docs/ai-practice/QUESTION_BANK_IMPORT_REPORT.md`。固定公网入口和隐藏自启均已配置并通过真实重启验证；终端窗口由隐藏 VBS 启动器消除。另一台电脑已完成题库 UI、PRoot 沙箱与窄屏导航仪器测试。
 
 ## Android
 
@@ -284,3 +285,31 @@ Android JVM：61 tests / 0 failures
 - 修复：筛选对话框“清除”原先只清空弹窗字段、不生效也不关闭，现改为立即清除并刷新列表。
 - 测试基建：新增 `filter-subject-*`、`filter-grade-*` 测试标记；相似题二次确认（“仍要保存通过/仍要存草稿”）在测试中自动确认。
 - 生产验证（本机 8080 + Quick Tunnel，OPPO Pad 2d64f765）：题库加载正常；精准练习显示“该学科还没有已审核题目，先在题库录入完整题目并保存通过。”，同时出现“去题库录入 / 审核题目”和禁用的“生成练习草稿”；录题页显示“保存并审核通过”，空表单提交提示“题干不能为空”，未写入数据。
+
+## 新账号固定公网入口（2026-11-08）
+
+```text
+域名：https://teachtrack.leslie-kaito.ccwu.cc
+cloudflared 2026.10.7；Named Tunnel：teachtrack
+配置：D:\SoftWare\cloudflared\config.yml → http://127.0.0.1:8080
+GET /actuator/health → 200 {"status":"UP"}
+GET /api/v1/system/storage（有效 Owner Token）→ 200
+GET /api/questions（错误 Token）→ 401
+QUIC 四条连接注册成功；运行不需要代理
+```
+
+新域名属于独立的 Cloudflare 区域，不影响旧项目。旧 Quick Tunnel 和 `teachtrack.leslieholmes.ccwu.cc` 不再使用。`TeachTrackBackend` 与 `TeachTrackTunnel` 已注册为隐藏计划任务；重启后均自动恢复，本机和公网健康检查均返回 `UP`。任务通过 `wscript.exe` 调用 `run-hidden.vbs`，启动时不显示 CMD/PowerShell 终端窗口。
+
+固定地址 Android 构建：
+
+```text
+合并远端 main / c77ea16 后重新验证：
+:app:testDebugUnitTest → 61 tests / 0 failures / 0 errors / 0 skipped
+后端完整测试 → 27 tests / 0 failures / 0 errors / 0 skipped
+:app:assembleDebug → BUILD SUCCESSFUL
+:app:assembleDebugAndroidTest → BUILD SUCCESSFUL
+APK 实际包含 teachtrack.leslie-kaito.ccwu.cc → True
+APK 包含 trycloudflare.com → False
+app/build/outputs/apk/debug/app-debug.apk → 62,457,793 bytes
+app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk → 1,277,050 bytes
+```

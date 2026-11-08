@@ -1,15 +1,15 @@
 # 题库后续开发路线
 
 - 日期：2026-11-08
-- 当前运行环境：这台 Windows 电脑上的 Java 21 + PostgreSQL 16；Cloudflare Workers、D1 和 KV 不恢复
-- 公网入口：免费 Quick Tunnel 已连通；当前地址见 `backend/data/runtime/server-url.txt`，重启会换地址
+- 当前运行环境：这台 Windows 电脑上的 Java 21 + PostgreSQL 16；旧 Cloudflare Workers、D1 和 KV 已移除
+- 公网入口：`https://teachtrack.leslie-kaito.ccwu.cc`，使用新 Cloudflare 账号的 Named Tunnel
 - 原始题库与教材：仍在百度网盘，未修改
 
 ## 结论
 
-本机 Java + PostgreSQL 后端、文件存储、Owner Token 和公网 HTTPS 已配置并通过 API 验证，OPPO Pad 已连接。题库支持题图、筛选、批量审核/删除、文本/CSV 导入，DOCX 可通过 `scripts/import_docx.py` 连同内嵌图片写入后端。下一步是补充真实题库内容和知识点树管理。
+本机 Java + PostgreSQL 后端、文件存储、Owner Token 和固定公网 HTTPS 已配置并通过 API 验证。题库支持题图、筛选、批量审核/删除、文本/CSV 导入，DOCX 可通过 `scripts/import_docx.py` 连同内嵌图片写入后端。`D:\Students\My Documents` 已完成全量扫描和去重导入：110,037 条原始记录合并为 55,617 道唯一题，报告见 `QUESTION_BANK_IMPORT_REPORT.md`。下一步抽查题库质量、完善知识点树并继续真机验收。
 
-当前数据库有 30 学生、31 课堂、1 道题；接口验收临时数据已清理。此前 Cloudflare D1 的 10 道光合作用题已随 D1/KV 删除，百度网盘原始 DOCX 不受影响。
+当前数据库有 0 学生、0 课堂、55,617 道未删除题，其中 26,270 道已审核。此前 Cloudflare D1 的 10 道光合作用题已随 D1/KV 删除，百度网盘原始 DOCX 不受影响。
 
 ## 现状
 
@@ -40,11 +40,11 @@
 
 ### 当前缺口
 
-1. Quick Tunnel 不是固定地址，重启后 App 需要更新服务器地址
-2. DOCX 的复杂表格、公式和图片精确插入位置尚未完全结构化；App 内还不能直接选择 DOCX 文件
+1. DOCX 的复杂表格、公式和图片精确插入位置尚未完全结构化；App 内还不能直接选择 DOCX 文件
+2. 29,347 道待审核题和 41,802 道含图待补题仍需抽查、补图和审核；79 个扫描 PDF 未 OCR
 3. 知识点还没有树形编辑、合并和批量归类界面
 4. AI 题目生成与质量门未接真实 Provider
-5. 第一批 300 道已审核题仍需从真实题库资料导入并抽样核对
+5. 固定地址 APK 仍需在手机上重新安装并复测完整流程
 
 ## 开发顺序
 

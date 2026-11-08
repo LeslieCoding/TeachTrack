@@ -71,17 +71,11 @@ powershell.exe -ExecutionPolicy Bypass -File backend/ops/run-local.ps1
 
 `run-local.ps1` 会检查并启动 `D:\SoftWare\pgdata-teachtrack`，然后启动仅监听 `127.0.0.1:8080` 的后端。数据库不对局域网或公网开放，日志和文件位于 `backend/data`。
 
-需要其他网络中的 Android 设备访问时，可另开终端运行免费的临时隧道：
+固定公网入口为 `https://teachtrack.leslie-kaito.ccwu.cc`，由新 Cloudflare 账号下的 Named Tunnel 转发到 `127.0.0.1:8080`。隧道配置和私有凭据位于 `D:\SoftWare\cloudflared`；不要把 PostgreSQL 或 8080 直接映射到公网。隧道运行使用 Cloudflare 直连，不需要配置代理。
 
-```powershell
-powershell.exe -ExecutionPolicy Bypass -File backend/ops/tunnel-quick.ps1
-```
+构建 APK 时使用 `-PteachTrackServerUrl=https://teachtrack.leslie-kaito.ccwu.cc` 预填固定地址；Token 仍由教师在 App 中输入并加密保存，不得写入 APK。
 
-当前 HTTPS 地址写入 `backend/data/runtime/server-url.txt`。Quick Tunnel 重启后地址会变化，只作为免账号的临时入口；长期固定地址需要另外授权 Named Tunnel。不要在路由器上暴露 PostgreSQL 或直接映射 8080。
-
-构建 APK 时可用 `-PteachTrackServerUrl=https://...` 预填地址；Token 仍由教师在 App 中输入并加密保存，不得写入 APK。
-
-需要登录后隐藏自启时，在管理员 PowerShell 中运行 `backend/ops/install-autostart.ps1`。脚本使用当前账户 SID 创建 `TeachTrackBackend` 和 `TeachTrackTunnel`，关闭电池限制且不限执行时长；不使用 Run 注册表或启动文件夹。
+需要登录后隐藏自启时，在管理员 PowerShell 中运行 `backend/ops/install-autostart.ps1`。脚本使用当前账户 SID 创建 `TeachTrackBackend` 和 `TeachTrackTunnel`，关闭电池限制且不限执行时长；通过 `wscript.exe` 和 `run-hidden.vbs` 启动，不显示终端窗口，不使用 Run 注册表或启动文件夹。
 
 ## 认证
 

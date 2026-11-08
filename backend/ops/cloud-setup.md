@@ -154,7 +154,7 @@ export TEACHTRACK_DB_USER='...'
 export TEACHTRACK_DB_PASSWORD='...'
 export TEACHTRACK_BOOTSTRAP_TOKEN='...'
 export TEACHTRACK_STORAGE_PROVIDER=s3
-export TEACHTRACK_S3_ENDPOINT='https://<account>.r2.cloudflarestorage.com'
+export TEACHTRACK_S3_ENDPOINT='http://127.0.0.1:9000'
 export TEACHTRACK_S3_REGION=auto
 export TEACHTRACK_S3_BUCKET='teachtrack-private'
 export TEACHTRACK_S3_ACCESS_KEY='...'
@@ -392,8 +392,6 @@ PostgreSQL 运行中的数据目录需要：
 
 百度网盘是对象/文件同步，不是块设备或本地文件系统；同步冲突、延迟、缓存和锁缺失会损坏 `pg_control`、WAL 和索引。**不要把 `pgdata` 指到网盘同步目录，也不要让两个进程同时写。**
 
-### Cloudflare Tunnel（远程 HTTPS）
+### 远程 HTTPS
 
-- 临时测试：`backend/ops/tunnel-quick.sh` 或 `.ps1`，输出 `https://<random>.trycloudflare.com`。
-- 永久：`backend/ops/tunnel-named.md`，需要 Cloudflare 账号 + 域名。
-- Quick Tunnel 没有访问控制，后端仍靠 Bearer Token；不要长期暴露。
+本项目已移除 Cloudflare Tunnel、cloudflared 和相关账号资源。新域名/反向代理方案确定前不要暴露 8080；任何远程入口仍必须使用 Bearer Token。

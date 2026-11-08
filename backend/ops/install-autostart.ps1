@@ -9,21 +9,23 @@ $settings.StopIfGoingOnBatteries = $false
 $settings.MultipleInstances = "IgnoreNew"
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $sid
 
-$tasks = @(
-    @{ Name = "TeachTrackBackend"; Script = "run-local.ps1"; Description = "TeachTrack local Java API and PostgreSQL" },
-    @{ Name = "TeachTrackTunnel"; Script = "tunnel-quick.ps1"; Description = "TeachTrack free HTTPS Quick Tunnel" }
-)
-foreach ($task in $tasks) {
-    $script = Join-Path $backend ("ops\" + $task.Script)
-    $arguments = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "{0}"' -f $script
-    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument $arguments -WorkingDirectory $backend
-    Register-ScheduledTask -TaskName $task.Name -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Description $task.Description -Force | Out-Null
-}
+$launcher = Join-Path $backend "ops\run-hidden.vbs"
+if (-not (Test-Path $launcher)) { throw "Hidden launcher not found: $launcher" }
+$wscript = Join-Path $env:SystemRoot "System32\wscript.exe"
+$action = New-ScheduledTaskAction -Execute $wscript -Argument "`"$launcher`" backend" -WorkingDirectory $backend
+Register-ScheduledTask -TaskName "TeachTrackBackend" -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Description "TeachTrack local Java API and PostgreSQL" -Force | Out-Null
+
+$cloudflared = "D:\SoftWare\cloudflared\cloudflared.exe"
+$config = "D:\SoftWare\cloudflared\config.yml"
+if (-not (Test-Path $cloudflared)) { throw "cloudflared not found: $cloudflared" }
+if (-not (Test-Path $config)) { throw "Cloudflare config not found: $config" }
+$tunnelAction = New-ScheduledTaskAction -Execute $wscript -Argument "`"$launcher`" tunnel" -WorkingDirectory $backend
+Register-ScheduledTask -TaskName "TeachTrackTunnel" -Action $tunnelAction -Trigger $trigger -Principal $principal -Settings $settings -Description "TeachTrack fixed Cloudflare tunnel" -Force | Out-Null
 
 $startup = [Environment]::GetFolderPath("Startup")
 foreach ($name in @("TeachTrackBackend.lnk", "TeachTrackTunnel.lnk")) {
-    $path = Join-Path $startup $name
-    if (Test-Path $path) { Remove-Item $path -Force }
+    $shortcut = Join-Path $startup $name
+    if (Test-Path $shortcut) { Remove-Item $shortcut -Force }
 }
 
 $syncScript = Join-Path $backend "ops\sync-chatgpt-share.ps1"
