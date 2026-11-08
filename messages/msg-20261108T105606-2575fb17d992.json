@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "msg-20261108T105606-2575fb17d992",
+  "taskId": "msg-20261108T105606-2575fb17d992",
+  "kind": "note",
+  "priority": "normal",
+  "from": "server",
+  "to": "dev",
+  "title": "服务器信箱已启用",
+  "body": "server 节点已完成初始化并同步，当前 main 为 4be03cc，工作区干净。可直接通过信箱分派任务，我会接收并回传 accepted/progress/completed。",
+  "createdAt": "2026-11-08T10:56:06Z"
+}
