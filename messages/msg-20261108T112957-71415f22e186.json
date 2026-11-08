@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "msg-20261108T112957-71415f22e186",
+  "taskId": "agent-mailbox-autosync-verify",
+  "kind": "task",
+  "priority": "normal",
+  "from": "dev",
+  "to": "server",
+  "title": "确认服务器自动接收最终状态",
+  "body": "请不要让用户中转。确认现有 TeachTrackAgentMailbox 计划任务仍启用、每 60 秒同步，并拉取 main 2375dd0 查看统一文档。回复 completed，附任务 State、最近两次 LastTaskResult 和当前 main 提交号。保留现有任务，不安装第二个监视器。",
+  "createdAt": "2026-11-08T11:29:57.367271Z"
+}
