@@ -35,7 +35,8 @@ $Action = New-ScheduledTaskAction -Execute $Pythonw -Argument "`"$Script`" --rep
 $Trigger = New-ScheduledTaskTrigger -AtLogOn -User $UserId
 $Settings = New-ScheduledTaskSettingsSet -Hidden -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
 $Principal = New-ScheduledTaskPrincipal -UserId $UserId -LogonType Interactive -RunLevel Limited
-Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Settings $Settings -Principal $Principal -Description "TeachTrack 双电脑 Agent 信箱自动接收" -Force | Out-Null
+Stop-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Settings $Settings -Principal $Principal -Description "TeachTrack agent mailbox silent background sync" -Force | Out-Null
 Start-ScheduledTask -TaskName $TaskName
 Start-Sleep -Seconds 3
 $Task = Get-ScheduledTask -TaskName $TaskName

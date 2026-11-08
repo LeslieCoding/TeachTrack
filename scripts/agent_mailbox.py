@@ -297,6 +297,8 @@ def append_watch_log(root, message):
 def watch_mailbox(root, interval, once):
     if interval < 5:
         raise MailboxError("自动接收间隔不能小于 5 秒")
+    os.environ["GIT_TERMINAL_PROMPT"] = "0"
+    os.environ["GCM_INTERACTIVE"] = "never"
     mailbox = worktree(root)
     node = current_node(root)
     seen = set()
