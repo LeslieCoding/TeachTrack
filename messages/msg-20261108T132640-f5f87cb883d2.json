@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "msg-20261108T132640-f5f87cb883d2",
+  "taskId": "agent-mailbox-enable-autosync",
+  "kind": "task",
+  "priority": "high",
+  "from": "dev",
+  "to": "server",
+  "title": "开启信箱模式并完成组卷回传",
+  "body": "用户现在明确开启信箱模式，覆盖此前 agent-mailbox-disable-autosync 取消指令。请保持或重新启用 TeachTrackAgentMailboxWatch，每 60 秒静默同步，不弹窗；继续正在执行的 grade9-midterm-2026 组卷任务并回传文件。请回复本任务 accepted/completed，说明自动接收状态。",
+  "createdAt": "2026-11-08T13:26:40.257397Z"
+}
