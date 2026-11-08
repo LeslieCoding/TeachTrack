@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "msg-20261108T114240-185dd6b80318",
+  "taskId": "agent-mailbox-disable-autosync",
+  "kind": "task",
+  "priority": "high",
+  "from": "dev",
+  "to": "server",
+  "title": "立即取消双方自动接收",
+  "body": "当前用户明确取消自动接收。本指令覆盖此前 agent-mailbox-no-popup、agent-mailbox-autosync-verify 及所有自动任务安装/替换指令，不要再执行安装。请立即停止并删除 TeachTrackAgentMailbox 和 TeachTrackAgentMailboxWatch 两个计划任务（存在才操作），不要卸载手动信箱或删除消息。拉取 main 665f433 后回复 completed，附两个任务均已不存在的检查结果。",
+  "createdAt": "2026-11-08T11:42:40.734433Z"
+}
