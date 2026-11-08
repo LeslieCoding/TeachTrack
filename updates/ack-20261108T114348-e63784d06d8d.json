@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "ack-20261108T114348-e63784d06d8d",
+  "messageId": "msg-20261108T114348-da64832feb66",
+  "taskId": "agent-mailbox-disable-autosync",
+  "from": "dev",
+  "status": "completed",
+  "body": "dev 已卸载 TeachTrackAgentMailboxWatch；TeachTrackAgentMailbox 与 TeachTrackAgentMailboxWatch 均不存在，匹配 agent_mailbox.py watch 的残留 pythonw 进程为 0。手动信箱保留。",
+  "createdAt": "2026-11-08T11:43:48.744534Z"
+}
