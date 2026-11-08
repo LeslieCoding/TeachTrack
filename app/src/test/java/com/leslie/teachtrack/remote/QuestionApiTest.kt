@@ -66,6 +66,20 @@ class QuestionApiTest {
         assertEquals("含图待补", body.getJSONArray("abilityTags").getString(0))
     }
 
+    @Test fun unauthorizedExplainsHowToReconnect() = runBlocking {
+        server.enqueue(MockResponse().setResponseCode(401).setBody(
+            """{"error":{"code":"UNAUTHORIZED","message":"Missing or invalid bearer token"}}"""
+        ))
+        try {
+            api().search("题干")
+            fail("expected unauthorized")
+        } catch (e: QuestionApiException) {
+            assertEquals(401, e.status)
+            assertEquals("UNAUTHORIZED", e.code)
+            assertEquals("服务器 Token 无效或已过期，请打开服务器设置重新填写 Owner Token", e.message)
+        }
+    }
+
     @Test fun updateSendsBaseVersionAndPreservesConflictCode() = runBlocking {
         server.enqueue(MockResponse().setResponseCode(409).setBody(
             """{"error":{"code":"VERSION_CONFLICT","message":"题目已被修改"}}"""

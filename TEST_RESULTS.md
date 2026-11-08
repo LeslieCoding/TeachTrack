@@ -335,3 +335,14 @@ OnePlus 6（Android 11）QuestionBankComposeInstrumentedTest：两轮均 OK (15 
 - 注意：跨分片去重量不能直接当作数字误合并数量。正式服务器已备份并应用 V018、四分片重跑；实际新增 220 道，现有 55,836 道有效题（26,347 已审核 / 29,489 待审核），544 道软删除，规范化重复组和空题干均为 0。
 - `3.0.0-alpha.7`（versionCode 300007）已发布：GitHub Release `https://github.com/LeslieCoding/TeachTrack/releases/tag/v3.0.0-alpha.7`，附 `TeachTrack_3.0.0-alpha.7.apk`（62,429,073B，debug 签名，预发布）。
 - OPPO Pad 2d64f765 覆盖安装 alpha.7 后，进入 Agent → 设置 → 关于 → 检查更新，实测返回「已经是最新版本。」，说明更新源读取与版本比较正常。
+
+## OPPO Pad + OnePlus 6 双设备回归（2026-11-08）
+
+- 设备：OPPO Pad `2d64f765`（Android 14、2560×1600）与 OnePlus 6 `804b750b`（Android 11、窄屏），均安装 `3.0.0-alpha.7`（versionCode 300007）。
+- 构建：固定服务器地址 `https://teachtrack.leslie-kaito.ccwu.cc`；`assembleDebug`、`assembleDebugAndroidTest` 成功；Android JVM **62/62** 通过。
+- 隔离环境：`127.0.0.1:18080` + `teachtrack_uitest`，通过 ADB reverse 连接；未写入正式题库。测试结束后已关闭后端并移除两台设备的 reverse。
+- OnePlus 6：`QuestionBankComposeInstrumentedTest` 连续两轮 **OK (15 tests)**。
+- OPPO Pad：首轮发现测试脚本把顶部“题库”页签和底部“题库”导航混淆，且详情弹窗存在重组时序；修正测试选择器并等待弹窗/按钮出现后，完整 **OK (15 tests)**。这是测试代码修复，不是业务界面功能缺失。
+- 覆盖：服务器设置、Agent 文本注入、录题、知识点新建、筛选、批量审核/删除、详情编辑、题图上传、文本/CSV 导入、50 题幂等、120 题分页、试卷分析、精准练习和四项导出。
+- 公网 `/actuator/health` 实测 200。Windows curl 需要 `--ssl-no-revoke` 绕过本机无法完成证书吊销检查的问题，不代表证书校验被关闭或服务器异常。
+- 正式服务器连接边界：OPPO Pad 原有 Owner Token 已失效，服务器返回 401；未重新填写凭据，因此本轮没有对正式 55,836 道题做已认证读写测试。App 原英文错误已改为“服务器 Token 无效或已过期，请打开服务器设置重新填写 Owner Token”，并在 OPPO Pad 实际页面验证。

@@ -329,7 +329,7 @@ class QuestionBankComposeInstrumentedTest {
         val api = openBank(base)
         composeRule.waitUntilExactlyOneExists(hasText(stem), 20_000)
         composeRule.onNodeWithText(stem).performClick()
-        composeRule.onNodeWithText("题目详情").assertIsDisplayed()
+        composeRule.waitUntilExactlyOneExists(hasText("题目详情"), 10_000)
         composeRule.onNodeWithText("通过").performClick()
         composeRule.waitUntil(20_000) { runBlocking { api.detail(created.id).question.reviewStatus == "APPROVED" } }
 
@@ -340,6 +340,8 @@ class QuestionBankComposeInstrumentedTest {
 
         composeRule.waitUntilExactlyOneExists(hasText(stem), 20_000)
         composeRule.onNodeWithText(stem).performClick()
+        composeRule.waitUntilExactlyOneExists(hasText("题目详情"), 10_000)
+        composeRule.waitUntilExactlyOneExists(hasText("关闭"), 10_000)
         composeRule.onNodeWithText("关闭").performClick()
         composeRule.onNodeWithText("题目详情").assertDoesNotExist()
     }
@@ -456,7 +458,7 @@ class QuestionBankComposeInstrumentedTest {
         composeRule.waitUntilExactlyOneExists(hasText(stem), 20_000)
 
         composeRule.onNodeWithText(stem).performScrollTo().performClick()
-        composeRule.onNodeWithText("题目详情").assertIsDisplayed()
+        composeRule.waitUntilExactlyOneExists(hasText("题目详情"), 10_000)
         composeRule.onNodeWithText("编辑").performClick()
         composeRule.waitUntilExactlyOneExists(hasText("编辑题目", substring = true), 10_000)
         composeRule.onNodeWithText("关闭").performClick()
@@ -626,7 +628,7 @@ class QuestionBankComposeInstrumentedTest {
         composeRule.waitUntilExactlyOneExists(hasText("已排队", substring = true), 10_000)
         composeRule.onNodeWithText("从云端拉取学生 / 课堂").performClick()
         composeRule.waitUntilExactlyOneExists(hasText("已拉取学生", substring = true), 60_000)
-        composeRule.onNodeWithText("题库", substring = false).performClick()
+        composeRule.onAllNodesWithText("题库", substring = false).onLast().performClick()
     }
 
     private fun testToken(): String =
@@ -670,7 +672,7 @@ class QuestionBankComposeInstrumentedTest {
             composeRule.onNodeWithText("更多").performClick()
             composeRule.onAllNodesWithText("题库", substring = false).onLast().performClick()
         } else {
-            composeRule.onNodeWithText("题库", substring = false).performClick()
+            composeRule.onAllNodesWithText("题库", substring = false).onLast().performClick()
         }
         composeRule.onNodeWithText("云端工作台").assertIsDisplayed()
         composeRule.onAllNodesWithText("题库", substring = false).onFirst().performClick()

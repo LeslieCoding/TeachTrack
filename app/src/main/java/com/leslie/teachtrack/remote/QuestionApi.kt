@@ -425,7 +425,11 @@ class QuestionApi(
     private fun responseError(body: String, status: Int): QuestionApiException {
         val error = runCatching { JSONObject(body).optJSONObject("error") }.getOrNull()
         val code = error?.optString("code").orEmpty().ifBlank { "HTTP_$status" }
-        val message = error?.optString("message").orEmpty().ifBlank { "HTTP $status" }
+        val message = if (status == 401) {
+            "服务器 Token 无效或已过期，请打开服务器设置重新填写 Owner Token"
+        } else {
+            error?.optString("message").orEmpty().ifBlank { "HTTP $status" }
+        }
         return QuestionApiException(status, code, message)
     }
 
