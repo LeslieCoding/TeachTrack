@@ -76,8 +76,18 @@ public class PracticeService {
             candidates = repository.selectCandidates(subjectId, knowledgeIds, minDifficulty, maxDifficulty, count);
         }
         if (candidates.isEmpty()) {
-            throw ApiException.badRequest("INSUFFICIENT_QUESTIONS",
-                    "题库中没有符合条件且已审核的题目，AI 生成未配置或未通过质量门");
+            Integer approvedTotal = jdbc.queryForObject("""
+                    select count(*) from questions
+                    where subject_id = ? and review_status = 'APPROVED' and deleted_at is null
+                    """, Integer.class, subjectId);
+            int available = approvedTotal == null ? 0 : approvedTotal;
+            String message = available == 0
+                    ? "该学科还没有已审核题目。请先在题库录入完整题目并保存通过，再生成练习。"
+                    : "该学科有 " + available + " 道已审核题，但没有题目符合当前难度或知识点筛选。请放宽筛选后重试。";
+            if (Boolean.TRUE.equals(request.allowAi())) {
+                message += " AI 自动出题未配置或没有通过质量门，本次不会伪造题目。";
+            }
+            throw ApiException.badRequest("INSUFFICIENT_QUESTIONS", message);
         }
         if (candidates.size() < count) {
             count = candidates.size();

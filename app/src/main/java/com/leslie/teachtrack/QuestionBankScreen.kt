@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -260,7 +261,12 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
             return@Column
         }
         if (hubTab == 2) {
-            Box(Modifier.weight(1f)) { PracticePanel(vm, baseUrl, token) }
+            Box(Modifier.weight(1f)) {
+                PracticePanel(vm, baseUrl, token, onOpenQuestionBank = {
+                    hubTab = 0
+                    selectionMode = false
+                })
+            }
             return@Column
         }
 
@@ -423,6 +429,8 @@ fun QuestionBankScreen(vm: TeachTrackViewModel) {
                 filterType = ""
                 filterStatus = ""
                 filterDifficulty = null
+                filterOpen = false
+                load()
             },
             onApply = {
                 filterOpen = false
@@ -469,38 +477,86 @@ private fun QuestionFilterDialog(
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("学科", fontSize = 12.sp, color = Color.Gray)
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    item { FilterChip(subjectId.isBlank(), { onSubject("") }, label = { Text("全部") }) }
+                LazyRow(
+                    modifier = Modifier.testTag("filter-subject-row"),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    item {
+                        FilterChip(
+                            subjectId.isBlank(),
+                            { onSubject("") },
+                            modifier = Modifier.testTag("filter-subject-ALL"),
+                            label = { Text("全部") }
+                        )
+                    }
                     items(subjects, key = { it.id }) { subject ->
-                        FilterChip(subjectId == subject.id, { onSubject(subject.id) }, label = { Text(subject.name) })
+                        FilterChip(
+                            subjectId == subject.id,
+                            { onSubject(subject.id) },
+                            modifier = Modifier.testTag("filter-subject-${subject.id}"),
+                            label = { Text(subject.name) }
+                        )
                     }
                 }
                 Text("年级", fontSize = 12.sp, color = Color.Gray)
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    item { FilterChip(grade.isBlank(), { onGrade("") }, label = { Text("全部") }) }
+                LazyRow(
+                    modifier = Modifier.testTag("filter-grade-row"),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    item {
+                        FilterChip(
+                            grade.isBlank(),
+                            { onGrade("") },
+                            modifier = Modifier.testTag("filter-grade-ALL"),
+                            label = { Text("全部") }
+                        )
+                    }
                     items(listOf("七上", "七下", "八上", "八下", "九上", "九下")) { value ->
-                        FilterChip(grade == value, { onGrade(value) }, label = { Text(value) })
+                        FilterChip(
+                            grade == value,
+                            { onGrade(value) },
+                            modifier = Modifier.testTag("filter-grade-$value"),
+                            label = { Text(value) }
+                        )
                     }
                 }
                 Text("题型", fontSize = 12.sp, color = Color.Gray)
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                LazyRow(
+                    modifier = Modifier.testTag("filter-type-row"),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
                     item { FilterChip(type.isBlank(), { onType("") }, label = { Text("全部") }) }
                     items(QUESTION_TYPE_OPTIONS, key = { it.first }) { (value, label) ->
-                        FilterChip(type == value, { onType(value) }, label = { Text(label) })
+                        FilterChip(
+                            type == value,
+                            { onType(value) },
+                            modifier = Modifier.testTag("filter-type-$value"),
+                            label = { Text(label) }
+                        )
                     }
                 }
                 Text("审核状态", fontSize = 12.sp, color = Color.Gray)
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     item { FilterChip(status.isBlank(), { onStatus("") }, label = { Text("全部") }) }
                     items(FILTER_REVIEW_OPTIONS, key = { it.first }) { (value, label) ->
-                        FilterChip(status == value, { onStatus(value) }, label = { Text(label) })
+                        FilterChip(
+                            status == value,
+                            { onStatus(value) },
+                            modifier = Modifier.testTag("filter-status-$value"),
+                            label = { Text(label) }
+                        )
                     }
                 }
                 Text("难度", fontSize = 12.sp, color = Color.Gray)
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     item { FilterChip(difficulty == null, { onDifficulty(null) }, label = { Text("全部") }) }
                     items((1..5).toList()) { value ->
-                        FilterChip(difficulty == value, { onDifficulty(value) }, label = { Text("$value 级") })
+                        FilterChip(
+                            difficulty == value,
+                            { onDifficulty(value) },
+                            modifier = Modifier.testTag("filter-difficulty-$value"),
+                            label = { Text("$value 级") }
+                        )
                     }
                 }
             }

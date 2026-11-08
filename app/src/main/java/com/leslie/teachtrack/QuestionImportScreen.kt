@@ -65,7 +65,7 @@ fun QuestionImportDialog(
     var textbookVersion by remember { mutableStateOf("") }
     var sourceType by remember { mutableStateOf("TEACHER_IMPORTED") }
     var sourceName by remember { mutableStateOf("") }
-    var reviewStatus by remember { mutableStateOf("DRAFT") }
+    var reviewStatus by remember { mutableStateOf("APPROVED") }
     var rawText by remember { mutableStateOf("") }
     var csvMode by remember { mutableStateOf(false) }
     var previewVisible by remember { mutableStateOf(false) }
@@ -177,7 +177,8 @@ fun QuestionImportDialog(
                 progress = "正在导入 ${position + 1}/${targets.size}"
                 rows[index] = rows[index].copy(status = "导入中")
                 try {
-                    api.create(inputFor(rows[index]))
+                    val effectiveStatus = if (rows[index].question.requiresImage) "DRAFT" else reviewStatus
+                    api.create(inputFor(rows[index]).copy(reviewStatus = effectiveStatus))
                     rows[index] = rows[index].copy(imported = true, status = "已导入")
                     created++
                 } catch (e: QuestionApiException) {
@@ -233,6 +234,7 @@ fun QuestionImportDialog(
                         }
                         OutlinedTextField(sourceName, { sourceName = it }, Modifier.fillMaxWidth(), singleLine = true, label = { Text("来源名称（可选）") })
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilterChip(reviewStatus == "APPROVED", { reviewStatus = "APPROVED" }, label = { Text("完整题直接通过") })
                             FilterChip(reviewStatus == "DRAFT", { reviewStatus = "DRAFT" }, label = { Text("导入为草稿") })
                             FilterChip(reviewStatus == "NEEDS_REVIEW", { reviewStatus = "NEEDS_REVIEW" }, label = { Text("导入后待审核") })
                         }

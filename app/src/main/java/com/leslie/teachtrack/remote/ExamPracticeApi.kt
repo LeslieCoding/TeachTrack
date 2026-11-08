@@ -89,6 +89,12 @@ class ExamPracticeApi(
         parseExam(postJson("/api/v1/exams/$examId/approve?importToBank=true", JSONObject()))
     }
 
+    suspend fun approvedQuestionCount(subjectId: String): Int = withContext(Dispatchers.IO) {
+        val encoded = URLEncoder.encode(subjectId, "UTF-8")
+        getJson("/api/v1/questions?reviewStatus=APPROVED&subjectId=$encoded&limit=1")
+            .optInt("total", 0)
+    }
+
     suspend fun generatePractice(
         studentId: String,
         subjectId: String,

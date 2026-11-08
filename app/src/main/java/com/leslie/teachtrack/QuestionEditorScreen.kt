@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -229,9 +230,17 @@ fun QuestionEditorDialog(
                         OutlinedTextField(textbookVersion, { textbookVersion = it }, Modifier.weight(1f), label = { Text("教材版本") }, singleLine = true)
                     }
                     Text("题型", fontSize = 12.sp, color = Color.Gray)
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    LazyRow(
+                        modifier = Modifier.testTag("editor-type-row"),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
                         items(QUESTION_TYPE_OPTIONS, key = { it.first }) { (value, label) ->
-                            FilterChip(questionType == value, { questionType = value }, label = { Text(label) })
+                            FilterChip(
+                                questionType == value,
+                                { questionType = value },
+                                modifier = Modifier.testTag("editor-type-$value"),
+                                label = { Text(label) }
+                            )
                         }
                     }
                     Text("难度", fontSize = 12.sp, color = Color.Gray)
@@ -343,7 +352,7 @@ fun QuestionEditorDialog(
                 Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Spacer(Modifier.weight(1f))
                     OutlinedButton(onClick = { save("DRAFT") }, enabled = !saving) { Text(if (duplicateApproved) "仍要存草稿" else "保存草稿") }
-                    Button(onClick = { save("NEEDS_REVIEW") }, enabled = !saving) { Text(if (duplicateApproved) "仍要提交" else "提交审核") }
+                    Button(onClick = { save("APPROVED") }, enabled = !saving) { Text(if (duplicateApproved) "仍要保存通过" else "保存并审核通过") }
                 }
             }
         }

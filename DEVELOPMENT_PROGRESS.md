@@ -204,3 +204,9 @@ M01–M07 的后端能力已实现并测试；Android 侧完成题库页与同�
 - `bypy` 包迁到 `D:\SoftWare\Python311\Lib\site-packages`，配置迁到 `D:\SoftWare\bypy-home\.bypy`；Baidu 上传/下载复测通过。
 - Oracle Always Free 部署说明：`backend/ops/oracle/README.md`；SSH 密钥 `D:\SoftWare\oracle\ssh\teachtrack_ed25519`。
 - 等待 Oracle VM 公网 IP；本机没有 Oracle 账号/VM。
+
+## 题库模块按钮级验收（2026-11-08）
+
+- 题库所有界面的按钮补齐到 14 项 Compose 仪器测试，OnePlus 6 上连续两轮 `OK (14 tests)`。
+- 后端 `25/25`、Android JVM `61/61` 通过；生产后端已用新 jar 重启，health 200，公网隧道 200。
+- 生产库仍是 1 道草稿题；精准练习在 0 道已审核题时给出可操作提示并禁用生成。

@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -188,7 +189,12 @@ fun ExamPanel(vm: TeachTrackViewModel, baseUrl: String, token: String) {
 }
 
 @Composable
-fun PracticePanel(vm: TeachTrackViewModel, baseUrl: String, token: String) {
+fun PracticePanel(
+    vm: TeachTrackViewModel,
+    baseUrl: String,
+    token: String,
+    onOpenQuestionBank: () -> Unit = {}
+) {
     val students by vm.students.collectAsStateWithLifecycle()
     val active = students.filter { it.status != StudentStatus.ARCHIVED }
     val context = LocalContext.current
@@ -198,6 +204,7 @@ fun PracticePanel(vm: TeachTrackViewModel, baseUrl: String, token: String) {
     var subjects by remember { mutableStateOf<List<CloudSubject>>(emptyList()) }
     var subjectId by remember { mutableStateOf("") }
     var selectedStudent by remember { mutableStateOf<StudentEntity?>(null) }
+    var approvedCount by remember { mutableIntStateOf(-1) }
     var count by remember { mutableStateOf("5") }
     var mode by remember { mutableStateOf("BASIC") }
     var practice by remember { mutableStateOf<CloudPractice?>(null) }
@@ -213,6 +220,11 @@ fun PracticePanel(vm: TeachTrackViewModel, baseUrl: String, token: String) {
                 if (subjectId.isBlank()) subjectId = it.firstOrNull()?.id.orEmpty()
             }
             .onFailure { error = it.message }
+    }
+    LaunchedEffect(subjectId) {
+        approvedCount = if (subjectId.isBlank()) -1 else runCatching {
+            api.approvedQuestionCount(subjectId)
+        }.getOrDefault(-1)
     }
 
     fun generate() {
@@ -308,7 +320,20 @@ fun PracticePanel(vm: TeachTrackViewModel, baseUrl: String, token: String) {
             singleLine = true,
             label = { Text("题量（1–50）") }
         )
-        Button(onClick = { generate() }, enabled = !loading) { Text("生成练习草稿") }
+        if (approvedCount >= 0) {
+            Text(
+                if (approvedCount == 0) "该学科还没有已审核题目，先在题库录入完整题目并保存通过。"
+                else "该学科可用已审核题目：$approvedCount 道（少于题量时按实际数量生成）",
+                fontSize = 12.sp,
+                color = if (approvedCount == 0) MaterialTheme.colorScheme.error else EpGreen
+            )
+        }
+        if (approvedCount == 0) {
+            OutlinedButton(onClick = onOpenQuestionBank, modifier = Modifier.fillMaxWidth()) {
+                Text("去题库录入 / 审核题目")
+            }
+        }
+        Button(onClick = { generate() }, enabled = !loading && approvedCount != 0) { Text("生成练习草稿") }
 
         if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
         error?.let { Text(it, color = MaterialTheme.colorScheme.error, fontSize = 13.sp) }
@@ -376,6 +401,7 @@ private fun StudentChips(
             FilterChip(
                 selected = selected?.id == student.id,
                 onClick = { onSelect(student) },
+                modifier = Modifier.testTag("student-chip-${student.id}"),
                 label = { Text(student.displayName.ifBlank { student.name }, fontSize = 11.sp) }
             )
         }
