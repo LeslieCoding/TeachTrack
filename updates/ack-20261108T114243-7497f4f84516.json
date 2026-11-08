@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "ack-20261108T114243-7497f4f84516",
+  "messageId": "msg-20261108T113707-8705945ef9e1",
+  "taskId": "agent-mailbox-no-popup",
+  "from": "server",
+  "status": "completed",
+  "body": "服务器已拉取并合并至 main 0c2dac7；旧 TeachTrackAgentMailbox 已移除，仅保留 TeachTrackAgentMailboxWatch，State=Running，Interval=300秒，pythonw 隐藏运行且禁止 Git/GCM 交互。5项信箱测试通过，watch --once 自检正常。",
+  "createdAt": "2026-11-08T11:42:43.816980Z"
+}
