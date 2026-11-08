@@ -332,6 +332,6 @@ OnePlus 6（Android 11）QuestionBankComposeInstrumentedTest：两轮均 OK (15 
 
 - Flyway 新增 `V018__recompute_normalized_hash_keep_digits.sql`：删索引 → 按新规则重算 → 题号不同但题干相同的行软删除（保留最完整的已审核行）→ 重建唯一索引。本机生产库、测试库、`teachtrack_test` 均已应用。
 - 一致性验证：对 V018 之前写入的题（哈希由 SQL 回填），用「（1）+ 改标点」变体重提交，返回 409 DUPLICATE_QUESTION，证明 SQL 回填与 Java 计算同值。
-- 注意：另一台服务器上用旧规则导入的 55,617 道题里，约 10,764 道是被数字归一误合并的；需要在新规则下重跑导入才能补回。
+- 注意：跨分片去重量不能直接当作数字误合并数量。正式服务器已备份并应用 V018、四分片重跑；实际新增 220 道，现有 55,836 道有效题（26,347 已审核 / 29,489 待审核），544 道软删除，规范化重复组和空题干均为 0。
 - `3.0.0-alpha.7`（versionCode 300007）已发布：GitHub Release `https://github.com/LeslieCoding/TeachTrack/releases/tag/v3.0.0-alpha.7`，附 `TeachTrack_3.0.0-alpha.7.apk`（62,429,073B，debug 签名，预发布）。
 - OPPO Pad 2d64f765 覆盖安装 alpha.7 后，进入 Agent → 设置 → 关于 → 检查更新，实测返回「已经是最新版本。」，说明更新源读取与版本比较正常。
