@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "ack-20261108T132030-5f9a23d6aee7",
+  "messageId": "msg-20261108T125848-17450342944f",
+  "taskId": "device-alpha7-regression",
+  "from": "server",
+  "status": "completed",
+  "body": "服务器已接收双设备 alpha.7 回归报告及凭据更新注意事项。",
+  "createdAt": "2026-11-08T13:20:30.162757Z"
+}
