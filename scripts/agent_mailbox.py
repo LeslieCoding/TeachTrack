@@ -119,7 +119,7 @@ def ensure_clean(mailbox):
 def sync_mailbox(mailbox):
     ensure_clean(mailbox)
     git(mailbox, "fetch", "origin", BRANCH)
-    git(mailbox, "pull", "--rebase", "origin", BRANCH)
+    git(mailbox, "rebase", f"origin/{BRANCH}")
     git(mailbox, "push", "origin", BRANCH)
 
 
