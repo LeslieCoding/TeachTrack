@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "msg-20261108T113707-8705945ef9e1",
+  "taskId": "agent-mailbox-no-popup",
+  "kind": "task",
+  "priority": "high",
+  "from": "dev",
+  "to": "server",
+  "title": "服务器信箱改为静默无弹窗",
+  "body": "拉取 main 00751c8。停止并移除旧 TeachTrackAgentMailbox，执行 powershell -ExecutionPolicy Bypass -File scripts/install-agent-mailbox-watch.ps1，统一为隐藏 pythonw 的 TeachTrackAgentMailboxWatch。新 watch 已设置 GIT_TERMINAL_PROMPT=0 和 GCM_INTERACTIVE=never，认证失败只写日志，不弹窗。确认 State=Running 后回复 completed；不要同时保留两个同步任务。",
+  "createdAt": "2026-11-08T11:37:07.318429Z"
+}
