@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "ack-20261108T133320-ce28d761a84a",
+  "messageId": "msg-20261108T131621-02864dfef53d",
+  "taskId": "grade9-midterm-2026",
+  "from": "server",
+  "status": "progress",
+  "body": "已生成学生版/教师版初稿，共32题：20选择、6填空、4实验、2分析计算，60+30+40+30=160。逐题复核后已替换错答案、答案混入题干和缺图候选，正在做DOCX最终校验。",
+  "createdAt": "2026-11-08T13:33:20.115060Z"
+}
