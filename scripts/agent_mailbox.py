@@ -299,6 +299,8 @@ def append_watch_log(root, message):
 def watch_mailbox(root, interval, once):
     if interval < 5:
         raise MailboxError("自动接收间隔不能小于 5 秒")
+    os.environ["GIT_TERMINAL_PROMPT"] = "0"
+    os.environ["GCM_INTERACTIVE"] = "never"
     mailbox = worktree(root)
     node = current_node(root)
     seen = set()
@@ -337,7 +339,7 @@ def build_parser():
     commands.add_parser("sync", help="接收远端消息并发送本机排队消息")
 
     watch = commands.add_parser("watch", help="持续自动接收消息和发送排队事件")
-    watch.add_argument("--interval", type=int, default=60, help="同步间隔秒数，默认 60")
+    watch.add_argument("--interval", type=int, default=300, help="同步间隔秒数，默认 300")
     watch.add_argument("--once", action="store_true", help=argparse.SUPPRESS)
 
     send = commands.add_parser("send", help="发送任务、报告或备注")

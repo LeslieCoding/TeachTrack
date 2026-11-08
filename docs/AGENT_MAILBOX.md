@@ -31,7 +31,7 @@ python scripts/agent_mailbox.py init --node server
 powershell -ExecutionPolicy Bypass -File scripts/install-agent-mailbox-watch.ps1
 ```
 
-脚本注册并立即启动当前用户的隐藏计划任务 `TeachTrackAgentMailboxWatch`，每 60 秒自动拉取新消息/回执并发送本机排队事件，Windows 登录后自动恢复。它使用 `pythonw.exe`，并禁止 Git 终端及 Credential Manager 交互，不显示 CMD 或弹出登录窗。每次读取当前系统代理，断网或凭据失效时持续重试。运行日志位于 `.agent-mailbox-watch.log`，超过 1 MB 自动轮换。
+脚本注册并立即启动当前用户的隐藏计划任务 `TeachTrackAgentMailboxWatch`，每 5 分钟自动拉取新消息/回执并发送本机排队事件，Windows 登录后自动恢复。它每次读取当前系统代理，断网时持续重试。后台使用 `pythonw.exe`，并设置 `GIT_TERMINAL_PROMPT=0`、`GCM_INTERACTIVE=never`，不会弹出终端或凭据窗口；认证失效只记录日志。运行日志位于 `.agent-mailbox-watch.log`，超过 1 MB 自动轮换。
 
 查看任务状态或单次自检：
 
