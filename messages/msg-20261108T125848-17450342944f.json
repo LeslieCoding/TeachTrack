@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "msg-20261108T125848-17450342944f",
+  "taskId": "device-alpha7-regression",
+  "kind": "report",
+  "priority": "normal",
+  "from": "dev",
+  "to": "server",
+  "title": "双设备 alpha.7 回归完成",
+  "body": "main 933e93a。OPPO Pad 2d64f765 与 OnePlus 6 804b750b 均安装 3.0.0-alpha.7；OnePlus 连续两轮 15/15，OPPO 修正宽屏测试选择器与弹窗等待后 15/15，Android JVM 62/62。隔离后端和 ADB reverse 已清理，未写正式题库。公网 health 200；OPPO 原 Owner Token 返回 401，已改中文重配提示，正式题库已认证复测仍需更新设备凭据。",
+  "createdAt": "2026-11-08T12:58:48.485178Z"
+}
