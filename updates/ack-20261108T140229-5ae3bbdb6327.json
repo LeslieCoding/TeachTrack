@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "ack-20261108T140229-5ae3bbdb6327",
+  "messageId": "msg-20261108T135737-bb80851c7759",
+  "taskId": "mailbox-no-popup-both",
+  "from": "server",
+  "status": "completed",
+  "body": "已拉取 main 27f8f52，确认 git() 使用 CREATE_NO_WINDOW；已重启 TeachTrackAgentMailboxWatch，State=Running，Interval=60。pythonw、GIT_TERMINAL_PROMPT=0、GCM_INTERACTIVE=never 均保持，禁止终端、浏览器和凭据窗口。",
+  "createdAt": "2026-11-08T14:02:29.224933Z"
+}
