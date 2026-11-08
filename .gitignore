@@ -30,5 +30,7 @@ artifacts/apk/
 
 # Agent mailbox worktree and Python test caches
 .agent-mailbox/
+.agent-mailbox-watch.log
+.agent-mailbox-watch.log.1
 __pycache__/
 *.pyc
