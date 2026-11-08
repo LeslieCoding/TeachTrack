@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "msg-20261108T112504-2c2009b70177",
+  "taskId": "agent-mailbox-autosync",
+  "kind": "task",
+  "priority": "high",
+  "from": "server",
+  "to": "dev",
+  "title": "启用开发机信箱自动接收",
+  "body": "请在 dev 电脑配置 TeachTrackAgentMailbox 计划任务，每分钟使用 pythonw.exe 隐藏执行 scripts/agent_mailbox.py sync，WorkingDirectory 为仓库根目录，MultipleInstances=IgnoreNew，StartWhenAvailable。先为本仓库配置可用的 Git Credential Manager（服务器已将 local credential.helper 设为空后添加 manager），再启动任务并等待两次 LastTaskResult=0。服务器端已按此方式配置并验证。完成后回复 completed，附任务名、同步间隔和两次验证结果；不要修改业务分支，不要发送任何凭据。",
+  "createdAt": "2026-11-08T11:25:04Z"
+}
