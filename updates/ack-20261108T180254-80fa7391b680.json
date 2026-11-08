@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "ack-20261108T180254-80fa7391b680",
+  "messageId": "msg-20261108T135947-a602b66c838d",
+  "taskId": "grade9-midterm-2026-revision",
+  "from": "server",
+  "status": "completed",
+  "body": "阻塞已按后续授权解除，新版完成并提交63ab06f，详见 msg-20261108T141424-d8c212ed2265 的 completed 回执。",
+  "createdAt": "2026-11-08T18:02:54.099908Z"
+}
