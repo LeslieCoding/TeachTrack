@@ -32,5 +32,6 @@ artifacts/apk/
 .agent-mailbox/
 .agent-mailbox-watch.log
 .agent-mailbox-watch.log.1
+.agent-mailbox-sync.lock
 __pycache__/
 *.pyc

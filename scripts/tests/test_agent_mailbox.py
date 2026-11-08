@@ -4,6 +4,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest import mock
 
@@ -158,6 +159,35 @@ class AgentMailboxTest(unittest.TestCase):
         inbox = json.loads(self.mailbox(self.server, "inbox", "--json").stdout)
         self.assertEqual(message_id, inbox[0]["id"])
         self.assertEqual("pending", inbox[0]["latestStatus"])
+
+    def test_fetch_refreshes_remote_tracking_before_rebase(self):
+        self.initialize()
+        stale = self.git(self.server, "rev-parse", "origin/agent-mailbox").stdout.strip()
+        message_id = self.mailbox(
+            self.dev,
+            "send",
+            "--to",
+            "server",
+            "--title",
+            "远端新消息",
+            "--message",
+            "验证抓取后立即更新远端跟踪分支",
+        ).stdout.strip()
+        self.git(self.server, "update-ref", "refs/remotes/origin/agent-mailbox", stale)
+        self.mailbox(self.server, "sync")
+        expected = self.git(self.dev / ".agent-mailbox", "rev-parse", "HEAD").stdout.strip()
+        actual = self.git(self.server, "rev-parse", "origin/agent-mailbox").stdout.strip()
+        self.assertEqual(expected, actual)
+        inbox = json.loads(self.mailbox(self.server, "inbox", "--json").stdout)
+        self.assertEqual(message_id, inbox[0]["id"])
+
+    def test_concurrent_sync_is_serialized(self):
+        self.initialize()
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            list(executor.map(lambda _: self.mailbox(self.server, "sync"), range(4)))
+        git_dir = Path(self.git(self.server, "rev-parse", "--git-dir").stdout.strip())
+        fetch_head = (git_dir / "FETCH_HEAD").read_text(encoding="utf-8")
+        self.assertEqual(1, len(fetch_head.strip().splitlines()))
 
     def test_git_environment_never_prompts(self):
         with mock.patch.dict(os.environ, {"GCM_INTERACTIVE": "always", "GIT_TERMINAL_PROMPT": "1"}):

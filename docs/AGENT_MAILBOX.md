@@ -33,6 +33,8 @@ powershell -ExecutionPolicy Bypass -File scripts/install-agent-mailbox-watch.ps1
 
 脚本注册并立即启动当前用户的隐藏计划任务 `TeachTrackAgentMailboxWatch`，每 5 分钟自动拉取新消息/回执并发送本机排队事件，Windows 登录后自动恢复。它每次读取当前系统代理，断网时持续重试。后台使用 `pythonw.exe`，并设置 `GIT_TERMINAL_PROMPT=0`、`GCM_INTERACTIVE=never`，不会弹出终端或凭据窗口；认证失效只记录日志。运行日志位于 `.agent-mailbox-watch.log`，超过 1 MB 自动轮换。
 
+后台监视与手动接收共用跨进程同步锁，避免同时写 Git 状态。抓取会显式更新 `origin/agent-mailbox` 后再变基；远端并发提交、非快进推送和临时网络错误会自动重试，避免旧远端跟踪状态造成漏收。
+
 查看任务状态或单次自检：
 
 ```powershell

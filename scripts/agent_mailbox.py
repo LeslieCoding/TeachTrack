@@ -7,11 +7,15 @@ import subprocess
 import sys
 import time
 import uuid
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
 if sys.platform == "win32":
+    import msvcrt
     import winreg
+else:
+    import fcntl
 
 BRANCH = "agent-mailbox"
 WORKTREE_NAME = ".agent-mailbox"
@@ -117,11 +121,55 @@ def ensure_clean(mailbox):
         raise MailboxError(f"信箱 worktree 有未提交改动，请先处理：\n{status}")
 
 
+@contextmanager
+def mailbox_lock(mailbox):
+    lock_path = mailbox.parent / ".agent-mailbox-sync.lock"
+    with lock_path.open("a+b") as handle:
+        handle.seek(0, os.SEEK_END)
+        if handle.tell() == 0:
+            handle.write(b"\0")
+            handle.flush()
+        handle.seek(0)
+        if sys.platform == "win32":
+            deadline = time.monotonic() + 60
+            while True:
+                try:
+                    msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+                    break
+                except OSError:
+                    if time.monotonic() >= deadline:
+                        raise MailboxError("等待信箱同步锁超时，请稍后重试")
+                    time.sleep(0.2)
+        else:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            handle.seek(0)
+            if sys.platform == "win32":
+                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+
+
 def sync_mailbox(mailbox):
-    ensure_clean(mailbox)
-    git(mailbox, "fetch", "origin", BRANCH)
-    git(mailbox, "rebase", f"origin/{BRANCH}")
-    git(mailbox, "push", "origin", BRANCH)
+    with mailbox_lock(mailbox):
+        ensure_clean(mailbox)
+        for attempt in range(5):
+            try:
+                git(mailbox, "fetch", "origin", f"refs/heads/{BRANCH}:refs/remotes/origin/{BRANCH}")
+                git(mailbox, "rebase", f"origin/{BRANCH}")
+                git(mailbox, "push", "origin", BRANCH)
+                return
+            except MailboxError as exc:
+                detail = str(exc).lower()
+                retryable = any(text in detail for text in (
+                    "non-fast-forward", "fetch first", "unable to access", "connection was reset",
+                    "recv failure", "failed to connect", "could not resolve", "timed out",
+                ))
+                if not retryable or attempt == 4:
+                    raise
+                time.sleep(2 ** attempt)
 
 
 def init_mailbox(root, node):
