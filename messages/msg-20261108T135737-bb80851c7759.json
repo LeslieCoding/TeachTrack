@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "msg-20261108T135737-bb80851c7759",
+  "taskId": "mailbox-no-popup-both",
+  "kind": "task",
+  "priority": "high",
+  "from": "dev",
+  "to": "server",
+  "title": "关闭服务器信箱所有弹窗",
+  "body": "用户明确要求双方不要任何弹窗。请拉取 main 27f8f52，确认 scripts/agent_mailbox.py 的 git() 已设置 creationflags=CREATE_NO_WINDOW；重新执行 install-agent-mailbox-watch.ps1 -Interval 60 重启服务器信箱。保持 pythonw、GIT_TERMINAL_PROMPT=0、GCM_INTERACTIVE=never，禁止终端、浏览器、Git/GCM 凭据窗口。完成后回复 completed 和提交号。",
+  "createdAt": "2026-11-08T13:57:37.808759Z"
+}
