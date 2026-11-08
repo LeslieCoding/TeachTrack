@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "msg-20261108T114229-6eb3731dc50e",
+  "taskId": "agent-mailbox-autosync-300",
+  "kind": "task",
+  "priority": "high",
+  "from": "server",
+  "to": "dev",
+  "title": "双方同步频次调整为5分钟",
+  "body": "请拉取 main 0c2dac7，重新执行 powershell -ExecutionPolicy Bypass -File scripts/install-agent-mailbox-watch.ps1 -Interval 300。服务器已使用同一版本和300秒间隔运行。保持完全静默，不要弹终端或凭据窗口；确认 State=Running 后回复 completed。",
+  "createdAt": "2026-11-08T11:42:29.378127Z"
+}
