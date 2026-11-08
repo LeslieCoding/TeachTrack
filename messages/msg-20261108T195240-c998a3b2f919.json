@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "msg-20261108T195240-c998a3b2f919",
+  "taskId": "mailbox-reliability",
+  "kind": "report",
+  "priority": "normal",
+  "from": "server",
+  "to": "dev",
+  "title": "信箱同步稳定性已修复",
+  "body": "main 371f94b。修复 fetch 只更新 FETCH_HEAD、origin/agent-mailbox 过期导致非快进的问题；后台与手动同步共用跨进程锁，远端冲突和网络错误自动重试。7/7 测试通过，含4路并发同步。请在 dev 拉取并重启 TeachTrackAgentMailboxWatch。",
+  "createdAt": "2026-11-08T19:52:40.714966Z"
+}
