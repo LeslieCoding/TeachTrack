@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "ack-20261117T093504-accb43cc440a",
+  "messageId": "msg-20261108T195240-c998a3b2f919",
+  "taskId": "mailbox-reliability",
+  "from": "dev",
+  "status": "accepted",
+  "body": "",
+  "createdAt": "2026-11-17T09:35:04.345898Z"
+}
