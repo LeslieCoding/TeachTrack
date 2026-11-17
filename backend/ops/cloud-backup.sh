@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Encrypted, free cloud backup to a private GitHub repository (Contents API).
+# Encrypted cloud backup stored in the main TeachTrack repository (Contents API).
 # No git clone/push: GitHub HTTPS git was timing out on this network, while
 # `gh api` works. The database dump is encrypted locally; the key never leaves
 # the machine.
@@ -12,7 +12,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PG_BIN="${PG_BIN:-/d/SoftWare/pgsql-16/bin}"
 SOURCE_DB_URL="${SOURCE_DB_URL:-postgresql://teachtrack@127.0.0.1:55432/teachtrack}"
-REPO_SLUG="${CLOUD_BACKUP_REPO_SLUG:-LeslieCoding/teachtrack-cloud}"
+REPO_SLUG="${CLOUD_BACKUP_REPO_SLUG:-LeslieCoding/TeachTrack}"
+BACKUP_ROOT="${CLOUD_BACKUP_REPO_PATH:-backend/backups/cloud}"
 KEY_FILE="${CLOUD_BACKUP_KEY_FILE:-$ROOT/backend/.cloud-backup-key}"
 
 if ! command -v gh >/dev/null 2>&1; then
@@ -70,22 +71,24 @@ EOF
 cat > "$WORK/README.md" <<'EOF'
 # TeachTrack cloud backup
 
-This private repository stores **encrypted** PostgreSQL backups of TeachTrack.
+This directory in the `LeslieCoding/TeachTrack` repository stores **encrypted** PostgreSQL backups of TeachTrack.
 
 - No plaintext student data is committed.
-- Encryption: AES-256-CBC with PBKDF2; the key is held by the owner outside this repo.
-- Each backup lives under `dumps/<timestamp>/`.
+- Encryption: AES-256-CBC with PBKDF2; the key is held by the owner outside this repository.
+- Each backup lives under `backend/backups/cloud/dumps/<timestamp>/`.
 - `manifest.json` contains only counts, never names, phones or answers.
+- New backups are uploaded by `backend/ops/cloud-backup.sh` to this same repository and directory.
 
-Restore (owner machine only):
+Restore (owner machine only, from the repository root):
 
 ```bash
-openssl enc -d -aes-256-cbc -pbkdf2 -in dumps/<timestamp>/teachtrack.dump.enc \
-  -out teachtrack.dump -pass file:/path/to/.cloud-backup-key
+openssl enc -d -aes-256-cbc -pbkdf2 \
+  -in backend/backups/cloud/dumps/<timestamp>/teachtrack.dump.enc \
+  -out teachtrack.dump -pass file:backend/.cloud-backup-key
 pg_restore --clean --if-exists --no-owner -d <target-db> teachtrack.dump
 ```
 
-If the key is lost, the backups are unrecoverable by design.
+Delete the decrypted `teachtrack.dump` after the restore. If the key is lost, the backups are unrecoverable by design.
 EOF
 
 echo "4/4 upload via GitHub Contents API"
@@ -93,13 +96,22 @@ upload() {
   python - "$1" "$2" "$STAMP" "$BRANCH" "$REPO_SLUG" <<'PY'
 import base64, json, subprocess, sys
 path, rel, stamp, branch, slug = sys.argv[1:6]
+endpoint = f"repos/{slug}/contents/{rel}"
+existing = subprocess.run(
+    ["gh", "api", f"{endpoint}?ref={branch}"],
+    check=False,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.DEVNULL,
+)
 body = {
     "message": "backup " + stamp,
     "content": base64.b64encode(open(path, "rb").read()).decode("ascii"),
     "branch": branch,
 }
+if existing.returncode == 0:
+    body["sha"] = json.loads(existing.stdout)["sha"]
 subprocess.run(
-    ["gh", "api", "--method", "PUT", f"repos/{slug}/contents/{rel}", "--input", "-"],
+    ["gh", "api", "--method", "PUT", endpoint, "--input", "-"],
     input=json.dumps(body).encode("utf-8"),
     check=True,
     stdout=subprocess.DEVNULL,
@@ -107,11 +119,11 @@ subprocess.run(
 PY
 }
 
-upload "$WORK/teachtrack.dump.enc" "dumps/$STAMP/teachtrack.dump.enc"
-upload "$WORK/teachtrack.dump.enc.sha256" "dumps/$STAMP/teachtrack.dump.enc.sha256"
-upload "$WORK/manifest.json" "dumps/$STAMP/manifest.json"
-upload "$WORK/README.md" "README.md"
+upload "$WORK/teachtrack.dump.enc" "$BACKUP_ROOT/dumps/$STAMP/teachtrack.dump.enc"
+upload "$WORK/teachtrack.dump.enc.sha256" "$BACKUP_ROOT/dumps/$STAMP/teachtrack.dump.enc.sha256"
+upload "$WORK/manifest.json" "$BACKUP_ROOT/dumps/$STAMP/manifest.json"
+upload "$WORK/README.md" "$BACKUP_ROOT/README.md"
 
 echo "cloud backup completed: $STAMP"
-echo "repo: https://github.com/$REPO_SLUG"
+echo "repo: https://github.com/$REPO_SLUG/tree/$BRANCH/$BACKUP_ROOT"
 echo "key: $KEY_FILE (keep it safe; never commit it)"

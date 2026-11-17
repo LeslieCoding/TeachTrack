@@ -214,17 +214,17 @@ curl -s -H "Authorization: Bearer $TEACHTRACK_BOOTSTRAP_TOKEN" \
 
 ## 已落地的免费云备份（不是可连接数据库）
 
-2026-11-05 已用现有 GitHub 账号创建**私有**仓库：
+2026-11-05 的首份加密备份原本位于私有仓库 `LeslieCoding/teachtrack-cloud`；2026-11-17 已连同完整 Git 历史合并进 `LeslieCoding/TeachTrack`，旧仓库仅保留为已归档的历史镜像。当前唯一位置：
 
 ```text
-https://github.com/LeslieCoding/teachtrack-cloud
+https://github.com/LeslieCoding/TeachTrack/tree/main/backend/backups/cloud
 ```
 
 内容：
 
-- `dumps/<timestamp>/teachtrack.dump.enc`：AES-256-CBC/PBKDF2 加密的 PostgreSQL dump
-- `dumps/<timestamp>/manifest.json`：只有行数，没有姓名/电话/答案
-- `README.md`：恢复步骤
+- `backend/backups/cloud/dumps/<timestamp>/teachtrack.dump.enc`：AES-256-CBC/PBKDF2 加密的 PostgreSQL dump
+- `backend/backups/cloud/dumps/<timestamp>/manifest.json`：只有行数，没有姓名/电话/答案
+- `backend/backups/cloud/README.md`：恢复步骤
 
 执行：
 
@@ -232,6 +232,8 @@ https://github.com/LeslieCoding/teachtrack-cloud
 cd backend/ops
 ./cloud-backup.sh
 ```
+
+脚本默认上传回 `LeslieCoding/TeachTrack` 的 `backend/backups/cloud/`，不会再创建或写入独立仓库。
 
 密钥：
 

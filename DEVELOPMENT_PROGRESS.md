@@ -123,12 +123,13 @@ M01–M07 的后端能力已实现并测试；Android 侧完成题库页与同�
 
 - 云端启动器：`backend/ops/run-cloud.ps1` / `run-cloud.sh`（读取 `backend/.env`，不打印密钥）；`cloud` profile 已用本地连接串冒烟启动，health 200。
 
-## 免费云备份已落地（2026-11-05）
+## 免费云备份已落地（2026-11-05；2026-11-17 仓库归并）
 
-- 私有仓库：`https://github.com/LeslieCoding/teachtrack-cloud`
-- 已上传首份加密备份：`dumps/20261105-205304/`，manifest 显示 students=30 / courseSessions=31 / questions=1
+- 当前唯一仓库：`https://github.com/LeslieCoding/TeachTrack`
+- 原 `teachtrack-cloud` 的 4 个提交及加密备份已完整并入 `backend/backups/cloud/`，旧仓库仅作归档镜像。
+- 首份加密备份：`backend/backups/cloud/dumps/20261105-205304/`，manifest 显示 students=30 / courseSessions=31 / questions=1
 - 加密：AES-256-CBC/PBKDF2，密钥 `backend/.cloud-backup-key`（已 gitignore，需另存）
-- 脚本：`backend/ops/cloud-backup.sh`
+- 脚本：`backend/ops/cloud-backup.sh`，默认上传主仓库的 `backend/backups/cloud/`
 - 性质：云存储/灾备，不是可连接的云 PostgreSQL。
 
 ## 百度网盘文件存储适配器（2026-11-05）

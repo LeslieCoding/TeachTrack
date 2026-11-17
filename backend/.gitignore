@@ -4,7 +4,8 @@ data/
 .env
 *.log
 
-backups/
+backups/*
+!backups/cloud/
+!backups/cloud/**
 
-cloud-backup-repo/
 .cloud-backup-key

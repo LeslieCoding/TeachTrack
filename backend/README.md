@@ -127,11 +127,12 @@ JAVA_HOME=D:/SoftWare/jdk-21 ../gradlew.bat -p backend test
 ## 备份与恢复
 
 ```bash
-backend/ops/backup.sh        # pg_dump -> backups/
+backend/ops/backup.sh        # pg_dump -> backups/postgres/
 backend/ops/restore-test.sh  # 恢复到独立库并核对
+backend/ops/cloud-backup.sh  # 加密上传 -> 本仓库 backend/backups/cloud/
 ```
 
-详见 `ops/README.md`。
+加密云备份与本地 PostgreSQL 备份都归在本仓库；密钥 `backend/.cloud-backup-key` 始终只保存在本机并已 gitignore。详见 `ops/README.md`、`ops/cloud-setup.md` 和 `backups/cloud/README.md`。
 
 ## 已知限制（M02）
 

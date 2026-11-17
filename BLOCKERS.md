@@ -62,7 +62,7 @@
 
 ## B-09 云备份已建，云数据库仍未建
 
-- 已做：私有 GitHub 仓库 `LeslieCoding/teachtrack-cloud`，加密备份已上传并可校验。
+- 已做：加密备份及其完整历史已合并到 `LeslieCoding/TeachTrack` 的 `backend/backups/cloud/`；原 `teachtrack-cloud` 仅保留为已归档镜像。
 - 未做：可连接的云 PostgreSQL 实例；Supabase/Neon 需要账号登录。
 - 区别：GitHub 仓库是云存储/灾备，不是数据库引擎，不能替代 `TEACHTRACK_DB_URL`。
 
